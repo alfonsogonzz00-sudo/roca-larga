@@ -7,6 +7,9 @@ import Link from "next/link";
 import { Settings, ClipboardList } from "lucide-react";
 import { BottomNav, SideNav } from "@/components/layout/nav";
 import { Tour } from "@/components/onboarding/tour";
+import { PushPrompt } from "@/components/layout/push-prompt";
+import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 import { themeScript } from "@/components/layout/theme";
 import { OfflineBanner, ServiceWorkerRegister } from "@/components/layout/sw-register";
 import { getSettings, getTexts } from "@/lib/data/config";
@@ -44,6 +47,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [settings, t, session] = await Promise.all([getSettings(), getTexts(), getSession()]);
+  const vapidKey = session ? (((await (await createClient()).rpc("vapid_public_key")).data as string | null) || env.vapidPublicKey) : "";
   const pending = await getPendingVotesCount(session);
   const labels = Object.fromEntries(NAV.map((n) => [n.key, t(n.key, n.label)]));
   return (
@@ -75,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </div>
         <BottomNav labels={labels} voteBadge={pending} />
         <Tour enabled={Boolean(session?.player)} />
+        <PushPrompt enabled={Boolean(session)} vapidKey={vapidKey} afterTour={Boolean(session?.player)} />
         <ServiceWorkerRegister />
       </body>
     </html>

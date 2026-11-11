@@ -12,6 +12,25 @@ function urlB64ToUint8Array(base64: string) {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
+/** Pide permiso, suscribe este dispositivo y lo guarda en el servidor (requiere un toque del usuario) */
+export async function enablePushOnThisDevice(vapidKey: string): Promise<{ ok: boolean; text: string; denied?: boolean }> {
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return { ok: false, denied: perm === "denied", text: perm === "denied" ? "Has bloqueado los avisos. Puedes activarlos en los ajustes del móvil." : "Sin permiso, no podremos avisarte." };
+  const reg = (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register("/sw.js"));
+  await navigator.serviceWorker.ready;
+  const subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(vapidKey) });
+  const r = await savePushSubscription(subscription.toJSON(), navigator.userAgent);
+  return r.ok ? { ok: true, text: r.message ?? "Avisos activados." } : { ok: false, text: r.error };
+}
+
+/** ¿Se puede pedir permiso aquí? (en iPhone sólo dentro de la app instalada) */
+export function pushContext() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  return { isIOS, standalone, supported };
+}
+
 /** Activa/desactiva las notificaciones push en este dispositivo, con ayuda para iOS */
 export function PushToggle({ vapidKey }: { vapidKey: string }) {
   const [state, setState] = useState<State>("loading");
@@ -37,14 +56,9 @@ export function PushToggle({ vapidKey }: { vapidKey: string }) {
   const enable = async () => {
     setBusy(true); setMsg(null);
     try {
-      const perm = await Notification.requestPermission();
-      if (perm !== "granted") { setState(perm === "denied" ? "denied" : "off"); return; }
-      const reg = (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register("/sw.js"));
-      await navigator.serviceWorker.ready;
-      const subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(vapidKey) });
-      const r = await savePushSubscription(subscription.toJSON(), navigator.userAgent);
-      setMsg(r.ok ? { ok: true, text: r.message ?? "Activado" } : { ok: false, text: r.error });
-      if (r.ok) setState("on");
+      const r = await enablePushOnThisDevice(vapidKey);
+      setMsg({ ok: r.ok, text: r.text });
+      if (r.ok) setState("on"); else if (r.denied) setState("denied");
     } catch {
       setMsg({ ok: false, text: "No se pudieron activar los avisos en este navegador." });
     } finally { setBusy(false); }

@@ -16,7 +16,7 @@ async function toSquareJpeg(file: File, size = 512): Promise<Blob> {
   return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("No se pudo procesar la imagen"))), "image/jpeg", 0.85));
 }
 
-export function AvatarUpload({ userId, name, src, color }: { userId: string; name: string; src?: string | null; color?: string }) {
+export function AvatarUpload({ userId, name, src, color, size = 76, light }: { userId: string; name: string; src?: string | null; color?: string; size?: number; light?: boolean }) {
   const [url, setUrl] = useState(src ?? null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -60,13 +60,13 @@ export function AvatarUpload({ userId, name, src, color }: { userId: string; nam
   return (
     <div className="flex flex-col items-center gap-1.5">
       <label className="relative cursor-pointer rounded-full focus-within:ring-2 focus-within:ring-pitch" aria-label="Cambiar foto de perfil">
-        <Avatar name={name} src={url} size={76} color={color} />
+        <Avatar name={name} src={url} size={size} color={color} />
         <span className="absolute -right-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-bg bg-pitch text-pitch-ink">
           {busy ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Camera size={14} aria-hidden />}
         </span>
         <input type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
       </label>
-      {url && !busy && <button type="button" onClick={remove} className="text-[11px] text-ink-3 underline">Quitar</button>}
+      {url && !busy && <button type="button" onClick={remove} className={light ? "text-[11px] text-white/70 underline" : "text-[11px] text-ink-3 underline"}>Quitar</button>}
       {msg && <p role="status" className={msg.ok ? "max-w-28 text-center text-[11px] text-win" : "max-w-28 text-center text-[11px] text-danger"}>{msg.text}</p>}
     </div>
   );

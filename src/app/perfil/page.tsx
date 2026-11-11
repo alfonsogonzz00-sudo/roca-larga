@@ -2,7 +2,8 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePrefs } from "@/app/actions/profile";
-import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, Pill, ResultBadge, SectionTitle, Stat } from "@/components/ui";
+import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, ResultBadge, SectionTitle, cx } from "@/components/ui";
+import { FormStrip, WdlDonut } from "@/components/charts";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { ThemeToggle } from "@/components/layout/theme";
 import { PushToggle } from "@/components/layout/push-toggle";
@@ -12,7 +13,7 @@ import { getSession } from "@/lib/data/session";
 import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { createClient } from "@/lib/supabase/server";
-import { playerTotals } from "@/lib/stats/engine";
+import { allPlayerTotals, playerTotals } from "@/lib/stats/engine";
 import { env } from "@/lib/env";
 import { fmtDateTime, fmtShortDay, num, teamColor } from "@/lib/format";
 
@@ -51,16 +52,59 @@ export default async function Profile() {
   const vapidKey = (dbVapid as string | null) || env.vapidPublicKey;
   const provider = s.profile.auth_provider === "google" ? "Google" : "Correo y contraseña";
 
+  // Puesto en cada ranking entre los miembros con partidos
+  const members = [...allPlayerTotals(parts.filter((x) => !x.isGuest)).values()];
+  const rankOf = (k: "goals" | "assists" | "mvps" | "ratingAvg" | "matches") => {
+    if (!tot || !tot.matches) return null;
+    const sorted = [...members].sort((x, y) => (y[k] as number) - (x[k] as number));
+    const pos = sorted.findIndex((x) => (x[k] as number) <= (tot[k] as number)) + 1;
+    return { pos, of: sorted.length };
+  };
+  const avgOf = (k: "goalsPerMatch" | "assistsPerMatch" | "ratingAvg") => members.length ? members.reduce((acc, x) => acc + (x[k] as number), 0) / members.length : 0;
+  const last10 = [...mine].reverse();
+  const maxContrib = Math.max(1, ...last10.map((x) => x.goals + x.assists));
+  const color = teamColor(team);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={teamColor(team)} />
-        <div className="min-w-0">
-          <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.full_name ?? s.profile.display_name}</h1>
-          {s.player?.nickname && <p className="text-gold">«{s.player.nickname}»</p>}
-          <div className="mt-1 flex flex-wrap gap-2"><Pill tone={s.isAdmin ? "gold" : s.role === "organizer" ? "pitch" : "neutral"}>{ROLE[s.role]}</Pill>{s.profile.status === "suspended" && <Pill tone="danger">Cuenta suspendida</Pill>}</div>
+      {/* 1 · Quién soy + mis números */}
+      <section className="relative overflow-hidden rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 40%, #0b0f0c))` }}>
+        <div className="flex items-center gap-4">
+          <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} light />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.nickname ?? s.player?.full_name ?? s.profile.display_name}</h1>
+            {s.player?.nickname && <p className="mt-1 truncate text-sm text-white/80">{s.player.full_name}</p>}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
+              <span className="rounded-full bg-black/25 px-2 py-1">{ROLE[s.role]}</span>
+              {s.profile.status === "suspended" && <span className="rounded-full bg-black/40 px-2 py-1">Cuenta suspendida</span>}
+            </div>
+          </div>
         </div>
-      </div>
+        {tot && tot.matches > 0 && (
+          <>
+            <div className="mt-5 flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-white/70">Valoración media</p>
+                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 2)}</p>
+              </div>
+              {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-white/85"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
+            </div>
+            <dl className="mt-4 grid grid-cols-4 rounded-2xl bg-black/25 py-3 text-center">
+              {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
+                const r = rankOf(k);
+                return (
+                  <div key={l}>
+                    <dd className="font-display tabular text-3xl font-bold leading-none">{v}</dd>
+                    <dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt>
+                    {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-white/60">{r.pos}.º del grupo</p>}
+                  </div>
+                );
+              })}
+            </dl>
+          </>
+        )}
+      </section>
 
       {!s.player && (
         <Notice tone="warn">
@@ -68,19 +112,84 @@ export default async function Profile() {
         </Notice>
       )}
 
-      <Card className="divide-y divide-line">
-        {[
-          ["Equipo", team ? <span className="inline-flex items-center gap-2"><Crest src={team.crest_url} name={team.name} size={20} />{team.name}</span> : "—"],
-          ["Método de acceso", provider],
-          ["Email", s.email ?? "—"],
-          ["Vinculación", s.player ? "Validada" : s.pendingLink ? "Pendiente de validar" : "Sin vincular"],
-          ["Miembro desde", fmtShortDay(s.profile.created_at)],
-        ].map(([k, v]) => (
-          <div key={k as string} className="flex min-h-12 items-center justify-between gap-3 px-4 text-sm"><span className="text-ink-3">{k}</span><span className="text-right font-medium">{v}</span></div>
-        ))}
-      </Card>
-      <p className="-mt-4 text-xs text-ink-3">El equipo y la identidad sólo los puede cambiar el administrador.</p>
+      {s.player && (!tot || tot.matches === 0) && (
+        <Card className="p-5 text-center">
+          <p className="font-display text-xl font-bold uppercase">Tus estadísticas empiezan aquí</p>
+          <p className="mt-1 text-sm text-ink-2">En cuanto juegues tu primer partido verás tus goles, asistencias, MVP, tu forma y tu puesto en el grupo.</p>
+        </Card>
+      )}
 
+      {tot && tot.matches > 0 && (
+        <>
+          {/* 2 · Balance y forma */}
+          <section className="grid gap-3 sm:grid-cols-2">
+            <Card className="flex items-center gap-4 p-4">
+              <WdlDonut wins={tot.wins} draws={tot.draws} losses={tot.losses} size={110} label="Mis partidos" />
+              <dl className="flex-1 space-y-1.5 text-sm">
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-win" />Victorias</dt><dd className="font-display tabular text-xl font-bold">{tot.wins}</dd></div>
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-draw" />Empates</dt><dd className="font-display tabular text-xl font-bold">{tot.draws}</dd></div>
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-loss" />Derrotas</dt><dd className="font-display tabular text-xl font-bold">{tot.losses}</dd></div>
+              </dl>
+            </Card>
+            <Card className="p-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-3">Últimos partidos · goles y asistencias</p>
+              <div className="flex h-28 gap-1.5" role="img" aria-label="Goles y asistencias en tus últimos partidos">
+                {last10.map((x) => (
+                  <Link key={x.matchId} href={`/partidos/${x.matchId}`} className="flex h-full flex-1 flex-col items-stretch gap-1" title={`${fmtShortDay(x.kickoff)}: ${x.goals} goles, ${x.assists} asistencias`}>
+                    <span className="flex min-h-0 w-full flex-1 flex-col justify-end">
+                      <span className="w-full rounded-t-sm bg-gold" style={{ height: `${(x.assists / maxContrib) * 100}%` }} />
+                      <span className={cx("w-full bg-pitch", x.assists ? "" : "rounded-t-sm")} style={{ height: `${(x.goals / maxContrib) * 100}%` }} />
+                    </span>
+                    <span className={cx("h-1.5 w-full rounded-full", x.result === "W" ? "bg-win" : x.result === "D" ? "bg-draw" : "bg-loss")} />
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-xs text-ink-3"><span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-pitch" />Goles</span><span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-gold" />Asist.</span><span className="ml-auto">Racha: <FormStrip results={last10.slice(-5).map((x) => x.result)} /></span></div>
+            </Card>
+          </section>
+
+          {/* 3 · Comparado con el grupo */}
+          <section>
+            <SectionTitle>Tú contra la media del grupo</SectionTitle>
+            <Card className="space-y-4 p-4">
+              {([["Goles por partido", tot.goalsPerMatch, avgOf("goalsPerMatch")], ["Asistencias por partido", tot.assistsPerMatch, avgOf("assistsPerMatch")], ["Valoración media", tot.ratingAvg, avgOf("ratingAvg")]] as const).map(([l, me, avg]) => {
+                const max = Math.max(me, avg, 0.01) * 1.15;
+                return (
+                  <div key={l}>
+                    <div className="mb-1 flex items-baseline justify-between text-sm"><span>{l}</span><span><strong className="font-display tabular text-lg">{num(me, 2)}</strong> <span className="text-xs text-ink-3">media {num(avg, 2)}</span></span></div>
+                    <div className="relative h-2.5 rounded-full bg-surface-3">
+                      <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(me / max) * 100}%`, background: me >= avg ? "var(--win)" : "var(--gold)" }} />
+                      <span className="absolute -top-1 -bottom-1 w-0.5 rounded bg-ink" style={{ left: `${(avg / max) * 100}%` }} aria-hidden />
+                    </div>
+                  </div>
+                );
+              })}
+            </Card>
+          </section>
+
+          {/* 4 · Logros */}
+          <section className="grid grid-cols-3 gap-2">
+            {([["MVP", tot.mvps, "text-gold"], ["Mejor de su equipo", tot.teamBests, "text-pitch"], ["Turnos en portería", tot.gkSpells, "text-ink"]] as const).map(([l, v, c]) => (
+              <Card key={l} className="p-3 text-center">
+                <p className={`font-display tabular text-3xl font-bold ${c}`}>{v}</p>
+                <p className="text-[11px] leading-tight text-ink-3">{l}</p>
+              </Card>
+            ))}
+          </section>
+          {tot.gkSpells > 0 && <p className="-mt-3 text-xs text-ink-3">En portería has encajado {tot.concededAsGk} {tot.concededAsGk === 1 ? "gol" : "goles"} ({num(tot.concededPerSpell ?? 0, 2)} por turno). No restan en tu valoración.</p>}
+
+          <section>
+            <SectionTitle action={<Link href={`/jugadores/${s.player!.id}`} className="text-sm font-semibold text-pitch">Ficha completa</Link>}>Mis últimos partidos</SectionTitle>
+            <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+              {mine.map((p) => (
+                <li key={p.matchId}><Link href={`/partidos/${p.matchId}`} className="flex min-h-11 items-center gap-3 px-3 text-sm hover:bg-surface-2"><ResultBadge r={p.result} /><span className="flex-1">{fmtShortDay(p.kickoff)} · {p.goalsFor}–{p.goalsAgainst}</span><span className="tabular text-xs text-ink-3">{p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></Link></li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
+
+      {/* 5 · Datos de la cuenta y ajustes */}
       {s.player && (
         <section>
           <SectionTitle>Mi apodo</SectionTitle>
@@ -91,20 +200,22 @@ export default async function Profile() {
         </section>
       )}
 
-      {tot && tot.matches > 0 && (
-        <section>
-          <SectionTitle action={<Link href={`/jugadores/${s.player!.id}`} className="text-sm font-semibold text-pitch">Ficha completa</Link>}>Mis estadísticas</SectionTitle>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            <Stat label="PJ" value={tot.matches} /><Stat label="Goles" value={tot.goals} /><Stat label="Asist." value={tot.assists} />
-            <Stat label="MVP" value={tot.mvps} /><Stat label="Valoración" value={num(tot.ratingAvg, 2)} /><Stat label="🧤 Enc." value={tot.concededAsGk} />
-          </div>
-          <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-surface">
-            {mine.map((p) => (
-              <li key={p.matchId}><Link href={`/partidos/${p.matchId}`} className="flex min-h-11 items-center gap-3 px-3 text-sm"><ResultBadge r={p.result} /><span className="flex-1">{fmtShortDay(p.kickoff)} · {p.goalsFor}–{p.goalsAgainst}</span><span className="tabular text-xs text-ink-3">{p.goals}G {p.assists}A</span></Link></li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <section>
+        <SectionTitle>Mi cuenta</SectionTitle>
+        <Card className="divide-y divide-line">
+          {[
+            ["Equipo", team ? <span className="inline-flex items-center gap-2"><Crest src={team.crest_url} name={team.name} size={20} />{team.name}</span> : "—"],
+            ["Rol", ROLE[s.role]],
+            ["Método de acceso", provider],
+            ["Email", s.email ?? "—"],
+            ["Vinculación", s.player ? "Validada" : s.pendingLink ? "Pendiente de validar" : "Sin vincular"],
+            ["Miembro desde", fmtShortDay(s.profile.created_at)],
+          ].map(([k, v]) => (
+            <div key={k as string} className="flex min-h-12 items-center justify-between gap-3 px-4 text-sm"><span className="text-ink-3">{k}</span><span className="truncate text-right font-medium">{v}</span></div>
+          ))}
+        </Card>
+        <p className="mt-1.5 text-xs text-ink-3">El equipo y la identidad sólo los puede cambiar el administrador.</p>
+      </section>
 
       {s.player && (
         <section>
