@@ -138,13 +138,20 @@ export interface MatchMvp {
 
 export interface MvpTally {
   match_id: string;
+  category: "match" | "team";
+  team_id: string | null;
   player_id: string;
-  points: number;
-  firsts: number;
-  seconds: number;
-  thirds: number;
+  votes: number;
   rank: number;
   ballots: number;
+}
+
+export interface TeamBest {
+  match_id: string;
+  team_id: string;
+  player_id: string;
+  source: "vote" | "manual";
+  votes: number | null;
 }
 
 export interface Profile {
@@ -222,6 +229,7 @@ export interface PerformanceWeights {
   goal: number;
   assist: number;
   mvp: number;
+  team_best: number;
   win: number;
   draw: number;
   guest_bonus: number;

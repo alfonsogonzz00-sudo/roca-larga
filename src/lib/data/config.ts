@@ -9,8 +9,7 @@ export interface AppSettings {
   timezone: string;
   players_per_side: number;
   organizers_per_team: number;
-  mvp_points: [number, number, number];
-  mvp_tiebreak: string[];
+  vote_tiebreak: string[];
   mvp_tie_fallback: "shared" | "none";
   performance_weights: PerformanceWeights;
   model_params: ModelParams;
@@ -23,10 +22,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   timezone: "Europe/Madrid",
   players_per_side: 7,
   organizers_per_team: 2,
-  mvp_points: [3, 2, 1],
-  mvp_tiebreak: ["firsts", "seconds", "thirds", "goal_contributions"],
+  vote_tiebreak: ["other_votes", "goal_contributions"],
   mvp_tie_fallback: "shared",
-  performance_weights: { goal: 1, assist: 0.75, mvp: 2, win: 0.5, draw: 0.2, guest_bonus: 0.5 },
+  performance_weights: { goal: 1, assist: 0.75, mvp: 2, team_best: 1, win: 0.5, draw: 0.2, guest_bonus: 0.5 },
   model_params: { k_team: 4, k_venue: 4, k_recent: 2, k_context: 5, k_pair: 3, k_player: 4, min_matches: 3 },
   demo_mode: false,
 };
@@ -36,6 +34,7 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
   const { data } = await supabase.from("app_settings").select("key,value");
   const s: Record<string, unknown> = { ...DEFAULT_SETTINGS };
   for (const row of data ?? []) s[row.key] = row.value;
+  s.performance_weights = { ...DEFAULT_SETTINGS.performance_weights, ...(s.performance_weights as object) };
   return s as unknown as AppSettings;
 });
 

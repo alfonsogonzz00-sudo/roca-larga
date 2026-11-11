@@ -189,20 +189,24 @@ describe("partidos", () => {
     const [m] = await db.su<{ vote_closes_at: Date; kickoff_at: Date }>(`select vote_closes_at, kickoff_at from public.matches where id=$1`, [matchId]);
     expect(new Date(m.vote_closes_at).getTime() - new Date(m.kickoff_at).getTime()).toBe(24 * 3600 * 1000);
 
-    await expectError(db.as(stranger, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, carPlayers[0], carPlayers[1], carPlayers[2]]), /no está vinculada/);
-    await expectError(db.as(pMon1, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, monPlayers[0], carPlayers[1], carPlayers[2]]), /a ti mismo/);
-    await expectError(db.as(pMon1, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, carPlayers[1], carPlayers[1], carPlayers[2]]), /repetir/);
-    await expectError(db.as(pMon1, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, carPlayers[10], carPlayers[1], carPlayers[2]]), /participado/);
+    const V = `select public.cast_mvp_vote($1,$2,$3)`;
+    await expectError(db.as(stranger, V, [matchId, carPlayers[0], carPlayers[1]]), /no está vinculada/);
+    await expectError(db.as(pMon1, V, [matchId, monPlayers[0], carPlayers[1]]), /a ti mismo/);
+    await expectError(db.as(pMon1, V, [matchId, monPlayers[1], monPlayers[0]]), /a ti mismo/);
+    await expectError(db.as(pMon1, V, [matchId, carPlayers[1], carPlayers[2]]), /compañero/);
+    await expectError(db.as(pMon1, V, [matchId, monPlayers[1], carPlayers[10]]), /participado/);
+    await expectError(db.as(pMon1, V, [matchId, monPlayers[1], null]), /mejor del partido/);
 
-    const [v1] = await db.as<{ cast_mvp_vote: string }>(pMon1, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, carPlayers[0], carPlayers[1], carPlayers[2]]);
+    const [v1] = await db.as<{ cast_mvp_vote: string }>(pMon1, V, [matchId, monPlayers[1], carPlayers[0]]);
     expect(v1.cast_mvp_vote).toBe("created");
-    const [v2] = await db.as<{ cast_mvp_vote: string }>(pMon1, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, monPlayers[1], carPlayers[1], carPlayers[2]]);
+    // misma persona en las dos elecciones: permitido
+    const [v2] = await db.as<{ cast_mvp_vote: string }>(pMon1, V, [matchId, monPlayers[1], monPlayers[1]]);
     expect(v2.cast_mvp_vote).toBe("updated");
-    await db.as(pMon2, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, monPlayers[0], carPlayers[0], carPlayers[3]]);
-    await db.as(orgCar, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, monPlayers[1], monPlayers[0], carPlayers[1]]);
+    await db.as(pMon2, V, [matchId, monPlayers[0], monPlayers[0]]);
+    await db.as(orgCar, V, [matchId, carPlayers[1], monPlayers[1]]);
 
-    const [mine] = await db.as<{ first_id: string }>(pMon1, `select * from public.my_mvp_ballot($1)`, [matchId]);
-    expect(mine.first_id).toBe(monPlayers[1]);
+    const [mine] = await db.as<{ team_pick_id: string; match_pick_id: string }>(pMon1, `select * from public.my_mvp_ballot($1)`, [matchId]);
+    expect(mine).toMatchObject({ team_pick_id: monPlayers[1], match_pick_id: monPlayers[1] });
   });
 
   it("anonimato: nadie lee papeletas, ni el admin; el log no contiene elecciones", async () => {
@@ -261,17 +265,21 @@ describe("partidos", () => {
     expect(log.map((l) => l.action)).toContain("match.result_edit");
   });
 
-  it("cierre automático a las 24h, recuento 3-2-1 y aviso del MVP", async () => {
+  it("cierre automático a las 24h, MVP, mejor de cada equipo y aviso", async () => {
     await db.su(`update public.matches set kickoff_at = now() - interval '25 hours' where id=$1`, [matchId]);
-    await expectError(db.as(pMon2, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, carPlayers[0], carPlayers[1], carPlayers[2]]), /cerrada/);
+    await expectError(db.as(pMon2, `select public.cast_mvp_vote($1,$2,$3)`, [matchId, monPlayers[0], carPlayers[1]]), /cerrada/);
     const [r] = await db.as<{ close_due_votes: number }>(null, `select public.close_due_votes()`);
     expect(r.close_due_votes).toBe(1);
-    // monPlayers[1]: 3 (pMon1) + 3 (orgCar) = 6 ; monPlayers[0]: 3 (pMon2) + 2 (orgCar) = 5
-    const tallies = await db.as<{ player_id: string; points: number }>(null, `select player_id, points from public.mvp_tallies where match_id=$1 order by points desc`, [matchId]);
-    expect(tallies[0]).toMatchObject({ player_id: monPlayers[1], points: 6 });
-    expect(tallies[1]).toMatchObject({ player_id: monPlayers[0], points: 5 });
+    // MVP: monPlayers[1] 2 votos (pMon1, orgCar) · monPlayers[0] 1 voto (pMon2)
+    const tallies = await db.as<{ player_id: string; votes: number }>(null, `select player_id, votes from public.mvp_tallies where match_id=$1 and category='match' order by votes desc`, [matchId]);
+    expect(tallies[0]).toMatchObject({ player_id: monPlayers[1], votes: 2 });
+    expect(tallies[1]).toMatchObject({ player_id: monPlayers[0], votes: 1 });
     const mvps = await db.su<{ player_id: string }>(`select player_id from public.match_mvps where match_id=$1`, [matchId]);
     expect(mvps).toEqual([{ player_id: monPlayers[1] }]);
+    // Monecillo: empate 1-1 (monPlayers[1] y monPlayers[0]); desempata «votos en la otra categoría» → monPlayers[1]
+    const bests = await db.su<{ team_id: string; player_id: string }>(`select team_id, player_id from public.match_team_bests where match_id=$1 order by team_id`, [matchId]);
+    expect(bests).toEqual(expect.arrayContaining([{ team_id: mon, player_id: monPlayers[1] }, { team_id: car, player_id: carPlayers[1] }]));
+    expect(bests.length).toBe(2);
     const notes = await db.su(`select 1 from public.notifications where match_id=$1 and type='mvp_result'`, [matchId]);
     expect(notes.length).toBe(5);
     const log = await db.su<{ summary: string; is_system: boolean }>(`select summary, is_system from public.activity_log where action='vote.close'`);
@@ -292,10 +300,13 @@ describe("partidos", () => {
       ],
     };
     await db.as(admin, `select public.finalize_match($1,$2)`, [matchId, payload]);
-    const tallies = await db.as<{ player_id: string; points: number }>(null, `select player_id, points from public.mvp_tallies where match_id=$1 order by points desc`, [matchId]);
+    const tallies = await db.as<{ player_id: string; category: string }>(null, `select player_id, category from public.mvp_tallies where match_id=$1`, [matchId]);
     expect(tallies.find((t) => t.player_id === monPlayers[1])).toBeUndefined();
-    const [top] = tallies;
-    expect(top.player_id).toBe(carPlayers[1]); // 2 (pMon1) + 1 (orgCar)
+    // sólo queda la papeleta de orgCar con un compañero válido; su MVP (monPlayers[1]) ya no cuenta
+    const mvps = await db.su(`select 1 from public.match_mvps where match_id=$1 and source='vote'`, [matchId]);
+    expect(mvps.length).toBe(0);
+    const bests = await db.su<{ player_id: string }>(`select player_id from public.match_team_bests where match_id=$1`, [matchId]);
+    expect(bests).toEqual([{ player_id: carPlayers[1] }]);
   });
 });
 

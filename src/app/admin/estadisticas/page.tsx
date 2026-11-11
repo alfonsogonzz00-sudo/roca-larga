@@ -71,14 +71,14 @@ export default async function AdminStats() {
       </section>
 
       <section className="space-y-3">
-        <SectionTitle>Votación MVP</SectionTitle>
+        <SectionTitle>Votación</SectionTitle>
         <Card className="space-y-4 p-4">
-          <JsonSetting k="mvp_points" label="Puntos 1.º, 2.º, 3.º" value={settings.mvp_points} hint="Ej.: [3,2,1]. Tras cambiarlo, pulsa «Recalcular» en Resumen para rehacer votaciones cerradas." />
-          <JsonSetting k="mvp_tiebreak" label="Criterios de desempate (en orden)" value={settings.mvp_tiebreak} hint='Opciones: "firsts" (más 1.º), "seconds", "thirds", "goal_contributions" (goles+asistencias en el partido).' />
+          <p className="text-sm text-ink-2">Cada participante vota al mejor de su equipo y al mejor del partido (MVP). Gana quien más votos recibe en cada categoría.</p>
+          <JsonSetting k="vote_tiebreak" label="Criterios de desempate (en orden)" value={settings.vote_tiebreak} hint='Opciones: "other_votes" (más votos en la otra categoría) y "goal_contributions" (goles + asistencias en el partido). Tras cambiarlo, pulsa «Recalcular» en Resumen.' />
           <ActionForm action={saveSettingAction} className="flex items-end gap-2">
             <input type="hidden" name="key" value="mvp_tie_fallback" />
             <div className="flex-1"><Field label="Si persiste el empate" htmlFor="fb">
-              <Select id="fb" name="value" defaultValue={JSON.stringify(settings.mvp_tie_fallback)}><option value='"shared"'>MVP compartido</option><option value='"none"'>Sin MVP</option></Select>
+              <Select id="fb" name="value" defaultValue={JSON.stringify(settings.mvp_tie_fallback)}><option value='"shared"'>Premio compartido</option><option value='"none"'>Queda desierto</option></Select>
             </Field></div>
             <SubmitButton variant="secondary">Guardar</SubmitButton>
           </ActionForm>
@@ -88,7 +88,7 @@ export default async function AdminStats() {
       <section className="space-y-3">
         <SectionTitle>Valoración de actuaciones</SectionTitle>
         <Card className="p-4">
-          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="goal, assist, mvp, win, draw y guest_bonus (por cada invitado que trae). Los goles encajados como portero nunca restan." />
+          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="goal, assist, mvp, team_best (mejor de su equipo), win, draw y guest_bonus (por cada invitado que trae). Los goles encajados como portero nunca restan." />
         </Card>
       </section>
 

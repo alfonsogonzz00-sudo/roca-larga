@@ -54,9 +54,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
               <Stat label="Goles" value={tot.goals} hint={`${num(tot.goalsPerMatch, 2)} por partido`} />
               <Stat label="Asistencias" value={tot.assists} hint={`${num(tot.assistsPerMatch, 2)} por partido`} />
               <Stat label="MVP" value={tot.mvps} />
+              <Stat label="Mejor de su equipo" value={tot.teamBests} />
               <Stat label="Valoración media" value={num(tot.ratingAvg, 2)} hint="sin contar encajados" />
               <Stat label="Victorias" value={tot.wins} hint={pct(tot.wins / tot.matches)} />
-              <Stat label="Empates / Derrotas" value={`${tot.draws} / ${tot.losses}`} />
               <Stat label="Invitados traídos" value={brought} hint={brought ? `+${num(w.guest_bonus, 2)} pts c/u` : undefined} />
             </div>
             <WdlBar className="mt-3" wins={tot.wins} draws={tot.draws} losses={tot.losses} />
@@ -82,7 +82,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                     <span className="font-display text-3xl font-bold text-gold">{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">{fmtShortDay(x.kickoff)} · {ds.teamById.get(m.home_team_id)?.short_name} {m.home_score}–{m.away_score} {ds.teamById.get(m.away_team_id)?.short_name}</div>
-                      <div className="text-xs text-ink-3">{x.goals} goles · {x.assists} asist.{x.isMvp ? " · MVP" : ""}{x.guestsBrought ? ` · trajo ${x.guestsBrought} invitado${x.guestsBrought > 1 ? "s" : ""}` : ""}</div>
+                      <div className="text-xs text-ink-3">{x.goals} goles · {x.assists} asist.{x.isMvp ? " · MVP" : ""}{x.isTeamBest ? " · mejor de su equipo" : ""}{x.guestsBrought ? ` · trajo ${x.guestsBrought} invitado${x.guestsBrought > 1 ? "s" : ""}` : ""}</div>
                     </div>
                     <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 2)}</div><div className="text-[10px] uppercase text-ink-3">valoración</div></div>
                     {x.isMvp && <Award size={18} className="text-gold" aria-label="MVP" />}
@@ -90,7 +90,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                 );
               })}
             </div>
-            <p className="mt-1.5 text-xs text-ink-3">Valoración = gol {num(w.goal, 2)} · asistencia {num(w.assist, 2)} · MVP {num(w.mvp, 2)} · victoria {num(w.win, 2)} · empate {num(w.draw, 2)} · invitado traído {num(w.guest_bonus, 2)}.</p>
+            <p className="mt-1.5 text-xs text-ink-3">Valoración = gol {num(w.goal, 2)} · asistencia {num(w.assist, 2)} · MVP {num(w.mvp, 2)} · victoria {num(w.win, 2)} · empate {num(w.draw, 2)} · mejor de su equipo {num(w.team_best ?? 0, 2)} · invitado traído {num(w.guest_bonus, 2)}.</p>
           </section>
 
           {bv && (

@@ -3,7 +3,7 @@ import { buildParticipations, ranking, teamBadges, teamStats, topPerformances, p
 import { backtest, buildHistory, normalizeWeights, poissonPmf, predictIndividual, predictMatch, scoreMatrix, type ModelContext } from "@/lib/stats/model";
 import type { Goal, Match, MatchMvp, MatchPlayer, Player, Team } from "@/lib/types";
 
-const PERF = { goal: 1, assist: 0.75, mvp: 2, win: 0.5, draw: 0.2, guest_bonus: 0.5 };
+const PERF = { goal: 1, assist: 0.75, mvp: 2, team_best: 1, win: 0.5, draw: 0.2, guest_bonus: 0.5 };
 const PARAMS = { k_team: 4, k_venue: 4, k_recent: 2, k_context: 5, k_pair: 3, k_player: 4, min_matches: 3 };
 const W = { composition_teammates: 30, composition_rivals: 20, venue_history: 20, recent_form: 10, recent_venue: 10, weather: 7.5, time_slot: 2.5 };
 const EN = Object.fromEntries(Object.keys(W).map((k) => [k, true])) as Record<keyof typeof W, boolean>;

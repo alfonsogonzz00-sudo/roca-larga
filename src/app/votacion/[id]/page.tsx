@@ -7,10 +7,10 @@ import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
 import { createClient } from "@/lib/supabase/server";
-import { fmtDay, fmtTime, relativeFromNow } from "@/lib/format";
+import { fmtDay, fmtTime, relativeFromNow, teamColor } from "@/lib/format";
 import { Ballot } from "./ballot";
 
-export const metadata = { title: "Votar MVP" };
+export const metadata = { title: "Votar" };
 
 export default async function VotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,11 +20,13 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   const supabase = await createClient();
   const { data: st } = await supabase.rpc("vote_status", { p_match: id }).maybeSingle<{ eligible: number; voted: number; is_open: boolean; closed_at: string | null }>();
   const parts = ds.matchPlayers.filter((x) => x.match_id === id && x.participated);
-  const isParticipant = Boolean(s?.player && parts.some((x) => x.player_id === s.player!.id));
-  const { data: mine } = s?.player ? await supabase.rpc("my_mvp_ballot", { p_match: id }).maybeSingle<{ first_id: string; second_id: string; third_id: string }>() : { data: null };
+  const me = s?.player ? parts.find((x) => x.player_id === s.player!.id) : undefined;
+  const isParticipant = Boolean(me);
+  const { data: mine } = me ? await supabase.rpc("my_mvp_ballot", { p_match: id }).maybeSingle<{ team_pick_id: string; match_pick_id: string }>() : { data: null };
+  const teams = [m.home_team_id, m.away_team_id].map((tid) => { const tm = ds.teamById.get(tid)!; return { id: tm.id, name: tm.name, color: teamColor(tm) }; });
   const candidates = parts.filter((x) => x.player_id !== s?.player?.id).map((x) => {
     const p = ds.playerById.get(x.player_id)!;
-    return { id: p.id, label: `${p.full_name}${p.nickname ? ` · ${p.nickname}` : ""}`, team: ds.teamById.get(x.team_id)!.name };
+    return { id: p.id, name: p.full_name, nickname: p.nickname, photo: p.photo_url, teamId: x.team_id };
   });
 
   let body: React.ReactNode;
@@ -35,20 +37,22 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   else if (!s.player) body = <Notice tone="warn">Tu cuenta aún no está vinculada a un jugador validado.</Notice>;
   else if (!isParticipant) body = <Notice tone="warn">Sólo votan los jugadores que han participado en este partido.</Notice>;
   else body = (
-    <Card className="space-y-4 p-4">
+    <Card className="space-y-4 p-4 pb-0">
       <p className="flex items-start gap-2 text-sm text-ink-2"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden />{t("vote.anonymous_note")}</p>
       {mine && <Notice tone="ok">Ya has votado. Puedes cambiar tu voto hasta el cierre.</Notice>}
-      <Ballot matchId={id} candidates={candidates} initial={mine ? [mine.first_id, mine.second_id, mine.third_id] : null} />
+      <Ballot matchId={id} myTeamId={me!.team_id} teams={teams} candidates={candidates}
+        initial={mine ? { team: mine.team_pick_id, match: mine.match_pick_id } : null}
+        labels={{ team: t("vote.team_pick"), match: t("vote.match_pick") }} />
     </Card>
   );
 
   return (
     <div className="space-y-5">
-      <PageHeader eyebrow={t("vote.title")} title="Elige al MVP" subtitle={m.vote_closes_at && !st?.closed_at ? `Cierra el ${fmtDay(m.vote_closes_at)} a las ${fmtTime(m.vote_closes_at)} (${relativeFromNow(m.vote_closes_at)})` : undefined} />
+      <PageHeader eyebrow={t("vote.title")} title="¿Quién ha estado mejor?" subtitle={m.vote_closes_at && !st?.closed_at ? `Cierra el ${fmtDay(m.vote_closes_at)} a las ${fmtTime(m.vote_closes_at)} (${relativeFromNow(m.vote_closes_at)})` : undefined} />
       <Scoreboard m={m} home={ds.teamById.get(m.home_team_id)!} away={ds.teamById.get(m.away_team_id)!} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} />
       {st && <p className="text-sm text-ink-3">Han votado {st.voted} de {st.eligible} participantes.</p>}
       {body}
-      <p className="text-xs text-ink-3">Un único MVP para el partido. Puntuación 3-2-1; desempate por más primeros puestos, después segundos, terceros y goles+asistencias.</p>
+      <p className="text-xs text-ink-3">Cada participante vota dos veces: al mejor de su equipo y al mejor del partido (MVP). Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La votación cierra sola 24 horas después del inicio.</p>
     </div>
   );
 }

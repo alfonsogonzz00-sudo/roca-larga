@@ -36,6 +36,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const goals = ds.goals.filter((g) => g.match_id === m.id);
   const spells = ds.spells.filter((x) => x.match_id === m.id);
   const mvps = ds.mvps.filter((x) => x.match_id === m.id);
+  const bests = ds.teamBests.filter((x) => x.match_id === m.id);
   const P = (pid: string) => ds.playerById.get(pid)!;
   const supabase = await createClient();
   const [{ data: tallies }, { data: vstatus }] = await Promise.all([
@@ -150,7 +151,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const mvpBlock = (
     <Card className="space-y-3 p-4">
       <div className="flex items-center justify-between">
-        <SectionTitle className="mb-0">MVP del partido</SectionTitle>
+        <SectionTitle className="mb-0">MVP y mejores</SectionTitle>
         {m.vote_enabled && vstatus && <Pill tone={vstatus.is_open ? "gold" : "neutral"}>{vstatus.is_open ? "Votación abierta" : vstatus.closed_at ? "Votación cerrada" : started ? "—" : "Abre al empezar"}</Pill>}
       </div>
       {mvps.length > 0 ? (
@@ -159,23 +160,57 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             <Link key={x.player_id} href={`/jugadores/${x.player_id}`} className="flex items-center gap-2 rounded-xl bg-gold-soft px-3 py-2">
               <Award size={18} className="text-gold" aria-hidden />
               <span className="font-semibold">{playerName(P(x.player_id))}</span>
-              {x.source === "manual" && <span className="text-xs text-ink-3">(registrado manualmente)</span>}
+              {x.source === "manual" ? <span className="text-xs text-ink-3">(registrado manualmente)</span> : x.points != null && <span className="text-xs text-ink-3">{x.points} votos</span>}
             </Link>
           ))}
         </div>
-      ) : <p className="text-sm text-ink-3">{m.vote_enabled ? (vstatus?.closed_at ? "Sin votos suficientes: no hay MVP." : "Se decidirá en la votación.") : "MVP no registrado."}</p>}
+      ) : <p className="text-sm text-ink-3">{m.vote_enabled ? (vstatus?.closed_at ? "Nadie votó: no hay MVP." : "Se decidirá en la votación.") : "MVP no registrado."}</p>}
+      {bests.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-3">{t("vote.team_best_label")}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[home, away].map((tm) => {
+              const list = bests.filter((b) => b.team_id === tm.id);
+              if (!list.length) return null;
+              return (
+                <div key={tm.id} className="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: teamColor(tm) }} aria-hidden />
+                  <span className="text-ink-3">{tm.short_name}</span>
+                  <span className="font-semibold">{list.map((b) => <Link key={b.player_id} href={`/jugadores/${b.player_id}`} className="hover:underline">{playerName(P(b.player_id), "short")}</Link>).reduce<React.ReactNode[]>((acc, el, i) => (i ? [...acc, " y ", el] : [el]), [])}</span>
+                  {list[0].votes != null && <span className="ml-auto text-xs text-ink-3">{list[0].votes} votos</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {m.vote_enabled && vstatus && (
         <p className="text-xs text-ink-3">Participación: {vstatus.voted} de {vstatus.eligible} · cierre {m.vote_closes_at ? `${fmtDay(m.vote_closes_at)} a las ${fmtTime(m.vote_closes_at)}` : "—"}</p>
       )}
       {vstatus?.is_open && <Link href={`/votacion/${m.id}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gold px-4 text-sm font-semibold text-[#16130a]"><Vote size={18} /> Ir a votar</Link>}
       {(tallies as MvpTally[] | null)?.length ? (
-        <Details summary="Recuento de puntos">
-          <ol className="space-y-1 text-sm">
-            {(tallies as MvpTally[]).map((r) => (
-              <li key={r.player_id} className="flex justify-between"><span>{r.rank}. {playerName(P(r.player_id), "short")}</span><span className="tabular text-ink-2">{r.points} pts · {r.firsts}/{r.seconds}/{r.thirds}</span></li>
-            ))}
-          </ol>
-          <p className="mt-2 text-xs text-ink-3">1.º/2.º/3.º puestos recibidos · {(tallies as MvpTally[])[0].ballots} papeletas válidas</p>
+        <Details summary="Recuento de votos">
+          {(() => {
+            const all = tallies as MvpTally[];
+            const groups: { label: string; rows: MvpTally[] }[] = [
+              { label: "Mejor del partido", rows: all.filter((r) => r.category === "match") },
+              ...[home, away].map((tm) => ({ label: `Mejor de ${tm.short_name}`, rows: all.filter((r) => r.category === "team" && r.team_id === tm.id) })),
+            ].filter((g) => g.rows.length);
+            return (
+              <div className="space-y-3">
+                {groups.map((g) => (
+                  <div key={g.label}>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">{g.label} · {g.rows[0].ballots} papeletas</p>
+                    <ol className="space-y-1 text-sm">
+                      {[...g.rows].sort((a, b) => a.rank - b.rank).map((r) => (
+                        <li key={r.player_id} className="flex justify-between"><span>{r.rank}. {playerName(P(r.player_id), "short")}</span><span className="tabular text-ink-2">{r.votes} {r.votes === 1 ? "voto" : "votos"}</span></li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </Details>
       ) : null}
     </Card>

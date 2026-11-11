@@ -4,7 +4,7 @@
  * valoración de campo; se muestran aparte como estadística de portería.
  */
 import { localHour, seasonOf } from "@/lib/format";
-import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PerformanceWeights, Player, Team, Weather } from "@/lib/types";
+import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PerformanceWeights, Player, Team, TeamBest, Weather } from "@/lib/types";
 
 export interface StatsInput {
   teams: Team[];
@@ -14,6 +14,8 @@ export interface StatsInput {
   goals: Goal[];
   spells: GkSpell[];
   mvps: MatchMvp[];
+  /** Mejor jugador de cada equipo (votación). Opcional para datos antiguos. */
+  teamBests?: TeamBest[];
 }
 
 export type Result = "W" | "D" | "L";
@@ -40,6 +42,8 @@ export interface Participation {
   concededAsGk: number;
   gkSpells: number;
   isMvp: boolean;
+  /** Elegido mejor de su equipo en la votación */
+  isTeamBest: boolean;
   guestsBrought: number;
   isGuest: boolean;
   rating: number;
@@ -64,11 +68,12 @@ export function resultFor(gf: number, ga: number): Result {
   return gf > ga ? "W" : gf < ga ? "L" : "D";
 }
 
-export function rate(p: Pick<Participation, "goals" | "assists" | "isMvp" | "result" | "guestsBrought">, w: PerformanceWeights): number {
+export function rate(p: Pick<Participation, "goals" | "assists" | "isMvp" | "result" | "guestsBrought"> & { isTeamBest?: boolean }, w: PerformanceWeights): number {
   return (
     p.goals * w.goal +
     p.assists * w.assist +
     (p.isMvp ? w.mvp : 0) +
+    (p.isTeamBest ? (w.team_best ?? 0) : 0) +
     (p.result === "W" ? w.win : p.result === "D" ? w.draw : 0) +
     p.guestsBrought * w.guest_bonus
   );
@@ -80,6 +85,7 @@ export function buildParticipations(input: StatsInput, w: PerformanceWeights): P
   const goalsByMatch = groupBy(input.goals, (g) => g.match_id);
   const spellsByMatch = groupBy(input.spells, (s) => s.match_id);
   const mvpSet = new Set(input.mvps.map((m) => `${m.match_id}:${m.player_id}`));
+  const bestSet = new Set((input.teamBests ?? []).map((b) => `${b.match_id}:${b.player_id}`));
   const mpByMatch = groupBy(input.matchPlayers.filter((mp) => mp.participated), (mp) => mp.match_id);
   const out: Participation[] = [];
 
@@ -113,6 +119,7 @@ export function buildParticipations(input: StatsInput, w: PerformanceWeights): P
         concededAsGk: goals.filter((g) => g.conceded_gk_id === mp.player_id).length,
         gkSpells: spells.filter((s) => s.player_id === mp.player_id).length,
         isMvp: mvpSet.has(`${m.id}:${mp.player_id}`),
+        isTeamBest: bestSet.has(`${m.id}:${mp.player_id}`),
         guestsBrought: mps.filter((o) => o.brought_by_id === mp.player_id).length,
         isGuest: playerById.get(mp.player_id)?.kind === "guest",
         rating: 0,
@@ -211,6 +218,7 @@ export interface PlayerTotals {
   goals: number;
   assists: number;
   mvps: number;
+  teamBests: number;
   concededAsGk: number;
   gkSpells: number;
   gkMatches: number;
@@ -225,7 +233,7 @@ export interface PlayerTotals {
 export function playerTotals(playerId: string, parts: Participation[]): PlayerTotals {
   const ps = parts.filter((p) => p.playerId === playerId);
   const t: PlayerTotals = {
-    playerId, matches: ps.length, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, mvps: 0,
+    playerId, matches: ps.length, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, mvps: 0, teamBests: 0,
     concededAsGk: 0, gkSpells: 0, gkMatches: 0, guestsBrought: 0, ratingTotal: 0, ratingAvg: 0,
     goalsPerMatch: 0, assistsPerMatch: 0, concededPerSpell: null,
   };
@@ -236,6 +244,7 @@ export function playerTotals(playerId: string, parts: Participation[]): PlayerTo
     t.goals += p.goals;
     t.assists += p.assists;
     t.mvps += p.isMvp ? 1 : 0;
+    t.teamBests += p.isTeamBest ? 1 : 0;
     t.concededAsGk += p.concededAsGk;
     t.gkSpells += p.gkSpells;
     t.gkMatches += p.gkSpells > 0 ? 1 : 0;
@@ -326,12 +335,13 @@ export function teamBadges(teamId: string, parts: Participation[], players: Play
   return badges;
 }
 
-export type RankingStat = "goals" | "assists" | "mvps" | "matches" | "ratingAvg" | "goalsPerMatch" | "assistsPerMatch" | "concededPerSpell" | "wins" | "ratingTotal";
+export type RankingStat = "goals" | "assists" | "mvps" | "teamBests" | "matches" | "ratingAvg" | "goalsPerMatch" | "assistsPerMatch" | "concededPerSpell" | "wins" | "ratingTotal";
 
 export const RANKING_LABELS: Record<RankingStat, string> = {
   goals: "Goles",
   assists: "Asistencias",
   mvps: "MVP",
+  teamBests: "Mejor de su equipo",
   matches: "Partidos",
   ratingAvg: "Valoración media",
   ratingTotal: "Valoración total",

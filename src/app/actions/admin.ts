@@ -175,10 +175,9 @@ export async function saveSettingAction(_: ActionResult | null, fd: FormData): P
   let value: unknown;
   try { value = JSON.parse(String(fd.get("value"))); } catch { return { ok: false, error: "Valor no válido" }; }
   const checks: Record<string, (v: unknown) => string | null> = {
-    mvp_points: (v) => Array.isArray(v) && v.length === 3 && v.every((x) => Number.isInteger(x) && x >= 0) && v[0] >= v[1] && v[1] >= v[2] ? null : "Tres enteros en orden decreciente",
-    mvp_tiebreak: (v) => Array.isArray(v) && v.every((x) => ["firsts", "seconds", "thirds", "goal_contributions"].includes(x as string)) ? null : "Criterios no válidos",
+    vote_tiebreak: (v) => Array.isArray(v) && v.every((x) => ["other_votes", "goal_contributions"].includes(x as string)) ? null : "Criterios no válidos",
     mvp_tie_fallback: (v) => (v === "shared" || v === "none" ? null : "Valor no válido"),
-    performance_weights: (v) => typeof v === "object" && v && ["goal", "assist", "mvp", "win", "draw", "guest_bonus"].every((k) => typeof (v as Record<string, unknown>)[k] === "number") ? null : "Faltan pesos",
+    performance_weights: (v) => typeof v === "object" && v && ["goal", "assist", "mvp", "team_best", "win", "draw", "guest_bonus"].every((k) => typeof (v as Record<string, unknown>)[k] === "number") ? null : "Faltan pesos",
     model_params: (v) => typeof v === "object" && v && Object.values(v).every((x) => typeof x === "number" && x >= 0) ? null : "Parámetros no válidos",
     app_name: (v) => (typeof v === "string" && v.length >= 2 && v.length <= 40 ? null : "Entre 2 y 40 caracteres"),
     app_tagline: (v) => (typeof v === "string" && v.length <= 80 ? null : "Máximo 80 caracteres"),
