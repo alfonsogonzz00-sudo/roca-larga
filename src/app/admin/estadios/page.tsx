@@ -14,6 +14,12 @@ function VenueForm({ v }: { v?: Venue }) {
       <Field label="Dirección" htmlFor={`va${v?.id}`}><Input id={`va${v?.id}`} name="address" defaultValue={v?.address ?? ""} /></Field>
       <Field label="Enlace a mapa" htmlFor={`vm${v?.id}`}><Input id={`vm${v?.id}`} name="maps_url" type="url" defaultValue={v?.maps_url ?? ""} /></Field>
       <Field label="Superficie" htmlFor={`vs${v?.id}`}><Input id={`vs${v?.id}`} name="surface" defaultValue={v?.surface ?? ""} placeholder="Césped artificial…" /></Field>
+      <Field label="Teléfono de reservas" htmlFor={`vp${v?.id}`}><Input id={`vp${v?.id}`} name="phone" type="tel" defaultValue={v?.phone ?? ""} placeholder="+34 …" /></Field>
+      <Field label="Otros contactos" htmlFor={`vp2${v?.id}`}><Input id={`vp2${v?.id}`} name="phone_alt" defaultValue={v?.phone_alt ?? ""} /></Field>
+      <Field label="Web" htmlFor={`vw${v?.id}`}><Input id={`vw${v?.id}`} name="website" type="url" defaultValue={v?.website ?? ""} /></Field>
+      <Field label="Enlace de reserva online" htmlFor={`vb${v?.id}`}><Input id={`vb${v?.id}`} name="booking_url" type="url" defaultValue={v?.booking_url ?? ""} /></Field>
+      <Field label="Campos y medidas" htmlFor={`vi${v?.id}`}><Input id={`vi${v?.id}`} name="pitch_info" defaultValue={v?.pitch_info ?? ""} placeholder="2 campos de F7, 50×30 m…" /></Field>
+      <Field label="Horario" htmlFor={`vh${v?.id}`}><Input id={`vh${v?.id}`} name="hours" defaultValue={v?.hours ?? ""} /></Field>
       <label className="flex items-center gap-2 self-end text-sm"><input type="checkbox" name="active" defaultChecked={v?.active ?? true} className="h-4 w-4" /> Activo</label>
       <div className="sm:col-span-2"><ImageUpload name="image_url" defaultValue={v?.image_url} folder="venues" label="Imagen" /></div>
       <div className="sm:col-span-2"><Field label="Notas" htmlFor={`vno${v?.id}`}><Textarea id={`vno${v?.id}`} name="notes" defaultValue={v?.notes ?? ""} /></Field></div>

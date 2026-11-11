@@ -108,16 +108,21 @@ export async function saveVenueAction(_: ActionResult | null, fd: FormData): Pro
     name: z.string().trim().min(2, "Nombre obligatorio").max(80), address: z.string().max(200).nullable(), city: z.string().max(80).nullable(),
     maps_url: z.string().url("Enlace de mapa no válido").max(500).nullable(), image_url: z.string().max(500).nullable(),
     surface: z.string().max(60).nullable(), notes: z.string().max(1000).nullable(), active: z.boolean(),
+    phone: z.string().max(40).nullable(), phone_alt: z.string().max(120).nullable(),
+    website: z.string().url("Web no válida").max(500).nullable(), booking_url: z.string().url("Enlace de reserva no válido").max(500).nullable(),
+    pitch_info: z.string().max(200).nullable(), hours: z.string().max(200).nullable(),
   }).safeParse({
     name: fd.get("name"), address: str(fd, "address"), city: str(fd, "city"), maps_url: str(fd, "maps_url"), image_url: str(fd, "image_url"),
     surface: str(fd, "surface"), notes: str(fd, "notes"), active: fd.get("active") === "on",
+    phone: str(fd, "phone"), phone_alt: str(fd, "phone_alt"), website: str(fd, "website"), booking_url: str(fd, "booking_url"),
+    pitch_info: str(fd, "pitch_info"), hours: str(fd, "hours"),
   });
   if (!p.success) return { ok: false, error: p.error.issues[0].message };
   const id = str(fd, "id");
   return run(async () => {
     const sb = await admin();
     return id ? sb.from("venues").update(p.data).eq("id", id) : sb.from("venues").insert(p.data);
-  }, id ? "Estadio actualizado." : "Estadio creado.");
+  }, id ? "Estadio actualizado." : "Estadio creado.").then((r) => { revalidatePath("/estadios", "layout"); return r; });
 }
 export async function deleteVenueAction(_: ActionResult | null, fd: FormData) {
   return run(async () => (await admin()).from("venues").delete().eq("id", String(fd.get("id"))), "Estadio eliminado.");

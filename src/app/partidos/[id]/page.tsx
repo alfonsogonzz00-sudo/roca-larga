@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Award, Vote } from "lucide-react";
 import { Card, Details, Notice, Pill, SectionTitle, Stat } from "@/components/ui";
 import { Tabs } from "@/components/ui/client";
-import { FormationBoard, PlayerChipList, PredictionPanel, Scoreboard, StatusPill, WeatherBadge } from "@/components/match/parts";
+import { FormationBoard, PlayerChipList, PredictionPanel, Scoreboard, StatusPill, WeatherBadge, VenueCard } from "@/components/match/parts";
 import { StaffActions } from "@/components/match/staff-actions";
 import { AttendanceButtons } from "@/components/match/attendance";
 import { getStats, predictionForMatch } from "@/lib/data/stats";
@@ -201,6 +201,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           {mine && (m.status === "pending" || m.status === "confirmed") && !started && <AttendanceButtons matchId={m.id} current={mine.attendance} />}
         </Card>
       )}
+      {!played && venue && <VenueCard v={venue} compact />}
       {played && (
         <div className="grid grid-cols-3 gap-2">
           <Stat label="Goles" value={goals.length} />

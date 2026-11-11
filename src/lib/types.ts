@@ -30,6 +30,14 @@ export interface Venue {
   image_url: string | null;
   surface: string | null;
   notes: string | null;
+  phone: string | null;
+  phone_alt: string | null;
+  website: string | null;
+  booking_url: string | null;
+  pitch_info: string | null;
+  hours: string | null;
+  latitude: number | null;
+  longitude: number | null;
   active: boolean;
   is_demo: boolean;
 }

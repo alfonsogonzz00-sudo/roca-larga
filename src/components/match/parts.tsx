@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Cloud, CloudFog, CloudRain, MapPin, Sun, Thermometer, Wind, HelpCircle } from "lucide-react";
+import { ChevronRight, Clock, Cloud, ExternalLink, Phone, CalendarCheck, Navigation, CloudFog, CloudRain, MapPin, Sun, Thermometer, Wind, HelpCircle } from "lucide-react";
 import { Avatar, Card, Crest, Pill, cx } from "@/components/ui";
 import { fmtShortDay, fmtTime, num, pct, playerName, teamColor } from "@/lib/format";
 import type { MatchPrediction } from "@/lib/stats/model";
@@ -83,7 +83,9 @@ export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Matc
       </div>
       <div className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/75">
         {played && <span>{fmtShortDay(m.kickoff_at)} · {fmtTime(m.kickoff_at)}</span>}
-        <span className="inline-flex items-center gap-1"><MapPin size={13} aria-hidden />{venue?.name ?? "Estadio por confirmar"}</span>
+        {venue && linkTeams
+          ? <Link href={`/estadios/${venue.id}`} className="inline-flex items-center gap-1 underline-offset-2 hover:underline"><MapPin size={13} aria-hidden />{venue.name}</Link>
+          : <span className="inline-flex items-center gap-1"><MapPin size={13} aria-hidden />{venue?.name ?? "Estadio por confirmar"}</span>}
       </div>
     </div>
   );
@@ -273,5 +275,39 @@ export function FactorTable({ factors, homeName, awayName, sample, config, indiv
         })}
       </div>
     </details>
+  );
+}
+
+
+/** Ficha práctica de un estadio: llamar, reservar, cómo llegar */
+export function VenueCard({ v, compact = false }: { v: Venue; compact?: boolean }) {
+  const tel = v.phone?.replace(/[^+\d]/g, "");
+  return (
+    <Card className="overflow-hidden">
+      {v.image_url && !compact && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={v.image_url} alt={`Campo de ${v.name}`} className="h-44 w-full object-cover" loading="lazy" />
+      )}
+      <div className="space-y-3 p-4">
+        <div>
+          <Link href={`/estadios/${v.id}`} className="font-display text-xl font-bold uppercase leading-tight">{v.name}</Link>
+          {v.address && <p className="mt-0.5 text-sm text-ink-2">{v.address}{v.city ? `, ${v.city}` : ""}</p>}
+        </div>
+        {(v.pitch_info || v.surface || v.hours) && (
+          <ul className="space-y-1 text-sm text-ink-2">
+            {v.pitch_info && <li>⚽ {v.pitch_info}</li>}
+            {v.surface && <li>🌱 {v.surface}</li>}
+            {v.hours && <li className="flex items-center gap-1.5"><Clock size={14} aria-hidden className="shrink-0 text-ink-3" />{v.hours}</li>}
+          </ul>
+        )}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {tel && <a href={`tel:${tel}`} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-pitch px-3 text-sm font-semibold text-pitch-ink"><Phone size={16} aria-hidden />Llamar</a>}
+          {v.booking_url && <a href={v.booking_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><CalendarCheck size={16} aria-hidden />Reservar</a>}
+          {v.maps_url && <a href={v.maps_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><Navigation size={16} aria-hidden />Cómo llegar</a>}
+          {v.website && <a href={v.website} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><ExternalLink size={16} aria-hidden />Web</a>}
+        </div>
+        {tel && <p className="text-xs text-ink-3">Reservas: <span className="tabular">{v.phone}</span>{v.phone_alt ? ` · ${v.phone_alt}` : ""}</p>}
+      </div>
+    </Card>
   );
 }

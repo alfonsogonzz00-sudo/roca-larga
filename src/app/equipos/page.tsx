@@ -44,6 +44,9 @@ export default async function Teams() {
           );
         })}
       </div>
+      <Link href="/estadios" className="mt-4 flex min-h-12 items-center justify-between rounded-2xl border border-line bg-surface px-4 text-sm font-semibold hover:border-line-strong">
+        <span>🏟️ Estadios: teléfonos, reservas y cómo llegar</span><span aria-hidden className="text-ink-3">›</span>
+      </Link>
     </div>
   );
 }
