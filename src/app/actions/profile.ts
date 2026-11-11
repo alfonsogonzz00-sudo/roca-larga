@@ -1,0 +1,58 @@
+"use server";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+import { getTexts } from "@/lib/data/config";
+import { friendlyError, type ActionResult } from "@/lib/errors";
+
+const nick = z.string().trim().min(1, "Escribe tu apodo").max(30, "Máximo 30 caracteres");
+
+export async function requestLink(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  const player = z.string().uuid("Elige tu nombre en la lista").safeParse(fd.get("player_id"));
+  if (!player.success) return { ok: false, error: player.error.issues[0].message };
+  const n = nick.safeParse(fd.get("nickname"));
+  if (!n.success) return { ok: false, error: n.error.issues[0].message };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("request_player_link", { p_player: player.data, p_nickname: n.data });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, message: (await getTexts())("onboarding.sent") };
+}
+
+export async function cancelLink(): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_my_link_request");
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export async function updateNickname(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  const n = nick.safeParse(fd.get("nickname"));
+  if (!n.success) return { ok: false, error: n.error.issues[0].message };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_my_nickname", { p_nickname: n.data });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, message: (await getTexts())("profile.nickname_saved") };
+}
+
+export async function updatePrefs(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  const keys = ["match_confirmed", "match_reminder", "vote_open", "mvp_result"];
+  const prefs = Object.fromEntries(keys.map((k) => [k, fd.get(k) === "on"]));
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_my_notification_prefs", { p_prefs: prefs });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/perfil");
+  return { ok: true, message: "Preferencias guardadas." };
+}
+
+export async function setAttendance(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  const supabase = await createClient();
+  const going = fd.get("going") === "yes";
+  const { error } = await supabase.rpc("set_my_attendance", { p_match: String(fd.get("match_id")), p_going: going });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  const t = await getTexts();
+  return { ok: true, message: t(going ? "match.attendance_yes" : "match.attendance_no") };
+}

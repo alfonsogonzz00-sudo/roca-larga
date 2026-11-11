@@ -1,0 +1,75 @@
+"use client";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
+import { Button, Notice, cx } from "./index";
+import type { ActionResult } from "@/lib/errors";
+
+export function SubmitButton({ children, pendingLabel, variant, className, disabled }: { children: ReactNode; pendingLabel?: string; variant?: "primary" | "secondary" | "danger" | "gold" | "ghost"; className?: string; disabled?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant={variant} className={className} disabled={pending || disabled} aria-busy={pending}>
+      {pending && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden />}
+      {pending ? pendingLabel ?? "Guardando…" : children}
+    </Button>
+  );
+}
+
+type Action = (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
+
+/** Formulario que ejecuta una server action y muestra el resultado */
+export function ActionForm({ action, children, className, onSuccess, resetOnSuccess, refresh = true, confirm }: {
+  action: Action; children: ReactNode; className?: string; onSuccess?: () => void; resetOnSuccess?: boolean; refresh?: boolean; confirm?: string;
+}) {
+  const [state, formAction] = useActionState(action, null);
+  const ref = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  useEffect(() => {
+    if (state?.ok) {
+      if (resetOnSuccess) ref.current?.reset();
+      if (refresh) router.refresh();
+      onSuccess?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+  return (
+    <form
+      ref={ref}
+      action={formAction}
+      className={className}
+      onSubmit={(e) => {
+        if (confirm && !window.confirm(confirm)) e.preventDefault();
+      }}
+    >
+      {children}
+      {state && (
+        <div className="mt-3">
+          {state.ok ? (state.message ? <Notice tone="ok">{state.message}</Notice> : null) : <Notice tone="danger">{state.error}</Notice>}
+        </div>
+      )}
+    </form>
+  );
+}
+
+export function Tabs({ tabs, initial = 0, className }: { tabs: { label: string; content: ReactNode }[]; initial?: number; className?: string }) {
+  const [i, setI] = useState(initial);
+  return (
+    <div className={className}>
+      <div role="tablist" className="no-scrollbar mb-4 flex gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1">
+        {tabs.map((t, idx) => (
+          <button
+            key={t.label}
+            role="tab"
+            type="button"
+            aria-selected={i === idx}
+            onClick={() => setI(idx)}
+            className={cx("min-h-10 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition", i === idx ? "bg-surface text-ink shadow-card" : "text-ink-3 hover:text-ink")}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel">{tabs[i]?.content}</div>
+    </div>
+  );
+}

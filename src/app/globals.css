@@ -1,26 +1,169 @@
 @import "tailwindcss";
 
+/*
+ * Sistema visual · "focos de noche sobre césped"
+ * Tokens en :root; modo oscuro por preferencia del sistema o elección manual
+ * (data-theme en <html>). Los colores de cada equipo vienen de la BD.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f4f2ec;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #efece4;
+  --surface-3: #e5e1d6;
+  --line: #ddd8cc;
+  --line-strong: #c7c0b0;
+  --ink: #15170f;
+  --ink-2: #4a4c42;
+  --ink-3: #7a7b70;
+  --pitch: #1d6b39;
+  --pitch-ink: #ffffff;
+  --pitch-soft: #dcebdf;
+  --gold: #a8822c;
+  --gold-soft: #f3e9cf;
+  --win: #1d7a3e;
+  --draw: #8a7a3a;
+  --loss: #b3402e;
+  --danger: #b3402e;
+  --danger-soft: #f8e1dc;
+  --focus: #1d6b39;
+  --shadow: 0 1px 2px rgb(20 22 14 / 0.06), 0 4px 16px rgb(20 22 14 / 0.05);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f0c;
+    --bg-elev: #121813;
+    --surface: #141a15;
+    --surface-2: #1b231c;
+    --surface-3: #243025;
+    --line: #253026;
+    --line-strong: #344236;
+    --ink: #eef1ea;
+    --ink-2: #b6bdb2;
+    --ink-3: #7f897d;
+    --pitch: #3fae66;
+    --pitch-ink: #07130b;
+    --pitch-soft: #173322;
+    --gold: #d6b25e;
+    --gold-soft: #2c2614;
+    --win: #49c072;
+    --draw: #c9b366;
+    --loss: #e5735f;
+    --danger: #e5735f;
+    --danger-soft: #3a1c17;
+    --focus: #3fae66;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.25);
+    color-scheme: dark;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root[data-theme="dark"] {
+  --bg: #0b0f0c;
+  --bg-elev: #121813;
+  --surface: #141a15;
+  --surface-2: #1b231c;
+  --surface-3: #243025;
+  --line: #253026;
+  --line-strong: #344236;
+  --ink: #eef1ea;
+  --ink-2: #b6bdb2;
+  --ink-3: #7f897d;
+  --pitch: #3fae66;
+  --pitch-ink: #07130b;
+  --pitch-soft: #173322;
+  --gold: #d6b25e;
+  --gold-soft: #2c2614;
+  --win: #49c072;
+  --draw: #c9b366;
+  --loss: #e5735f;
+  --danger: #e5735f;
+  --danger-soft: #3a1c17;
+  --focus: #3fae66;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.25);
+  color-scheme: dark;
 }
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-pitch: var(--pitch);
+  --color-pitch-ink: var(--pitch-ink);
+  --color-pitch-soft: var(--pitch-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-win: var(--win);
+  --color-draw: var(--draw);
+  --color-loss: var(--loss);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: var(--shadow);
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Áreas seguras de iOS en modo standalone */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.h-safe-bottom { height: env(safe-area-inset-bottom); }
+
+/* Rejilla del césped para cabeceras */
+.pitch-lines {
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgb(255 255 255 / 0.04) 46px 92px);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise { animation: rise 180ms ease-out both; }
