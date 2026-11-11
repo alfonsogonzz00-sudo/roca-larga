@@ -6,6 +6,7 @@ import "./globals.css";
 import Link from "next/link";
 import { Settings, ClipboardList } from "lucide-react";
 import { BottomNav, SideNav } from "@/components/layout/nav";
+import { Tour } from "@/components/onboarding/tour";
 import { themeScript } from "@/components/layout/theme";
 import { OfflineBanner, ServiceWorkerRegister } from "@/components/layout/sw-register";
 import { getSettings, getTexts } from "@/lib/data/config";
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </div>
         <BottomNav labels={labels} voteBadge={pending} />
+        <Tour enabled={Boolean(session?.player)} />
         <ServiceWorkerRegister />
       </body>
     </html>

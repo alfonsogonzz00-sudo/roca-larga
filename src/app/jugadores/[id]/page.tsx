@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Award, MapPin } from "lucide-react";
 import { Avatar, Card, Crest, EmptyState, ResultBadge, SectionTitle, Stat } from "@/components/ui";
 import { Tabs } from "@/components/ui/client";
+import { Hint } from "@/components/onboarding/hint";
+import { getSession } from "@/lib/data/session";
 import { LineChart, WdlBar } from "@/components/charts";
 import { getStats } from "@/lib/data/stats";
 import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats/engine";
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { ds, parts, settings } = await getStats();
+  const [{ ds, parts, settings }, s] = await Promise.all([getStats(), getSession()]);
   const p = ds.playerById.get(id);
   if (!p) notFound();
   const team = p.team_id ? ds.teamById.get(p.team_id) : null;
@@ -143,6 +145,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
+      {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>valoración</strong> suma goles, asistencias, MVP, «mejor de tu equipo», resultados e invitados que traes. Los goles que encajas en tus turnos de portero van aparte (pestaña Portería) y nunca te restan.</Hint>}
       {tot.matches === 0 ? <EmptyState title="Sin partidos todavía">Cuando dispute su primer partido aparecerán aquí sus estadísticas.</EmptyState> : (
         <Tabs tabs={[
           { label: "Resumen", content: summary },

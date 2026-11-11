@@ -7,6 +7,7 @@ import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { ThemeToggle } from "@/components/layout/theme";
 import { PushToggle } from "@/components/layout/push-toggle";
 import { AvatarUpload } from "@/components/forms/avatar-upload";
+import { RestartTour } from "@/components/onboarding/tour";
 import { getSession } from "@/lib/data/session";
 import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
@@ -144,6 +145,12 @@ export default async function Profile() {
       <section>
         <SectionTitle>Apariencia</SectionTitle>
         <ThemeToggle />
+      </section>
+
+      <section>
+        <SectionTitle>Ayuda</SectionTitle>
+        <p className="mb-3 text-sm text-ink-2">¿Te perdiste algo? Vuelve a ver el recorrido por la app.</p>
+        <RestartTour />
       </section>
 
       <form action={signOut}>

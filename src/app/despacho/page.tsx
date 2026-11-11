@@ -4,6 +4,7 @@ import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
 import { Simulators } from "./simulators";
+import { Hint } from "@/components/onboarding/hint";
 
 export const metadata = { title: "El Despacho" };
 
@@ -13,10 +14,17 @@ export default async function Office({ searchParams }: { searchParams: Promise<{
   return (
     <div>
       <PageHeader title={t("nav.office", "El Despacho")} subtitle={t("office.subtitle")} />
+      {s && <div className="mb-4"><Hint id="office" title="¿Qué es una simulación?">Eliges equipos, jugadores, estadio, horario y clima, y El Despacho calcula qué pasaría según el histórico real. Es una <strong>estimación</strong>, no un resultado garantizado: con pocos partidos la confianza es baja y te lo avisa.</Hint></div>}
       {!s ? (
-        <Card className="p-5 text-center">
-          <p className="font-semibold">Los simuladores son para los miembros del grupo.</p>
-          <Link href="/login?next=/despacho" className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-pitch px-4 text-sm font-semibold text-pitch-ink">Entrar</Link>
+        <Card className="space-y-4 p-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl bg-surface-2 p-4"><p className="font-display text-xl font-bold uppercase">Simulador de partidos</p><p className="mt-1 text-sm text-ink-2">Monta los dos equipos, elige estadio y hora, y descubre el marcador más probable, las probabilidades y los goleadores.</p></div>
+            <div className="rounded-xl bg-surface-2 p-4"><p className="font-display text-xl font-bold uppercase">Simulador individual</p><p className="mt-1 text-sm text-ink-2">¿Cuántos goles metería un jugador con estos compañeros y contra estos rivales?</p></div>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-ink-3">Los simuladores son para los miembros del grupo.</p>
+            <Link href="/login?next=/despacho" className="press mt-3 inline-flex min-h-11 items-center rounded-xl bg-pitch px-5 text-sm font-semibold text-pitch-ink">Entrar para simular</Link>
+          </div>
         </Card>
       ) : (
         <Simulators teams={ds.teams} players={ds.players} venues={ds.venues.filter((v) => v.active)} formations={ds.formations.filter((f) => f.active)}

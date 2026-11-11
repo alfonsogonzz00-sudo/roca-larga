@@ -6,6 +6,7 @@ import { Tabs } from "@/components/ui/client";
 import { FormationBoard, PlayerChipList, PredictionPanel, Scoreboard, StatusPill, WeatherBadge, VenueCard } from "@/components/match/parts";
 import { StaffActions } from "@/components/match/staff-actions";
 import { AttendanceButtons } from "@/components/match/attendance";
+import { Hint } from "@/components/onboarding/hint";
 import { getStats, predictionForMatch } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
@@ -248,7 +249,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
 
       <Tabs tabs={[
         { label: played ? "Resumen" : "Convocatoria", content: played ? <div className="space-y-4">{mvpBlock}{events}</div> : lineups },
-        { label: played ? "Alineaciones" : "Pronóstico", content: played ? lineups : <PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} /> },
+        { label: played ? "Alineaciones" : "Pronóstico", content: played ? lineups : <div className="space-y-3"><Hint id="prediction" title="Es una estimación, no un resultado">El pronóstico sale del histórico real (equipos, estadio, rachas, clima y horario). Con pocos partidos la confianza es baja: tómatelo como charla de vestuario.</Hint><PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} /></div> },
         ...(played ? [{ label: "Pronóstico previo", content: (
           <div className="space-y-2">
             <p className="text-sm text-ink-2">Lo que el modelo habría pronosticado usando sólo los partidos anteriores a este encuentro.</p>

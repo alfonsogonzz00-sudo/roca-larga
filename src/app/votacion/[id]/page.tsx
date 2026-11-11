@@ -9,6 +9,7 @@ import { getSession } from "@/lib/data/session";
 import { createClient } from "@/lib/supabase/server";
 import { fmtDay, fmtTime, relativeFromNow, teamColor } from "@/lib/format";
 import { Ballot } from "./ballot";
+import { Hint } from "@/components/onboarding/hint";
 
 export const metadata = { title: "Votar" };
 
@@ -38,6 +39,7 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   else if (!isParticipant) body = <Notice tone="warn">Sólo votan los jugadores que han participado en este partido.</Notice>;
   else body = (
     <Card className="space-y-4 p-4 pb-0">
+      <Hint id="ballot" title="Dos votos, un minuto">Toca primero al mejor de tu equipo y después al mejor del partido. Puede ser la misma persona. Al final verás el resumen antes de confirmar.</Hint>
       <p className="flex items-start gap-2 text-sm text-ink-2"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden />{t("vote.anonymous_note")}</p>
       {mine && <Notice tone="ok">Ya has votado. Puedes cambiar tu voto hasta el cierre.</Notice>}
       <Ballot matchId={id} myTeamId={me!.team_id} teams={teams} candidates={candidates}

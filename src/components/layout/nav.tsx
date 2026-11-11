@@ -22,6 +22,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
             <li key={item.href}>
               <Link
                 href={item.href}
+                data-tour={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
                   "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 pt-1.5 pb-1 text-[11px] font-semibold leading-tight",
@@ -55,6 +56,7 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
       <Link
         key={href}
         href={href}
+        data-tour={href}
         aria-current={active ? "page" : undefined}
         className={cx("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition", active ? "bg-pitch-soft text-pitch" : "text-ink-2 hover:bg-surface-2 hover:text-ink")}
       >

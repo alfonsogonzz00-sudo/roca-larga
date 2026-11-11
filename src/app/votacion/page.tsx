@@ -8,7 +8,9 @@ import { getOpenVoteMatches } from "@/lib/data/votes";
 import { createClient } from "@/lib/supabase/server";
 import { fmtShortDay, playerName, relativeFromNow } from "@/lib/format";
 
-export const metadata = { title: "Votación MVP" };
+import { Hint } from "@/components/onboarding/hint";
+
+export const metadata = { title: "Votación" };
 
 export default async function Votes() {
   const [{ ds }, s, t, open] = await Promise.all([getStats(), getSession(), getTexts(), getOpenVoteMatches()]);
@@ -21,10 +23,13 @@ export default async function Votes() {
   };
   return (
     <div className="space-y-8">
-      <PageHeader title={t("vote.title")} subtitle="Votación conjunta, anónima y con cierre automático 24 h después del inicio." />
+      <PageHeader title={t("vote.title")} subtitle="Secreta, conjunta y con cierre automático 24 h después del inicio." />
+      <Hint id="vote" title="Cómo funciona la votación">
+        Al empezar cada partido, quienes han jugado votan dos cosas: <strong>el mejor de su equipo</strong> (un compañero) y <strong>el mejor del partido</strong> (de cualquier equipo). No puedes votarte a ti mismo, puedes cambiar el voto hasta el cierre y nadie sabrá a quién votaste.
+      </Hint>
       <section>
         <SectionTitle>Abiertas ahora</SectionTitle>
-        {open.length === 0 ? <EmptyState title="Urnas vacías">{t("vote.none_open")}</EmptyState> : (
+        {open.length === 0 ? <EmptyState title="Urnas vacías">{t("vote.none_open")} La próxima se abrirá sola cuando empiece el siguiente partido.</EmptyState> : (
           <div className="space-y-2">
             {open.map((m) => {
               const participant = s?.player && ds.matchPlayers.some((x) => x.match_id === m.id && x.player_id === s.player!.id && x.participated);

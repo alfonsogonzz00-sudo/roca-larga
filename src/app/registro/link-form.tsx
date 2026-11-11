@@ -11,14 +11,19 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
   const [team, setTeam] = useState<string | null>(null);
   const [player, setPlayer] = useState<string | null>(null);
   const t = teams.find((x) => x.id === team);
+  const step = player ? 3 : team ? 2 : 1;
   return (
     <ActionForm action={requestLink} className="space-y-6">
+      <div>
+        <div aria-hidden className="flex gap-1.5">{[1, 2, 3].map((k) => <span key={k} className={cx("h-1.5 flex-1 rounded-full transition-colors", k <= step ? "bg-pitch" : "bg-surface-3")} />)}</div>
+        <p className="mt-1.5 text-xs text-ink-3">Paso {step} de 3</p>
+      </div>
       <fieldset>
         <legend className="mb-2 text-sm font-semibold">1 · Tu equipo</legend>
         <div className="grid grid-cols-2 gap-3">
           {teams.map((x) => (
             <button key={x.id} type="button" onClick={() => { setTeam(x.id); setPlayer(null); }} aria-pressed={team === x.id}
-              className={cx("flex flex-col items-center gap-2 rounded-2xl border-2 bg-surface p-4 transition", team === x.id ? "border-pitch" : "border-line")}>
+              className={cx("press flex flex-col items-center gap-2 rounded-2xl border-2 bg-surface p-4", team === x.id ? "border-pitch" : "border-line")}>
               <Crest src={x.crest_url} name={x.name} size={56} />
               <span className="text-center text-sm font-bold">{x.name}</span>
             </button>
@@ -26,7 +31,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
         </div>
       </fieldset>
       {t && (
-        <fieldset>
+        <fieldset className="animate-rise">
           <legend className="mb-2 text-sm font-semibold">2 · Tu nombre real</legend>
           {t.candidates.length === 0 ? (
             <p className="text-sm text-ink-2">No quedan jugadores libres en este equipo. Pide al administrador que te dé de alta.</p>
@@ -46,7 +51,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
         </fieldset>
       )}
       {player && (
-        <fieldset className="space-y-3">
+        <fieldset className="animate-rise space-y-3">
           <legend className="mb-2 text-sm font-semibold">3 · Tu apodo en el grupo</legend>
           <Field label="Apodo" htmlFor="nickname" hint="Se mostrará junto a tu nombre. Podrás cambiarlo después.">
             <Input id="nickname" name="nickname" required maxLength={30} autoComplete="off" />
