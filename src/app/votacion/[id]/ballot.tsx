@@ -5,7 +5,7 @@ import { castVoteAction } from "@/app/actions/votes";
 import { Avatar, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 
-export interface Candidate { id: string; name: string; nickname: string | null; photo: string | null; teamId: string }
+export interface Candidate { id: string; name: string; nickname: string | null; photo: string | null; teamId: string; rating?: number | null }
 export interface BallotTeam { id: string; name: string; color: string }
 
 function PlayerTile({ c, selected, color, onPick }: { c: Candidate; selected: boolean; color: string; onPick: () => void }) {
@@ -23,6 +23,7 @@ function PlayerTile({ c, selected, color, onPick }: { c: Candidate; selected: bo
       <Avatar name={c.name} src={c.photo} size={40} color={color} />
       <span className="line-clamp-2 text-xs font-semibold leading-tight">{c.nickname ?? c.name.split(" ")[0]}</span>
       {c.nickname && <span className="-mt-0.5 line-clamp-1 text-[11px] text-ink-3">{c.name.split(" ").slice(0, 2).join(" ")}</span>}
+      {c.rating != null && <span className="rounded-full bg-surface-3 px-1.5 text-[11px] font-semibold tabular text-ink-2" aria-label={`Nota del partido ${c.rating}`}>{c.rating.toFixed(1).replace(".", ",")}</span>}
     </button>
   );
 }

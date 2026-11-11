@@ -223,7 +223,7 @@ async function IndividualTab() {
         <SectionTitle>Mejores actuaciones</SectionTitle>
         <ol className="space-y-2 text-sm">
           {bestPerf.map((p, i) => (
-            <li key={`${p.matchId}${p.playerId}`}><Link href={`/partidos/${p.matchId}`} className="flex justify-between gap-2"><span><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{playerName(P(p.playerId), "short")} <span className="text-ink-3">· {fmtDate(p.kickoff)} · {p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></span><span className="font-display tabular font-bold">{num(p.rating, 2)}</span></Link></li>
+            <li key={`${p.matchId}${p.playerId}`}><Link href={`/partidos/${p.matchId}`} className="flex justify-between gap-2"><span><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{playerName(P(p.playerId), "short")} <span className="text-ink-3">· {fmtDate(p.kickoff)} · {p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></span><span className="font-display tabular font-bold">{num(p.rating, 1)}</span></Link></li>
           ))}
         </ol>
       </Card>
@@ -231,13 +231,13 @@ async function IndividualTab() {
         <SectionTitle>Porteros (encajados por turno)</SectionTitle>
         {gk.length ? <HBars rows={gk.map((r) => ({ label: <Link href={`/jugadores/${r.playerId}`}>{playerName(P(r.playerId), "short")}</Link>, value: r.concededPerSpell ?? 0, sub: `${r.gkSpells} turnos · ${r.concededAsGk} encajados` }))} format={(v) => num(v, 2)} color="var(--gold)" />
           : <p className="text-sm text-ink-3">Hacen falta al menos 2 turnos de portería registrados por jugador.</p>}
-        <p className="mt-2 text-xs text-ink-3">Menos es mejor. Estadística independiente de la valoración de campo.</p>
+        <p className="mt-2 text-xs text-ink-3">Menos es mejor. Estadística independiente de la nota.</p>
       </Card>
       <Card className="p-4 lg:col-span-2">
         <SectionTitle>Mejor rendimiento por estadio</SectionTitle>
         {venueKings.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
-            {venueKings.map((v) => <li key={v.venue} className="rounded-xl bg-surface-2 px-3 py-2 text-sm"><div className="text-xs text-ink-3">{v.venue}</div><Link href={`/jugadores/${v.id}`} className="font-semibold">{playerName(P(v.id), "short")}</Link> <span className="text-ink-3">· {num(v.avg, 2)} pts/partido en {v.n}</span></li>)}
+            {venueKings.map((v) => <li key={v.venue} className="rounded-xl bg-surface-2 px-3 py-2 text-sm"><div className="text-xs text-ink-3">{v.venue}</div><Link href={`/jugadores/${v.id}`} className="font-semibold">{playerName(P(v.id), "short")}</Link> <span className="text-ink-3">· nota {num(v.avg, 1)} en {v.n} partidos</span></li>)}
           </ul>
         ) : <p className="text-sm text-ink-3">Se necesitan al menos 2 partidos de un jugador en un mismo estadio.</p>}
       </Card>

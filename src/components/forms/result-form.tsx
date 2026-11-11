@@ -220,7 +220,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
       {/* Rotación de portería */}
       <Card className="p-4">
         <h3 className="font-display text-lg font-bold uppercase">Rotación de portería</h3>
-        <p className="mb-3 text-xs text-ink-3">Cada ~7 minutos cambia el portero. Apunta quién estuvo en portería y en qué tramos. Los goles encajados nunca restan en su valoración de campo.</p>
+        <p className="mb-3 text-xs text-ink-3">Cada ~7 minutos cambia el portero. Apunta quién estuvo en portería y en qué tramos. Los goles encajados en portería no cuentan en la nota de nadie.</p>
         <div className="grid gap-4 lg:grid-cols-2">
           {[s.home_team_id, s.away_team_id].map((tid) => (
             <div key={tid}>

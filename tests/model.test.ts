@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildParticipations, ranking, teamBadges, teamStats, topPerformances, playerTotals } from "@/lib/stats/engine";
+import { buildParticipations, rate, ranking, teamBadges, teamStats, topPerformances, playerTotals } from "@/lib/stats/engine";
 import { backtest, buildHistory, normalizeWeights, poissonPmf, predictIndividual, predictMatch, scoreMatrix, type ModelContext } from "@/lib/stats/model";
 import type { Goal, Match, MatchMvp, MatchPlayer, Player, Team } from "@/lib/types";
 
-const PERF = { goal: 1, assist: 0.75, mvp: 2, team_best: 1, win: 0.5, draw: 0.2, guest_bonus: 0.5 };
+const PERF = { base: 6, played: 0.5, goal: 2.5, assist: 1.2, team_goal: 0.8, team_conceded: -1, guest_bonus: 0.5, max: 10, min: 0 };
 const PARAMS = { k_team: 4, k_venue: 4, k_recent: 2, k_context: 5, k_pair: 3, k_player: 4, min_matches: 3 };
 const W = { composition_teammates: 30, composition_rivals: 20, venue_history: 20, recent_form: 10, recent_venue: 10, weather: 7.5, time_slot: 2.5 };
 const EN = Object.fromEntries(Object.keys(W).map((k) => [k, true])) as Record<keyof typeof W, boolean>;
@@ -151,5 +151,25 @@ describe("modelo predictivo", () => {
     const bt = backtest(d, ctx.parts, { weights: W, enabled: EN, configName: "t", params: PARAMS, perf: PERF });
     expect(bt.evaluated).toBe(9);
     expect(bt.accuracy).toBeGreaterThan(0.5);
+  });
+});
+
+describe("nota del partido (sobre 10)", () => {
+  const base = { goals: 0, assists: 0, goalsFor: 0, goalsAgainst: 0, guestsBrought: 0 };
+  it("parte de 6,0 y suma 0,5 por jugar", () => {
+    expect(rate(base, PERF)).toBe(6.5);
+  });
+  it("gol propio +2,5 sin cobrar el +0,8 de ese gol; asistente sí lo cobra", () => {
+    // Equipo gana 1-0: el goleador 6,5 + 2,5 = 9,0; el asistente 6,5 + 1,2 + 0,8 = 8,5; el resto 6,5 + 0,8 = 7,3
+    expect(rate({ ...base, goals: 1, goalsFor: 1 }, PERF)).toBe(9);
+    expect(rate({ ...base, assists: 1, goalsFor: 1 }, PERF)).toBe(8.5);
+    expect(rate({ ...base, goalsFor: 1 }, PERF)).toBe(7.3);
+  });
+  it("cada gol encajado por el equipo resta 1,0", () => {
+    expect(rate({ ...base, goalsAgainst: 3 }, PERF)).toBe(3.5);
+  });
+  it("tope en 10 y suelo en 0", () => {
+    expect(rate({ ...base, goals: 4, goalsFor: 6 }, PERF)).toBe(10);
+    expect(rate({ ...base, goalsAgainst: 12 }, PERF)).toBe(0);
   });
 });

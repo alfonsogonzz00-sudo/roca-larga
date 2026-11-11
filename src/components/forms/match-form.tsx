@@ -5,7 +5,7 @@ import { createGuestAction, createMatchAction, updateMatchAction } from "@/app/a
 import { Button, Card, Crest, Field, Input, Notice, Select, Textarea, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { madridLocalToIso } from "@/lib/format";
-import { POSITION_LABELS, WEATHER_LABELS, type Formation, type Player, type Position, type Team, type Venue } from "@/lib/types";
+import { POSITION_LABELS, FIELD_POSITIONS, WEATHER_LABELS, type Formation, type Player, type Position, type Team, type Venue } from "@/lib/types";
 
 export interface SideState {
   players: string[];
@@ -219,7 +219,7 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
                     value={value.positions[p.id] ?? p.usual_position ?? ""}
                     onChange={(e) => onChange({ ...value, positions: { ...value.positions, [p.id]: e.target.value as Position } })}>
                     <option value="">Pos.</option>
-                    {Object.entries(POSITION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    {FIELD_POSITIONS.map((k) => <option key={k} value={k}>{POSITION_LABELS[k]}</option>)}
                   </select>
                 )}
               </li>
@@ -245,7 +245,7 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
           <Button type="button" variant="secondary" disabled={pending || guestName.trim().length < 2} onClick={addGuest}><UserPlus size={16} /> Añadir</Button>
         </div>
         {guestError && <Notice tone="danger">{guestError}</Notice>}
-        <p className="text-xs text-ink-3">Quien trae al invitado suma una bonificación en la valoración de ese partido (configurable).</p>
+        <p className="text-xs text-ink-3">Quien trae al invitado suma una bonificación en su nota de ese partido (configurable).</p>
       </div>
     </Card>
   );

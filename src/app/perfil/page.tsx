@@ -85,8 +85,8 @@ export default async function Profile() {
           <>
             <div className="mt-5 flex items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-white/70">Valoración media</p>
-                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 2)}</p>
+                <p className="text-[11px] uppercase tracking-wider text-white/70">Nota media</p>
+                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-white/60">/10</span></p>
               </div>
               {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-white/85"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
             </div>
@@ -152,7 +152,7 @@ export default async function Profile() {
           <section>
             <SectionTitle>Tú contra la media del grupo</SectionTitle>
             <Card className="space-y-4 p-4">
-              {([["Goles por partido", tot.goalsPerMatch, avgOf("goalsPerMatch")], ["Asistencias por partido", tot.assistsPerMatch, avgOf("assistsPerMatch")], ["Valoración media", tot.ratingAvg, avgOf("ratingAvg")]] as const).map(([l, me, avg]) => {
+              {([["Goles por partido", tot.goalsPerMatch, avgOf("goalsPerMatch")], ["Asistencias por partido", tot.assistsPerMatch, avgOf("assistsPerMatch")], ["Nota media", tot.ratingAvg, avgOf("ratingAvg")]] as const).map(([l, me, avg]) => {
                 const max = Math.max(me, avg, 0.01) * 1.15;
                 return (
                   <div key={l}>
@@ -176,7 +176,7 @@ export default async function Profile() {
               </Card>
             ))}
           </section>
-          {tot.gkSpells > 0 && <p className="-mt-3 text-xs text-ink-3">En portería has encajado {tot.concededAsGk} {tot.concededAsGk === 1 ? "gol" : "goles"} ({num(tot.concededPerSpell ?? 0, 2)} por turno). No restan en tu valoración.</p>}
+          {tot.gkSpells > 0 && <p className="-mt-3 text-xs text-ink-3">En portería has encajado {tot.concededAsGk} {tot.concededAsGk === 1 ? "gol" : "goles"} ({num(tot.concededPerSpell ?? 0, 2)} por turno). No afectan a tu nota.</p>}
 
           <section>
             <SectionTitle action={<Link href={`/jugadores/${s.player!.id}`} className="text-sm font-semibold text-pitch">Ficha completa</Link>}>Mis últimos partidos</SectionTitle>

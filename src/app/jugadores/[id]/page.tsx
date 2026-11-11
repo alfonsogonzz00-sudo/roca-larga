@@ -40,7 +40,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           <Stat label="Goles por partido" value={num(tot.goalsPerMatch, 2)} />
           <Stat label="Asist. por partido" value={num(tot.assistsPerMatch, 2)} />
           <Stat label="Mejor de su equipo" value={tot.teamBests} />
-          <Stat label="Invitados traídos" value={brought} hint={brought ? `+${num(w.guest_bonus, 2)} pts c/u` : undefined} />
+          <Stat label="Invitados traídos" value={brought} hint={brought && w.guest_bonus ? `+${num(w.guest_bonus, 1)} a la nota c/u` : undefined} />
         </div>
         <div className="mt-3 flex items-center gap-3 text-sm"><span className="text-ink-3">{tot.wins}V · {tot.draws}E · {tot.losses}D</span><WdlBar className="flex-1" wins={tot.wins} draws={tot.draws} losses={tot.losses} /></div>
       </section>
@@ -56,13 +56,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                   <div className="truncate text-sm font-semibold">{fmtShortDay(x.kickoff)} · {ds.teamById.get(m.home_team_id)?.short_name} {m.home_score}–{m.away_score} {ds.teamById.get(m.away_team_id)?.short_name}</div>
                   <div className="truncate text-xs text-ink-3">{x.goals} goles · {x.assists} asist.{x.isMvp ? " · MVP" : ""}{x.isTeamBest ? " · mejor de su equipo" : ""}{x.guestsBrought ? ` · trajo ${x.guestsBrought} invitado${x.guestsBrought > 1 ? "s" : ""}` : ""}</div>
                 </div>
-                <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 2)}</div><div className="text-[11px] uppercase text-ink-3">valoración</div></div>
+                <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 1)}</div><div className="text-[11px] uppercase text-ink-3">nota</div></div>
                 {x.isMvp && <Award size={18} className="text-gold" aria-label="MVP" />}
               </Link>
             );
           })}
         </div>
-        <p className="mt-1.5 text-xs text-ink-3">Valoración = gol {num(w.goal, 2)} · asistencia {num(w.assist, 2)} · MVP {num(w.mvp, 2)} · mejor de su equipo {num(w.team_best ?? 0, 2)} · victoria {num(w.win, 2)} · empate {num(w.draw, 2)} · invitado traído {num(w.guest_bonus, 2)}.</p>
+        <p className="mt-1.5 text-xs text-ink-3">Nota (sobre {num(w.max, 0)}) = parte de {num(w.base, 1)} · +{num(w.played, 1)} por jugar · +{num(w.goal, 1)} por gol · +{num(w.assist, 1)} por asistencia · +{num(w.team_goal, 1)} por cada gol del equipo que no marca él · {num(w.team_conceded, 1)} por gol encajado por el equipo{w.guest_bonus ? ` · +${num(w.guest_bonus, 1)} por invitado traído` : ""}. No cuentan las votaciones ni la portería.</p>
       </section>
       {bv && (
         <section>
@@ -71,7 +71,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             <MapPin className="text-pitch" aria-hidden />
             <div className="flex-1">
               <div className="font-semibold">{ds.venueById.get(bv.venueId)?.name}</div>
-              <div className="text-xs text-ink-3">{bv.matches} partidos · {bv.goals} goles · {bv.wins} victorias · valoración media {num(bv.ratingAvg, 2)}{bv.smallSample ? " · muestra pequeña" : ""}</div>
+              <div className="text-xs text-ink-3">{bv.matches} partidos · {bv.goals} goles · {bv.wins} victorias · nota media {num(bv.ratingAvg, 1)}{bv.smallSample ? " · muestra pequeña" : ""}</div>
             </div>
           </Link>
         </section>
@@ -95,7 +95,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         <Stat label="Encajados" value={tot.concededAsGk} />
         <Stat label="Por turno" value={tot.concededPerSpell != null ? num(tot.concededPerSpell, 2) : "—"} />
       </div>
-      <p className="text-xs text-ink-3">Estadística separada: los goles encajados en sus periodos de portero no afectan a su valoración de campo.</p>
+      <p className="text-xs text-ink-3">Estadística separada: los goles encajados en sus periodos de portero no afectan a su nota.</p>
     </section>
   );
 
@@ -132,7 +132,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           {tot.matches > 0 && (
             <div className="shrink-0 text-center">
               <div className="font-display tabular text-4xl font-bold leading-none">{num(tot.ratingAvg, 1)}</div>
-              <div className="text-[11px] uppercase tracking-wider text-white/75">valoración</div>
+              <div className="text-[11px] uppercase tracking-wider text-white/75">nota media</div>
             </div>
           )}
         </div>
@@ -145,7 +145,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>valoración</strong> suma goles, asistencias, MVP, «mejor de tu equipo», resultados e invitados que traes. Los goles que encajas en tus turnos de portero van aparte (pestaña Portería) y nunca te restan.</Hint>}
+      {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>nota</strong> de cada partido es sobre 10: partes de 6,0, sumas por jugar, por tus goles y asistencias y por cada gol de tu equipo, y restas por cada gol que encaja tu equipo. Las votaciones y la portería no cuentan.</Hint>}
       {tot.matches === 0 ? <EmptyState title="Sin partidos todavía">Cuando dispute su primer partido aparecerán aquí sus estadísticas.</EmptyState> : (
         <Tabs tabs={[
           { label: "Resumen", content: summary },

@@ -209,9 +209,12 @@ export const STATUS_LABELS: Record<MatchStatus, string> = {
   cancelled: "Cancelado",
 };
 
+/** Posiciones elegibles (la portería rota y no es una posición) */
+export const FIELD_POSITIONS = ["DEF", "MED", "DEL"] as const;
+
 export const POSITION_LABELS: Record<Position, string> = {
   POR: "Portero",
-  DEF: "Defensa",
+  DEF: "Central",
   MED: "Centrocampista",
   DEL: "Delantero",
 };
@@ -225,14 +228,17 @@ export const WEATHER_LABELS: Record<Weather, string> = {
   otro: "Otro",
 };
 
+/** Nota del jugador en cada partido, sobre 10 (independiente de las votaciones) */
 export interface PerformanceWeights {
-  goal: number;
-  assist: number;
-  mvp: number;
-  team_best: number;
-  win: number;
-  draw: number;
-  guest_bonus: number;
+  base: number;           // nota de partida (6,0)
+  played: number;         // por jugar el partido (+0,5)
+  goal: number;           // por cada gol propio (+2,5)
+  assist: number;         // por cada asistencia (+1,2)
+  team_goal: number;      // por cada gol del equipo que no marca él (+0,8)
+  team_conceded: number;  // por cada gol que encaja el equipo (−1,0)
+  guest_bonus: number;    // por cada invitado que trae
+  max: number;            // tope (10,0)
+  min: number;            // suelo (0,0)
 }
 
 export interface ModelParams {

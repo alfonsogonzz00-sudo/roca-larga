@@ -15,7 +15,7 @@ export const metadata = { title: "Votar" };
 
 export default async function VotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ ds }, s, t] = await Promise.all([getStats(), getSession(), getTexts()]);
+  const [{ ds, parts: allParts }, s, t] = await Promise.all([getStats(), getSession(), getTexts()]);
   const m = ds.matchById.get(id);
   if (!m) notFound();
   const supabase = await createClient();
@@ -27,7 +27,8 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   const teams = [m.home_team_id, m.away_team_id].map((tid) => { const tm = ds.teamById.get(tid)!; return { id: tm.id, name: tm.name, color: teamColor(tm) }; });
   const candidates = parts.filter((x) => x.player_id !== s?.player?.id).map((x) => {
     const p = ds.playerById.get(x.player_id)!;
-    return { id: p.id, name: p.full_name, nickname: p.nickname, photo: p.photo_url, teamId: x.team_id };
+    const nota = allParts.find((q) => q.matchId === id && q.playerId === p.id)?.rating ?? null;
+    return { id: p.id, name: p.full_name, nickname: p.nickname, photo: p.photo_url, teamId: x.team_id, rating: nota };
   });
 
   let body: React.ReactNode;

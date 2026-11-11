@@ -1,7 +1,7 @@
 /**
  * Motor estadístico: todo se deriva de los datos brutos del partido.
  * Regla clave: los goles encajados como portero NUNCA restan en la
- * valoración de campo; se muestran aparte como estadística de portería.
+ * nota del jugador; se muestran aparte como estadística de portería.
  */
 import { localHour, seasonOf } from "@/lib/format";
 import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PerformanceWeights, Player, Team, TeamBest, Weather } from "@/lib/types";
@@ -68,15 +68,19 @@ export function resultFor(gf: number, ga: number): Result {
   return gf > ga ? "W" : gf < ga ? "L" : "D";
 }
 
-export function rate(p: Pick<Participation, "goals" | "assists" | "isMvp" | "result" | "guestsBrought"> & { isTeamBest?: boolean }, w: PerformanceWeights): number {
-  return (
-    p.goals * w.goal +
-    p.assists * w.assist +
-    (p.isMvp ? w.mvp : 0) +
-    (p.isTeamBest ? (w.team_best ?? 0) : 0) +
-    (p.result === "W" ? w.win : p.result === "D" ? w.draw : 0) +
-    p.guestsBrought * w.guest_bonus
-  );
+/**
+ * Nota del partido (sobre 10). Parte de 6,0 y suma +0,5 por jugar, +2,5 por gol propio,
+ * +1,2 por asistencia, +0,8 por cada gol del equipo que no marca él (el asistente sí lo cobra)
+ * y −1,0 por cada gol encajado por el equipo. Se ignora la portería y las votaciones.
+ */
+export function rate(p: Pick<Participation, "goals" | "assists" | "goalsFor" | "goalsAgainst" | "guestsBrought">, w: PerformanceWeights): number {
+  const raw = w.base + w.played
+    + p.goals * w.goal
+    + p.assists * w.assist
+    + Math.max(0, p.goalsFor - p.goals) * w.team_goal
+    + p.goalsAgainst * w.team_conceded
+    + p.guestsBrought * w.guest_bonus;
+  return Math.round(Math.min(w.max, Math.max(w.min, raw)) * 100) / 100;
 }
 
 export function buildParticipations(input: StatsInput, w: PerformanceWeights): Participation[] {
@@ -273,7 +277,7 @@ export function topPerformances(playerId: string, parts: Participation[], n = 3)
     .slice(0, n);
 }
 
-/** Mejor estadio: mayor valoración media con al menos minMatches partidos; si ninguno llega, se marca muestra pequeña. */
+/** Mejor estadio: mayor nota media con al menos minMatches partidos; si ninguno llega, se marca muestra pequeña. */
 export function bestVenue(playerId: string, parts: Participation[], minMatches = 2) {
   const byVenue = groupBy(parts.filter((p) => p.playerId === playerId && p.venueId), (p) => p.venueId!);
   const rows = [...byVenue.entries()].map(([venueId, ps]) => ({
@@ -323,7 +327,7 @@ export function teamBadges(teamId: string, parts: Participation[], players: Play
 
   const starPool = totals.filter((t) => t.matches >= minForStar);
   const star = best("ratingAvg", starPool.length ? starPool : totals);
-  if (star && star.ratingAvg > 0) badges.push({ key: "star", playerId: star.playerId, value: star.ratingAvg, detail: `${star.ratingAvg.toFixed(2).replace(".", ",")} pts/partido` });
+  if (star && star.ratingAvg > 0) badges.push({ key: "star", playerId: star.playerId, value: star.ratingAvg, detail: `${star.ratingAvg.toFixed(1).replace(".", ",")} de nota media` });
   const sc = best("goals");
   if (sc && sc.goals > 0) badges.push({ key: "top_scorer", playerId: sc.playerId, value: sc.goals, detail: `${sc.goals} goles` });
   const as = best("assists");
@@ -343,8 +347,8 @@ export const RANKING_LABELS: Record<RankingStat, string> = {
   mvps: "MVP",
   teamBests: "Mejor de su equipo",
   matches: "Partidos",
-  ratingAvg: "Valoración media",
-  ratingTotal: "Valoración total",
+  ratingAvg: "Nota media",
+  ratingTotal: "Suma de notas",
   goalsPerMatch: "Goles por partido",
   assistsPerMatch: "Asistencias por partido",
   concededPerSpell: "Encajados por turno de portería",

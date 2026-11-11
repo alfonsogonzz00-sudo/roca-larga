@@ -61,7 +61,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         p.kind === "guest" ? `Invitado${bringer ? ` de ${playerName(bringer, "short")}` : ""}` : null,
         played && g ? `${g} ${g === 1 ? "gol" : "goles"}` : null,
         played && a ? `${a} asist.` : null,
-        played && ratingOf.has(x.player_id) ? `valoración ${ratingOf.get(x.player_id)!.toFixed(2).replace(".", ",")}` : null,
+        played && ratingOf.has(x.player_id) ? `nota ${ratingOf.get(x.player_id)!.toFixed(1).replace(".", ",")}` : null,
       ].filter(Boolean).join(" · ");
       return { player: p, position: x.lineup_position, note: notes || undefined, attendance: played ? undefined : x.attendance };
     });
@@ -137,7 +137,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             ))}
           </div>
         )}
-        <p className="mt-2 text-xs text-ink-3">Los goles encajados en portería no afectan a la valoración como jugador de campo.</p>
+        <p className="mt-2 text-xs text-ink-3">Los goles encajados en portería no afectan a la nota de nadie.</p>
       </Card>
       {(m.actual_weather || m.actual_temp_c != null || m.incidents || m.final_notes) && (
         <Card className="space-y-2 p-4 text-sm">

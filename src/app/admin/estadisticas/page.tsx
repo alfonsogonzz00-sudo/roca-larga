@@ -86,9 +86,9 @@ export default async function AdminStats() {
       </section>
 
       <section className="space-y-3">
-        <SectionTitle>Valoración de actuaciones</SectionTitle>
+        <SectionTitle>Nota de cada partido (sobre 10)</SectionTitle>
         <Card className="p-4">
-          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="goal, assist, mvp, team_best (mejor de su equipo), win, draw y guest_bonus (por cada invitado que trae). Los goles encajados como portero nunca restan." />
+          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="base (6), played (+0,5 por jugar), goal (+2,5), assist (+1,2), team_goal (+0,8 por cada gol del equipo que no marca él), team_conceded (−1 por gol encajado), guest_bonus (por invitado), max (10) y min (0). Independiente de las votaciones; la portería no cuenta." />
         </Card>
       </section>
 

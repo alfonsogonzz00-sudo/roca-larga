@@ -322,8 +322,8 @@ export function predictMatch(sc: Scenario, ctx: ModelContext): MatchPrediction {
   for (const f of factors) if (f.weight > 0.1 && f.reliability < 0.25) warnings.push(`Poca información para «${f.label}» (${f.sample.toFixed(1)} partidos equivalentes): su influencia se ha reducido.`);
 
   const players = [
-    ...projectPlayers(sc.homePlayers, sc.homeTeamId, lambdaHome, matrix.pHome, matrix.pDraw, ctx),
-    ...projectPlayers(sc.awayPlayers, sc.awayTeamId, lambdaAway, matrix.pAway, matrix.pDraw, ctx),
+    ...projectPlayers(sc.homePlayers, sc.homeTeamId, lambdaHome, lambdaAway, ctx),
+    ...projectPlayers(sc.awayPlayers, sc.awayTeamId, lambdaAway, lambdaHome, ctx),
   ];
 
   return {
@@ -333,7 +333,7 @@ export function predictMatch(sc: Scenario, ctx: ModelContext): MatchPrediction {
 }
 
 /** Reparte λ del equipo entre sus jugadores según su tasa individual contraída */
-function projectPlayers(playerIds: string[], teamId: string, lambda: number, pWin: number, pDraw: number, ctx: ModelContext): PlayerProjection[] {
+function projectPlayers(playerIds: string[], teamId: string, lambda: number, lambdaOpp: number, ctx: ModelContext): PlayerProjection[] {
   if (!playerIds.length) return [];
   const P = ctx.params;
   const parts = ctx.parts;
@@ -363,7 +363,7 @@ function projectPlayers(playerIds: string[], teamId: string, lambda: number, pWi
     return {
       playerId: r.id, teamId, xGoals: xG, xAssists: xA,
       pScore: 1 - Math.exp(-xG), pAssist: 1 - Math.exp(-xA),
-      expectedRating: xG * w.goal + xA * w.assist + pWin * w.win + pDraw * w.draw + r.mvp * w.mvp,
+      expectedRating: Math.min(w.max, Math.max(w.min, w.base + w.played + xG * w.goal + xA * w.assist + Math.max(0, lambda - xG) * w.team_goal + lambdaOpp * w.team_conceded)),
       sample: r.n,
     };
   });

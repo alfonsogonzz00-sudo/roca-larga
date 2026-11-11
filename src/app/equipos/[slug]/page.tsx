@@ -126,7 +126,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
             );
           })}
         </Card>
-        <p className="mt-2 text-xs text-ink-3">«Enc. en portería» = goles encajados en sus turnos de portero; no cuentan en su valoración como jugador de campo.</p>
+        <p className="mt-2 text-xs text-ink-3">«Enc. en portería» = goles encajados en sus turnos de portero; no cuentan en su nota.</p>
       </section>
     </div>
   );

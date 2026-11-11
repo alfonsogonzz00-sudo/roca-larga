@@ -28,4 +28,4 @@ Todo se hace desde la app (Administración), sin tocar código ni la base de dat
 
 ## Invitados
 
-Al crear o finalizar un partido: «Añadir invitado», escribe su nombre y quién lo trae. El invitado cuenta para los 7, puede marcar y ser MVP, y quien lo trae suma la bonificación configurada en su valoración.
+Al crear o finalizar un partido: «Añadir invitado», escribe su nombre y quién lo trae. El invitado cuenta para los 7, puede marcar y ser MVP, y quien lo trae suma la bonificación configurada en su nota.

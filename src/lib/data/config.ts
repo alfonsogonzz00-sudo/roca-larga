@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   organizers_per_team: 2,
   vote_tiebreak: ["other_votes", "goal_contributions"],
   mvp_tie_fallback: "shared",
-  performance_weights: { goal: 1, assist: 0.75, mvp: 2, team_best: 1, win: 0.5, draw: 0.2, guest_bonus: 0.5 },
+  performance_weights: { base: 6, played: 0.5, goal: 2.5, assist: 1.2, team_goal: 0.8, team_conceded: -1, guest_bonus: 0.5, max: 10, min: 0 },
   model_params: { k_team: 4, k_venue: 4, k_recent: 2, k_context: 5, k_pair: 3, k_player: 4, min_matches: 3 },
   demo_mode: false,
 };

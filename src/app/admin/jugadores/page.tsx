@@ -3,7 +3,7 @@ import { Details, Field, Input, PageHeader, Pill, SectionTitle, Select, Textarea
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { ImageUpload } from "@/components/forms/image-upload";
 import { getStats } from "@/lib/data/stats";
-import { POSITION_LABELS, type Player, type Team } from "@/lib/types";
+import { POSITION_LABELS, FIELD_POSITIONS, type Player, type Team } from "@/lib/types";
 
 function PlayerForm({ p, teams, kind = "member" }: { p?: Player; teams: Team[]; kind?: "member" | "guest" }) {
   return (
@@ -15,7 +15,7 @@ function PlayerForm({ p, teams, kind = "member" }: { p?: Player; teams: Team[]; 
       {(p?.kind ?? kind) === "member" && (
         <Field label="Equipo" htmlFor={`t-${p?.id}`}><Select id={`t-${p?.id}`} name="team_id" defaultValue={p?.team_id ?? ""} required><option value="">Elige…</option>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select></Field>
       )}
-      <Field label="Posición habitual" htmlFor={`pos-${p?.id}`}><Select id={`pos-${p?.id}`} name="usual_position" defaultValue={p?.usual_position ?? ""}><option value="">Sin definir</option>{Object.entries(POSITION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
+      <Field label="Posición habitual" htmlFor={`pos-${p?.id}`}><Select id={`pos-${p?.id}`} name="usual_position" defaultValue={p?.usual_position ?? ""}><option value="">Sin definir</option>{FIELD_POSITIONS.map((k) => <option key={k} value={k}>{POSITION_LABELS[k]}</option>)}</Select></Field>
       <Field label="Dorsal" htmlFor={`d-${p?.id}`}><Input id={`d-${p?.id}`} name="shirt_number" type="number" min={0} max={99} defaultValue={p?.shirt_number ?? ""} /></Field>
       <div className="sm:col-span-2"><ImageUpload name="photo_url" defaultValue={p?.photo_url} folder="players" label="Fotografía" /></div>
       <div className="sm:col-span-2"><Field label="Nota / bio" htmlFor={`b-${p?.id}`}><Textarea id={`b-${p?.id}`} name="bio" defaultValue={p?.bio ?? ""} maxLength={500} /></Field></div>

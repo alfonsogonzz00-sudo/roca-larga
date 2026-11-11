@@ -104,7 +104,7 @@ function MatchSim({ teams, players, venues, formations, lowText }: Common) {
             {[...res.players].sort((a, b) => b.expectedRating - a.expectedRating).map((x) => (
               <li key={x.playerId} className="flex items-center justify-between gap-2 py-2 text-sm">
                 <span className="truncate">{pmap.get(x.playerId)?.full_name} <span className="text-ink-3">· {x.sample} PJ</span></span>
-                <span className="tabular text-ink-2">{num(x.xGoals, 2)} G · {num(x.xAssists, 2)} A · <strong className="text-ink">{num(x.expectedRating, 2)}</strong> pts</span>
+                <span className="tabular text-ink-2">{num(x.xGoals, 2)} G · {num(x.xAssists, 2)} A · nota <strong className="text-ink">{num(x.expectedRating, 1)}</strong></span>
               </li>
             ))}
           </ul>
@@ -155,13 +155,13 @@ function IndividualSim({ teams, players, venues, lowText, initialPlayer }: Commo
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Goles estimados" value={num(res.xGoals, 2)} hint={`${pct(res.pScore)} de marcar`} />
               <Stat label="Asistencias est." value={num(res.xAssists, 2)} hint={`${pct(res.pAssist)} de asistir`} />
-              <Stat label="Rendimiento esperado" value={num(res.expectedRating, 2)} hint="puntos de valoración" />
+              <Stat label="Nota esperada" value={num(res.expectedRating, 1)} hint="sobre 10" />
               <Stat label="Prob. victoria" value={pct(res.pWin)} hint="según sus resultados" />
             </div>
             <div className="rounded-xl bg-surface-2 p-3 text-sm">
               <div className="mb-1 font-semibold">Comparación con sus actuaciones</div>
               {res.history.matches ? (
-                <p className="text-ink-2">Media histórica {num(res.history.avgRating, 2)} · mejor {num(res.history.bestRating, 2)} en {res.history.matches} partidos. Esta simulación supera al {pct(res.history.percentile)} de sus actuaciones.</p>
+                <p className="text-ink-2">Nota media {num(res.history.avgRating, 1)} · mejor {num(res.history.bestRating, 1)} en {res.history.matches} partidos. Esta simulación supera al {pct(res.history.percentile)} de sus actuaciones.</p>
               ) : <p className="text-ink-2">Sin actuaciones previas: se usa la media del grupo.</p>}
             </div>
             {res.warnings.length > 0 && <ul className="rounded-xl bg-gold-soft px-3 py-2 text-xs">{res.confidence.level !== "alta" && <li className="font-semibold">{lowText}</li>}{res.warnings.map((w) => <li key={w}>• {w}</li>)}</ul>}

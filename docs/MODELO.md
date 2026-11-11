@@ -44,7 +44,7 @@ Dos Poisson independientes (λ_A, λ_B) → matriz de marcadores 0–20 → P(vi
 
 **Goleadores y asistentes probables**: λ del equipo repartido según la tasa individual contraída de goles (y de asistencias × proporción histórica de goles asistidos). P(marcar) = 1 − e^(−xG).
 
-**Actuación individual**: la tasa base del jugador (goles, asistencias, valoración, % victorias) se ajusta con los mismos factores medidos sobre *sus* partidos (con esos compañeros, contra esos rivales, en ese estadio…). Compañeros y rivales son opcionales: si no se indican, ese factor no influye.
+**Actuación individual**: la tasa base del jugador (goles, asistencias, nota, % victorias) se ajusta con los mismos factores medidos sobre *sus* partidos (con esos compañeros, contra esos rivales, en ese estadio…). Compañeros y rivales son opcionales: si no se indican, ese factor no influye.
 
 ## 5. Confianza
 
@@ -59,3 +59,21 @@ Dos Poisson independientes (λ_A, λ_B) → matriz de marcadores 0–20 → P(vi
 ## 7. Valoración de actuaciones
 
 `gol·1 + asistencia·0,75 + MVP·2 + victoria·0,5 + empate·0,2 + invitado traído·0,5` (configurable). Los goles encajados como portero no restan nunca.
+
+## Nota del partido (sobre 10)
+
+Cada jugador recibe una nota por partido, independiente de las votaciones y sin tener en cuenta la portería:
+
+| Concepto | Puntos |
+|---|---:|
+| Nota de partida | 6,0 |
+| Partido jugado | +0,5 |
+| Gol propio | +2,5 |
+| Asistencia | +1,2 |
+| Cada gol del equipo que no marca él (el asistente sí lo cobra) | +0,8 |
+| Cada gol encajado por el equipo | −1,0 |
+| Cada invitado que trae | +0,5 |
+| Tope / suelo | 10,0 / 0,0 |
+
+Ejemplo (victoria 1-0): goleador 9,0 · asistente 8,5 · resto del equipo 7,3 · rivales 5,5.
+Los pesos se ajustan en Administración → Estadísticas («performance_weights»).
