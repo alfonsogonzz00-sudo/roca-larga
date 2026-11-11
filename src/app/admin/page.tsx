@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStats } from "@/lib/data/stats";
 import { env } from "@/lib/env";
 import { serverEnv } from "@/lib/server-env";
+import { InviteShare } from "@/components/admin/invite-share";
 
 export default async function AdminHome() {
   const supabase = await createClient();
@@ -34,6 +35,10 @@ export default async function AdminHome() {
         <Stat label="Dispositivos push" value={subs ?? 0} hint={`${notifPending ?? 0} avisos en cola`} />
       </div>
       <section>
+        <SectionTitle>Invitar al grupo</SectionTitle>
+        <Card className="p-4"><InviteShare /></Card>
+      </section>
+      <section>
         <SectionTitle>Puesta a punto</SectionTitle>
         <Card className="divide-y divide-line">
           {checks.map((c) => (
@@ -44,7 +49,7 @@ export default async function AdminHome() {
       <section className="grid gap-3 sm:grid-cols-2">
         <Card className="space-y-2 p-4">
           <div className="font-semibold">Recalcular</div>
-          <p className="text-sm text-ink-2">Las estadísticas se calculan siempre al vuelo desde los datos de cada partido. Esto vuelve a contar las votaciones cerradas (útil tras cambiar la puntuación 3-2-1 o el desempate).</p>
+          <p className="text-sm text-ink-2">Las estadísticas se calculan siempre al vuelo desde los datos de cada partido. Esto vuelve a contar las votaciones cerradas (útil tras cambiar el desempate).</p>
           <ActionForm action={recalcAction}><SubmitButton variant="secondary">Recalcular recuentos</SubmitButton></ActionForm>
         </Card>
         <Card className="space-y-2 p-4">
