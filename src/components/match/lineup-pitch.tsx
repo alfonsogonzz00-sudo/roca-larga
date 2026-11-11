@@ -16,11 +16,12 @@ export interface PitchSide { team: Team; formation: Formation | null; players: P
 
 /** Color de la nota (sobre 10) */
 export function ratingColor(r: number): string {
-  if (r >= 8) return "#1f8ef1";
-  if (r >= 7) return "#22a650";
-  if (r >= 6.5) return "#c9b21a";
-  if (r >= 6) return "#ef8a24";
-  return "#e5484d";
+  // Escala tipo SofaScore, ajustada para que el texto blanco cumpla WCAG AA (≥4,5:1)
+  if (r >= 8) return "#1a6fd6";
+  if (r >= 7) return "#1b7f3e";
+  if (r >= 6.5) return "#7f6c00";
+  if (r >= 6) return "#b4530a";
+  return "#c7283a";
 }
 
 export function RatingBadge({ value, size = "sm" }: { value: number; size?: "sm" | "md" }) {
@@ -73,8 +74,8 @@ function PlayerChip({ pp, color }: { pp: PitchPlayer; color: string }) {
             {pp.assists ? <Event icon={<BootIcon />} n={pp.assists} label={pp.assists === 1 ? "asistencia" : "asistencias"} /> : null}
           </span>
         ) : null}
-        {pp.isMvp && <span className="absolute -top-1.5 -left-2 rounded-none bg-[#d6b25e] px-1 text-[9px] font-black leading-[0.95rem] text-[#16130a]" aria-label="MVP">MVP</span>}
-        {pp.attendance === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-none bg-win text-[10px] font-bold text-[#07130b]" aria-label="Confirmado">✓</span>}
+        {pp.isMvp && <span className="absolute -top-1.5 -left-2 rounded-none bg-[#d6b25e] px-1 text-[9px] font-black leading-[0.95rem] text-[#1a1d23]" aria-label="MVP">MVP</span>}
+        {pp.attendance === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-none bg-win text-[10px] font-bold text-white" aria-label="Confirmado">✓</span>}
         {pp.rating != null && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2"><RatingBadge value={pp.rating} /></span>}
       </span>
       <span className={cx("w-full truncate text-[11px] font-semibold leading-tight text-white", pp.rating != null ? "mt-3" : "mt-1")}>{p.nickname ?? playerName(p, "short").split(" ").slice(-1)[0]}</span>

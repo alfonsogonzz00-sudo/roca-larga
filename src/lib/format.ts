@@ -104,5 +104,7 @@ export function teamColor(t: { primary_color: string; secondary_color: string } 
   const hex = t.primary_color.replace("#", "");
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return lum < 0.12 ? t.secondary_color : t.primary_color;
+  // Sobre fondo claro el color principal siempre se lee (Caravelle verde, Monecillo negro);
+  // sólo si fuese casi blanco usamos el secundario.
+  return lum > 0.85 ? t.secondary_color : t.primary_color;
 }

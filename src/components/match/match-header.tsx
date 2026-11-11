@@ -13,6 +13,11 @@ export function compactName(name: string) {
   return rest.length ? `${first[0]}. ${rest.join(" ")}` : name;
 }
 
+const STATUS_TEXT: Record<Match["status"], string> = {
+  played: "text-ink-3", pending: "font-semibold text-ink-3", confirmed: "font-semibold text-info",
+  postponed: "font-semibold text-gold", cancelled: "font-semibold text-loss",
+};
+
 const pad = (n: number) => String(n).padStart(2, "0");
 function datePill(iso: string) {
   const d = new Date(iso);
@@ -24,8 +29,8 @@ function datePill(iso: string) {
 function Side({ team }: { team: Team }) {
   return (
     <Link href={`/equipos/${team.slug}`} className="flex min-w-0 flex-col items-center gap-2 text-center">
-      <Crest src={team.crest_url} name={team.name} size={64} className="drop-shadow-[0_2px_8px_rgb(0_0_0/0.35)]" />
-      <span className="w-full truncate text-sm font-semibold leading-tight text-white">{team.name}</span>
+      <Crest src={team.crest_url} name={team.name} size={64}  />
+      <span className="w-full truncate text-sm font-semibold leading-tight text-ink">{team.name}</span>
     </Link>
   );
 }
@@ -35,7 +40,7 @@ function Scorers({ list, align }: { list: ScorerLine[]; align: "left" | "right" 
     <ul className={align === "right" ? "space-y-0.5 text-right" : "space-y-0.5 text-left"}>
       {list.map((s) => (
         <li key={s.name + (s.ownGoal ? "pp" : "")} className="truncate">
-          {compactName(s.name)}{s.ownGoal ? " (p.p.)" : ""}{s.goals > 1 ? <span className="text-white/55"> ×{s.goals}</span> : null}
+          {compactName(s.name)}{s.ownGoal ? " (p.p.)" : ""}{s.goals > 1 ? <span className="text-ink-3"> ×{s.goals}</span> : null}
         </li>
       ))}
     </ul>
@@ -52,39 +57,39 @@ export function MatchHeader({ m, home, away, venue, scorers, assists }: {
   const hasScorers = played && (scorers.home.length > 0 || scorers.away.length > 0);
   const hasAssists = played && (assists.home.length > 0 || assists.away.length > 0);
   const hs = m.home_score ?? 0, as = m.away_score ?? 0;
-  const dim = (mine: number, other: number) => (played && mine < other ? "text-white/45" : "");
+  const dim = (mine: number, other: number) => (played && mine < other ? "text-ink-3" : "");
   return (
-    <header className="-mx-4 -mt-5 bg-[linear-gradient(180deg,#0d1117_0%,#141b26_55%,#1a2333_100%)] px-4 pt-4 pb-5 text-white lg:mx-0 lg:mt-0">
+    <header className="-mx-4 -mt-5 border-b border-line bg-surface px-4 pt-4 pb-5 text-ink lg:mx-0 lg:mt-0 lg:border">
       <div className="flex justify-center">
-        <span className="tabular bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-white/85">{datePill(m.kickoff_at)}</span>
+        <span className="tabular bg-surface-2 px-3 py-1 text-xs font-semibold tracking-wide text-ink-2">{datePill(m.kickoff_at)}</span>
       </div>
       <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-start gap-2">
         <Side team={home} />
         <div className="flex min-w-[7.5rem] flex-col items-center pt-3">
           {played ? (
             <div className="tabular text-[2.75rem] font-bold leading-none">
-              <span className={dim(hs, as)}>{m.home_score}</span><span className="mx-2 text-white/45">-</span><span className={dim(as, hs)}>{m.away_score}</span>
+              <span className={dim(hs, as)}>{m.home_score}</span><span className="mx-2 text-ink-3">-</span><span className={dim(as, hs)}>{m.away_score}</span>
             </div>
           ) : (
             <div className="tabular text-4xl font-bold leading-none">{fmtTime(m.kickoff_at)}</div>
           )}
-          <span className={played ? "mt-2 text-sm text-white/70" : "mt-2 text-sm font-semibold text-[#4ade80]"}>{status}</span>
+          <span className={`mt-2 text-sm ${STATUS_TEXT[m.status]}`}>{status}</span>
         </div>
         <Side team={away} />
       </div>
       {(hasScorers || hasAssists) && (
-        <div className="mt-4 space-y-2 text-[13px] text-white/80">
+        <div className="mt-4 space-y-2 border-t border-line pt-3 text-[13px] text-ink-2">
           {hasScorers && (
             <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3" aria-label="Goleadores">
               <Scorers list={scorers.home} align="right" />
-              <BallIcon className="mt-0.5 h-4 w-4" />
+              <BallIcon className="mt-0.5 h-4 w-4 rounded-full ring-1 ring-line-strong" />
               <Scorers list={scorers.away} align="left" />
             </div>
           )}
           {hasAssists && (
             <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3" aria-label="Asistentes">
               <Scorers list={assists.home} align="right" />
-              <BootIcon className="mt-0.5 h-4 w-4" />
+              <BootIcon className="mt-0.5 h-4 w-4 rounded-full ring-1 ring-line-strong" />
               <Scorers list={assists.away} align="left" />
             </div>
           )}
@@ -92,7 +97,7 @@ export function MatchHeader({ m, home, away, venue, scorers, assists }: {
       )}
       {venue && (
         <div className="mt-4 flex justify-center">
-          <Link href={`/estadios/${venue.id}`} className="inline-flex items-center gap-1 text-xs text-white/60 hover:text-white"><MapPin size={12} aria-hidden />{venue.name}</Link>
+          <Link href={`/estadios/${venue.id}`} className="inline-flex items-center gap-1 text-xs text-ink-3 hover:text-ink"><MapPin size={12} aria-hidden />{venue.name}</Link>
         </div>
       )}
     </header>

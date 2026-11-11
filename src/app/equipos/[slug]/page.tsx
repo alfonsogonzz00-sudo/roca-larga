@@ -31,13 +31,13 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 rounded-3xl p-5" style={{ background: `linear-gradient(135deg, ${team.primary_color}, ${team.primary_color}cc)` }}>
-        <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-white p-2"><Crest src={team.crest_url} name={team.name} size={80} /></span>
-        <div className="min-w-0 text-white">
+      <div className="flex items-center gap-4 border border-line bg-surface p-5 shadow-card" style={{ borderTop: `4px solid ${teamColor(team)}` }}>
+        <span className="flex h-24 w-24 shrink-0 items-center justify-center p-1"><Crest src={team.crest_url} name={team.name} size={80} /></span>
+        <div className="min-w-0 text-ink">
           <h1 className="font-display text-3xl font-bold uppercase leading-none sm:text-4xl">{team.name}</h1>
-          <p className="mt-1 text-sm text-white/80">{team.full_name}</p>
-          {team.headquarters && <p className="text-sm text-white/80">Sede: {team.headquarters}</p>}
-          {team.founded_label && <p className="text-xs text-white/70">{team.founded_label}</p>}
+          <p className="mt-1 text-sm text-ink-2">{team.full_name}</p>
+          {team.headquarters && <p className="text-sm text-ink-2">Sede: {team.headquarters}</p>}
+          {team.founded_label && <p className="text-xs text-ink-3">{team.founded_label}</p>}
         </div>
       </div>
       {team.description && <p className="text-sm text-ink-2">{team.description}</p>}

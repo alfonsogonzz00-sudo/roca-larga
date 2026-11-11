@@ -67,5 +67,5 @@ const subscribeOnline = (cb: () => void) => {
 export function OfflineBanner({ text }: { text: string }) {
   const offline = useSyncExternalStore(subscribeOnline, () => !navigator.onLine, () => false);
   if (!offline) return null;
-  return <div role="status" className="bg-gold px-4 py-1.5 text-center text-xs font-semibold text-[#16130a]">{text}</div>;
+  return <div role="status" className="bg-gold px-4 py-1.5 text-center text-xs font-semibold text-white">{text}</div>;
 }

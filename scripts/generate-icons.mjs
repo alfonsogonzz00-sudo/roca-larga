@@ -24,9 +24,9 @@ for (const [w,h] of [[1179,2556],[1290,2796],[1170,2532],[750,1334],[1242,2688],
   const logoBuf = await sharp(logo).resize({ width: lw }).png().toBuffer();
   const { height: lh } = await sharp(logoBuf).metadata();
   const fs = Math.round(w / 30);
-  const text = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${fs * 3}"><text x="50%" y="${fs * 1.6}" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="${fs}" letter-spacing="${fs * 0.15}" fill="#7f897d">POWERED BY <tspan fill="#b6bdb2">LONGROCK</tspan></text></svg>`);
+  const text = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${fs * 3}"><text x="50%" y="${fs * 1.6}" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="${fs}" letter-spacing="${fs * 0.15}" fill="#5c6574">POWERED BY <tspan fill="#1a1d23">LONGROCK</tspan></text></svg>`);
   const top = Math.round(h / 2 - lh / 2 - fs);
-  await sharp({ create: { width: w, height: h, channels: 4, background: "#0b0f0c" } })
+  await sharp({ create: { width: w, height: h, channels: 4, background: "#ffffff" } })
     .composite([{ input: logoBuf, left: Math.round((w - lw) / 2), top }, { input: text, left: 0, top: top + lh + Math.round(fs * 0.6) }])
     .png().toFile(D + `splash-${w}x${h}.png`);
 }

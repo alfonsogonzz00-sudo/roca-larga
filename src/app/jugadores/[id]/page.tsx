@@ -105,30 +105,30 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 45%, #0b0f0c))` }}>
+      <div className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card" style={{ borderTop: `4px solid ${color}` }}>
         <div className="flex items-center gap-4">
-          <span className="rounded-full ring-4 ring-white/25"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
+          <span className="rounded-full ring-4 ring-line"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-bold uppercase leading-none">{p.nickname ?? p.full_name}</h1>
-            {p.nickname && <p className="mt-1 truncate text-sm text-white/80">{p.full_name}</p>}
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-white/85">
-              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-black/25 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.short_name}</Link> : <span className="rounded-none bg-black/25 px-2 py-1">Invitado</span>}
-              {p.usual_position && <span className="rounded-none bg-black/25 px-2 py-1">{POSITION_LABELS[p.usual_position]}</span>}
-              {p.shirt_number != null && <span className="rounded-none bg-black/25 px-2 py-1">#{p.shirt_number}</span>}
-              {!p.active && <span className="rounded-none bg-black/40 px-2 py-1">Inactivo</span>}
+            {p.nickname && <p className="mt-1 truncate text-sm text-ink-2">{p.full_name}</p>}
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-2">
+              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.short_name}</Link> : <span className="rounded-none bg-surface-2 px-2 py-1">Invitado</span>}
+              {p.usual_position && <span className="rounded-none bg-surface-2 px-2 py-1">{POSITION_LABELS[p.usual_position]}</span>}
+              {p.shirt_number != null && <span className="rounded-none bg-surface-2 px-2 py-1">#{p.shirt_number}</span>}
+              {!p.active && <span className="rounded-none bg-loss-soft px-2 py-1 text-loss">Inactivo</span>}
             </div>
           </div>
           {tot.matches > 0 && (
             <div className="shrink-0 text-center">
               <div className="font-display tabular text-4xl font-bold leading-none">{num(tot.ratingAvg, 1)}</div>
-              <div className="text-[11px] uppercase tracking-wider text-white/75">nota media</div>
+              <div className="text-[11px] uppercase tracking-wider text-ink-3">nota media</div>
             </div>
           )}
         </div>
         {tot.matches > 0 && (
-          <dl className="mt-5 grid grid-cols-4 rounded-2xl bg-black/25 py-2.5 text-center">
+          <dl className="mt-5 grid grid-cols-4 divide-x divide-line border border-line bg-surface-2 py-2.5 text-center">
             {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
-              <div key={l}><dd className="font-display tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt></div>
+              <div key={l}><dd className="font-display tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-ink-3">{l}</dt></div>
             ))}
           </dl>
         )}

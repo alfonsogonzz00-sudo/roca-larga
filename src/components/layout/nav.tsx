@@ -33,7 +33,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
                 <span className="relative">
                   <Icon size={22} strokeWidth={active ? 2.4 : 1.9} aria-hidden />
                   {item.href === "/votacion" && voteBadge ? (
-                    <span className="absolute -top-1 -right-2 min-w-4 rounded-none bg-gold px-1 text-center text-[10px] font-bold text-[#16130a]">{voteBadge}</span>
+                    <span className="absolute -top-1 -right-2 min-w-4 rounded-none bg-gold px-1 text-center text-[10px] font-bold text-white">{voteBadge}</span>
                   ) : null}
                 </span>
                 <span className="w-full truncate text-center">{label.replace(/^El /, "")}</span>
@@ -62,7 +62,7 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
       >
         <Icon size={19} aria-hidden />
         <span className="flex-1">{label}</span>
-        {badge ? <span className="rounded-none bg-gold px-1.5 text-xs font-bold text-[#16130a]">{badge}</span> : null}
+        {badge ? <span className="rounded-none bg-gold px-1.5 text-xs font-bold text-white">{badge}</span> : null}
       </Link>
     );
   };

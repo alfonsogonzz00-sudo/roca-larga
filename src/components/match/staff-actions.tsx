@@ -24,7 +24,7 @@ export function StaffActions({ id, status, isAdmin, started }: { id: string; sta
             <SubmitButton pendingLabel="Confirmando…">Confirmar partido</SubmitButton>
           </ActionForm>
         )}
-        {(status === "confirmed" || status === "pending") && started && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 text-sm font-semibold text-[#16130a]">Finalizar partido</Link>}
+        {(status === "confirmed" || status === "pending") && started && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 text-sm font-semibold text-white">Finalizar partido</Link>}
         {status === "played" && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-surface-2">Editar resultado</Link>}
         {status !== "played" && status !== "cancelled" && (
           <>

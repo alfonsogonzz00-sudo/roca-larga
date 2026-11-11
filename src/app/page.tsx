@@ -67,11 +67,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       )}
 
       {pendingVotes.map((m) => (
-        <Link key={m.id} href={`/votacion/${m.id}`} className="press animate-rise flex items-center gap-3 rounded-2xl bg-gold px-4 py-3 text-[#16130a]">
+        <Link key={m.id} href={`/votacion/${m.id}`} className="press animate-rise flex items-center gap-3 rounded-2xl bg-gold px-4 py-3 text-white">
           <Vote size={22} aria-hidden className="shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">Tienes un voto pendiente</span>
-            <span className="block truncate text-sm opacity-80">{fmtShortDay(m.kickoff_at)} · cierra {relativeFromNow(m.vote_closes_at!)}</span>
+            <span className="block truncate text-sm opacity-95">{fmtShortDay(m.kickoff_at)} · cierra {relativeFromNow(m.vote_closes_at!)}</span>
           </span>
           <ChevronRight size={20} aria-hidden />
         </Link>
@@ -204,7 +204,7 @@ function MvpAnnouncement({ m, st }: { m: Match; st: Stats }) {
   const { ds } = st;
   const mvps = ds.mvps.filter((x) => x.match_id === m.id);
   const bests = ds.teamBests.filter((x) => x.match_id === m.id);
-  const colors = ["#d6b25e", "#f4f2ec", "#3fae66", "#d6b25e", "#e5735f", "#d6b25e"];
+  const colors = ["#c99a2e", "#167a40", "#1a1d23", "#c99a2e", "#2457c5", "#c7283a"];
   return (
     <Link href={`/partidos/${m.id}`} className="press relative block overflow-hidden rounded-3xl border border-gold/40 bg-gold-soft p-5">
       <span className="confetti pointer-events-none absolute inset-x-0 top-0 h-40" aria-hidden>

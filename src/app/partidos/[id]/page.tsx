@@ -179,7 +179,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       {m.vote_enabled && vstatus && (
         <p className="text-xs text-ink-3">Participación: {vstatus.voted} de {vstatus.eligible} · cierre {m.vote_closes_at ? `${fmtDay(m.vote_closes_at)} a las ${fmtTime(m.vote_closes_at)}` : "—"}</p>
       )}
-      {vstatus?.is_open && <Link href={`/votacion/${m.id}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gold px-4 text-sm font-semibold text-[#16130a]"><Vote size={18} /> Ir a votar</Link>}
+      {vstatus?.is_open && <Link href={`/votacion/${m.id}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gold px-4 text-sm font-semibold text-white"><Vote size={18} /> Ir a votar</Link>}
       {(tallies as MvpTally[] | null)?.length ? (
         <Details summary="Recuento de votos">
           {(() => {

@@ -68,16 +68,16 @@ export default async function Profile() {
   return (
     <div className="space-y-6">
       {/* 1 · Quién soy + mis números */}
-      <section className="relative overflow-hidden rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 40%, #0b0f0c))` }}>
+      <section className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card" style={{ borderTop: `4px solid ${color}` }}>
         <div className="flex items-center gap-4">
-          <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} light />
+          <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.nickname ?? s.player?.full_name ?? s.profile.display_name}</h1>
-            {s.player?.nickname && <p className="mt-1 truncate text-sm text-white/80">{s.player.full_name}</p>}
+            {s.player?.nickname && <p className="mt-1 truncate text-sm text-ink-2">{s.player.full_name}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-black/25 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
-              <span className="rounded-none bg-black/25 px-2 py-1">{ROLE[s.role]}</span>
-              {s.profile.status === "suspended" && <span className="rounded-none bg-black/40 px-2 py-1">Cuenta suspendida</span>}
+              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
+              <span className="rounded-none bg-surface-2 px-2 py-1">{ROLE[s.role]}</span>
+              {s.profile.status === "suspended" && <span className="rounded-none bg-loss-soft px-2 py-1 text-loss">Cuenta suspendida</span>}
             </div>
           </div>
         </div>
@@ -85,19 +85,19 @@ export default async function Profile() {
           <>
             <div className="mt-5 flex items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-white/70">Nota media</p>
-                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-white/60">/10</span></p>
+                <p className="text-[11px] uppercase tracking-wider text-ink-3">Nota media</p>
+                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-ink-3">/10</span></p>
               </div>
-              {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-white/85"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
+              {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-ink-2"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
             </div>
-            <dl className="mt-4 grid grid-cols-4 rounded-2xl bg-black/25 py-3 text-center">
+            <dl className="mt-4 grid grid-cols-4 divide-x divide-line border border-line bg-surface-2 py-3 text-center">
               {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
                 const r = rankOf(k);
                 return (
                   <div key={l}>
                     <dd className="font-display tabular text-3xl font-bold leading-none">{v}</dd>
-                    <dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt>
-                    {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-white/60">{r.pos}.º del grupo</p>}
+                    <dt className="mt-1 text-[11px] uppercase tracking-wider text-ink-3">{l}</dt>
+                    {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</p>}
                   </div>
                 );
               })}

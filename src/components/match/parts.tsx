@@ -3,10 +3,10 @@ import { ChevronRight, Clock, LayoutGrid, Sprout, Cloud, ExternalLink, Phone, Ca
 import { Avatar, Card, Crest, Pill, cx } from "@/components/ui";
 import { fmtShortDay, fmtTime, num, pct, playerName, teamColor } from "@/lib/format";
 import type { MatchPrediction } from "@/lib/stats/model";
-import { POSITION_LABELS, STATUS_LABELS, WEATHER_LABELS, type Formation, type Match, type MatchStatus, type Player, type Position, type Team, type Venue, type Weather } from "@/lib/types";
+import { POSITION_LABELS, STATUS_LABELS, WEATHER_LABELS, type Match, type MatchStatus, type Player, type Position, type Team, type Venue, type Weather } from "@/lib/types";
 
 export function StatusPill({ status }: { status: MatchStatus }) {
-  const tone = { pending: "neutral", confirmed: "pitch", played: "neutral", postponed: "gold", cancelled: "danger" } as const;
+  const tone = { pending: "neutral", confirmed: "info", played: "neutral", postponed: "gold", cancelled: "danger" } as const;
   return <Pill tone={tone[status]}>{STATUS_LABELS[status]}</Pill>;
 }
 
@@ -67,24 +67,22 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
 export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Match; home: Team; away: Team; venue?: Venue; linkTeams?: boolean }) {
   const played = m.status === "played";
   return (
-    <div className="pitch-lines relative overflow-hidden rounded-3xl bg-[#0f2a18] p-5 text-white shadow-card">
-      <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-white/10" />
-      <div className="pointer-events-none absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+    <div className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card">
       <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <TeamBlock team={home} label="Local" link={linkTeams} />
         <div className="text-center">
           {played ? (
-            <div className="font-display tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
+            <div className="font-display tabular text-5xl font-bold leading-none sm:text-6xl"><span className={(m.home_score ?? 0) < (m.away_score ?? 0) ? "text-ink-3" : ""}>{m.home_score}</span><span className="mx-2 text-ink-3">–</span><span className={(m.away_score ?? 0) < (m.home_score ?? 0) ? "text-ink-3" : ""}>{m.away_score}</span></div>
           ) : (
             <div>
               <div className="font-display tabular text-4xl font-bold leading-none sm:text-5xl">{fmtTime(m.kickoff_at)}</div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-white/60">{fmtShortDay(m.kickoff_at)}</div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-ink-3">{fmtShortDay(m.kickoff_at)}</div>
             </div>
           )}
         </div>
         <TeamBlock team={away} label="Visitante" link={linkTeams} />
       </div>
-      <div className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/75">
+      <div className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line pt-3 text-xs text-ink-3">
         {played && <span>{fmtShortDay(m.kickoff_at)} · {fmtTime(m.kickoff_at)}</span>}
         {venue && linkTeams
           ? <Link href={`/estadios/${venue.id}`} className="inline-flex items-center gap-1 underline-offset-2 hover:underline"><MapPin size={13} aria-hidden />{venue.name}</Link>
@@ -98,61 +96,13 @@ function TeamBlock({ team, label, link }: { team: Team; label: string; link: boo
   const Wrap = link ? Link : "div";
   return (
     <Wrap href={`/equipos/${team.slug}`} className="flex flex-col items-center gap-2 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 p-1.5 sm:h-20 sm:w-20"><Crest src={team.crest_url} name={team.name} size={60} /></span>
+      <span className="flex h-16 w-16 items-center justify-center p-1 sm:h-20 sm:w-20"><Crest src={team.crest_url} name={team.name} size={60} /></span>
       <span className="font-display text-base font-bold uppercase leading-tight sm:text-lg">{team.name}</span>
-      <span className="text-[11px] uppercase tracking-widest text-white/50">{label}</span>
+      <span className="text-[11px] uppercase tracking-widest text-ink-3">{label}</span>
     </Wrap>
   );
 }
 
-/** Pizarra con la formación (6 de campo + portero rotatorio) */
-export function FormationBoard({ formation, players, positions, color, teamName, attendance }: {
-  formation: Formation | null; players: Player[]; positions: Map<string, Position | null>; color: string; teamName: string;
-  attendance?: Map<string, "pending" | "yes" | "no">;
-}) {
-  const lines = formation?.lines ?? [2, 3, 1]; // sin formación: reparto orientativo
-  const order: Position[] = ["DEF", "MED", "DEL"];
-  const posOf = (p: Player) => { const x = positions.get(p.id) ?? p.usual_position ?? "MED"; return x === "POR" ? "MED" : x; };
-  const field = [...players].sort((a, b) => order.indexOf(posOf(a)) - order.indexOf(posOf(b)));
-  const slots = lines.reduce((x, y) => x + y, 0);
-  // El 7.º jugador va abajo, al centro, sin posición fija (la portería rota y no cuenta como posición)
-  const back = field.length > slots ? field.shift() : undefined;
-  const rows: Player[][] = [];
-  let i = 0;
-  for (const n of lines) { rows.push(field.slice(i, i + n)); i += n; }
-  const extra = field.slice(i);
-  return (
-    <div className="rounded-2xl bg-[#14361f] p-3 text-white">
-      <div className="mb-2 flex items-center justify-between text-xs">
-        <span className="font-semibold">{teamName}</span>
-        <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
-      </div>
-      <div className="relative flex min-h-60 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
-        <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-b-xl border border-t-0 border-white/15" />
-        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-8 rounded-t-xl border border-b-0 border-white/15" />
-        {back && <div className="flex justify-center"><Chip p={back} color={color} att={attendance?.get(back.id)} /></div>}
-        {rows.map((r, idx) => (
-          <div key={idx} className="flex justify-around">
-            {Array.from({ length: lines[idx] }).map((_, j) => <Chip key={j} p={r[j]} color={color} att={r[j] ? attendance?.get(r[j].id) : undefined} />)}
-          </div>
-        ))}
-      </div>
-      {extra.length > 0 && <p className="mt-2 text-[11px] text-white/60">Además: {extra.map((p) => playerName(p, "nick")).join(", ")}.</p>}
-    </div>
-  );
-}
-
-function Chip({ p, color, att }: { p?: Player; color: string; att?: "pending" | "yes" | "no" }) {
-  return (
-    <span className="flex max-w-[5.5rem] flex-col items-center gap-1 text-center">
-      <span className={cx("relative rounded-full ring-2 ring-white/60", att === "no" && "opacity-40")}>
-        {p ? <Avatar name={p.full_name} src={p.photo_url} size={34} color={color} /> : <span className="block h-[34px] w-[34px] rounded-full border-2 border-dashed border-white/40" />}
-        {att === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-none bg-win text-[10px] font-bold text-[#07130b]" aria-label="Confirmado">✓</span>}
-      </span>
-      <span className="w-full truncate text-[11px] font-semibold leading-tight">{p ? playerName(p, "nick") : "—"}</span>
-    </span>
-  );
-}
 
 /** Lista de jugadores con su posición */
 export function PlayerChipList({ items, color }: { items: { player: Player; position?: Position | null; note?: string; attendance?: string }[]; color: string }) {

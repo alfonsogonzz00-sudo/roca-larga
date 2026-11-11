@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Roca Larga",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     startupImage: [
       { url: "/icons/splash-1179x2556.png", media: "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" },
       { url: "/icons/splash-1290x2796.png", media: "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" },
@@ -42,7 +42,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0b0f0c",
+  themeColor: "#ffffff",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pending = await getPendingVotesCount(session);
   const labels = Object.fromEntries(NAV.map((n) => [n.key, t(n.key, n.label)]));
   return (
-    <html lang="es" data-theme="dark" suppressHydrationWarning>
+    <html lang="es" data-theme="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="flex">
           <SideNav labels={labels} appName={settings.app_name} tagline={settings.app_tagline} isAdmin={Boolean(session?.isAdmin)} isStaff={Boolean(session?.isStaff)} voteBadge={pending} />
           <div className="min-w-0 flex-1">
-            <header className="pt-safe sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur lg:hidden">
+            <header className="pt-safe sticky top-0 z-30 border-b border-line bg-elev/95 backdrop-blur lg:hidden">
               <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
                 <Link href="/" aria-label="Inicio"><Brand size="sm" /></Link>
                 <div className="flex items-center gap-1">

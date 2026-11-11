@@ -6,33 +6,41 @@
  * (data-theme en <html>). Los colores de cada equipo vienen de la BD.
  */
 :root {
-  --bg: #ffffff;
+  /* Claro (predeterminado) · inspirado en SofaScore: fondo neutro, tarjetas blancas,
+     bloques en grises fríos sutiles. Todos los textos de estado cumplen WCAG AA (≥4,5:1). */
+  --bg: #eef1f5;
   --bg-elev: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f4f4f5;
-  --surface-3: #e8e8eb;
-  --line: #e4e4e7;
-  --line-strong: #c4c4ca;
-  --ink: #0a0a0a;
-  --ink-2: #3f3f46;
-  --ink-3: #74747c;
-  --pitch: #16733b;
+  --surface-2: #f5f7fa;
+  --surface-3: #e7ebf1;
+  --line: #e1e6ed;
+  --line-strong: #c5cdd8;
+  --ink: #1a1d23;
+  --ink-2: #3f4652;
+  --ink-3: #5c6574;
+  --pitch: #167a40;
   --pitch-ink: #ffffff;
-  --pitch-soft: #e3f2e8;
-  --gold: #9a7520;
-  --gold-soft: #f6eed8;
-  --win: #16733b;
-  --draw: #847226;
-  --loss: #c0392b;
-  --danger: #c0392b;
-  --danger-soft: #fbe7e4;
-  --focus: #0a0a0a;
-  --shadow: none;
+  --pitch-soft: #e4f3ea;
+  --gold: #86610f;
+  --gold-soft: #fbf1d9;
+  --win: #13773a;
+  --win-soft: #e4f3ea;
+  --draw: #5f6773;
+  --draw-soft: #eef0f3;
+  --loss: #c7283a;
+  --loss-soft: #fdecee;
+  --info: #2457c5;
+  --info-soft: #e7eefc;
+  --danger: #c7283a;
+  --danger-soft: #fdecee;
+  --focus: #2457c5;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05);
   color-scheme: light;
 }
 
+/* Oscuro sólo si el usuario lo elige (o «Sistema» con el móvil en oscuro) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="system"] {
     --bg: #0b0f0c;
     --bg-elev: #121813;
     --surface: #141a15;
@@ -53,6 +61,16 @@
     --loss: #e5735f;
     --danger: #e5735f;
     --danger-soft: #3a1c17;
+  --win-soft: #173322;
+  --draw-soft: #23282a;
+  --loss-soft: #3a1c17;
+  --info: #6f9bf0;
+  --info-soft: #17233d;
+    --win-soft: #173322;
+    --draw-soft: #23282a;
+    --loss-soft: #3a1c17;
+    --info: #6f9bf0;
+    --info-soft: #17233d;
     --focus: #3fae66;
     --shadow: none;
     color-scheme: dark;
@@ -80,6 +98,11 @@
   --loss: #e5735f;
   --danger: #e5735f;
   --danger-soft: #3a1c17;
+  --win-soft: #173322;
+  --draw-soft: #23282a;
+  --loss-soft: #3a1c17;
+  --info: #6f9bf0;
+  --info-soft: #17233d;
   --focus: #3fae66;
   --shadow: none;
   color-scheme: dark;
@@ -111,6 +134,11 @@
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-win: var(--win);
+  --color-win-soft: var(--win-soft);
+  --color-draw-soft: var(--draw-soft);
+  --color-loss-soft: var(--loss-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-draw: var(--draw);
   --color-loss: var(--loss);
   --color-danger: var(--danger);

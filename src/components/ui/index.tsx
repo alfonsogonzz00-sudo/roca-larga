@@ -36,7 +36,7 @@ const variants: Record<Variant, string> = {
   secondary: "border border-line-strong bg-surface text-ink hover:bg-surface-2",
   ghost: "text-ink-2 hover:bg-surface-2 hover:text-ink",
   danger: "bg-danger text-white hover:brightness-110",
-  gold: "bg-gold text-[#16130a] hover:brightness-110",
+  gold: "bg-gold text-white hover:brightness-110",
 };
 const base = "press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
 
@@ -48,15 +48,16 @@ export function ButtonLink({ variant = "primary", className, ...p }: ComponentPr
   return <Link className={cx(base, variants[variant], className)} {...p} />;
 }
 
-export function Pill({ tone = "neutral", children, className }: { tone?: "neutral" | "pitch" | "gold" | "danger" | "win" | "draw" | "loss"; children: ReactNode; className?: string }) {
+export function Pill({ tone = "neutral", children, className }: { tone?: "neutral" | "pitch" | "gold" | "danger" | "win" | "draw" | "loss" | "info"; children: ReactNode; className?: string }) {
   const tones = {
     neutral: "bg-surface-2 text-ink-2",
     pitch: "bg-pitch-soft text-pitch",
     gold: "bg-gold-soft text-gold",
     danger: "bg-danger-soft text-danger",
-    win: "bg-pitch-soft text-win",
-    draw: "bg-gold-soft text-draw",
-    loss: "bg-danger-soft text-loss",
+    win: "bg-win-soft text-win",
+    draw: "bg-draw-soft text-draw",
+    loss: "bg-loss-soft text-loss",
+    info: "bg-info-soft text-info",
   };
   return <span className={cx("inline-flex items-center gap-1 rounded-none px-2.5 py-0.5 text-xs font-semibold", tones[tone], className)}>{children}</span>;
 }

@@ -6,38 +6,35 @@ import { cx } from "@/components/ui";
 type Mode = "system" | "light" | "dark";
 
 /** Script que se ejecuta antes de pintar para evitar el parpadeo de tema */
-// Por defecto la app es oscura (el HTML sale con data-theme="dark"); sólo cambia si el usuario eligió otra cosa.
-export const themeScript = `(function(){try{var m=localStorage.getItem('theme'),r=document.documentElement;if(m==='light'){r.dataset.theme='light'}else if(m==='system'){r.removeAttribute('data-theme')}else{r.dataset.theme='dark'}}catch(e){}})();`;
+// Por defecto la app es CLARA (el HTML sale con data-theme="light"); sólo cambia si el usuario eligió otra cosa.
+// Clave nueva «rl-theme»: la antigua («theme») se ignora para que todos arranquen en claro.
+const KEY = "rl-theme";
+export const themeScript = `(function(){try{var m=localStorage.getItem('${KEY}');document.documentElement.dataset.theme=(m==='dark'||m==='system')?m:'light'}catch(e){}})();`;
 
 const listeners = new Set<() => void>();
 function read(): Mode {
   try {
-    const m = localStorage.getItem("theme");
-    return m === "light" || m === "system" ? m : "dark";
+    const m = localStorage.getItem(KEY);
+    return m === "dark" || m === "system" ? m : "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 function applyTheme(m: Mode) {
   try {
     const root = document.documentElement;
-    if (m === "system") {
-      localStorage.setItem("theme", "system");
-      root.removeAttribute("data-theme");
-    } else {
-      localStorage.setItem("theme", m);
-      root.setAttribute("data-theme", m);
-    }
+    localStorage.setItem(KEY, m);
+    root.setAttribute("data-theme", m);
   } catch {}
   listeners.forEach((l) => l());
 }
 const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
 
 export function ThemeToggle() {
-  const mode = useSyncExternalStore(subscribe, read, () => "dark" as Mode);
+  const mode = useSyncExternalStore(subscribe, read, () => "light" as Mode);
   const opts: { m: Mode; label: string; Icon: typeof Sun }[] = [
-    { m: "dark", label: "Oscuro", Icon: Moon },
     { m: "light", label: "Claro", Icon: Sun },
+    { m: "dark", label: "Oscuro", Icon: Moon },
     { m: "system", label: "Automático", Icon: Monitor },
   ];
   return (
