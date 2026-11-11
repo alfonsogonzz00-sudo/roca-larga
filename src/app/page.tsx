@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       )}
 
       <section>
-        <SectionTitle action={past.length > 8 ? <Link href="/historico?tab=partidos" className="text-sm font-semibold text-pitch">Ver todos</Link> : undefined}>{t("home.past_matches")}</SectionTitle>
+        <SectionTitle action={past.length > 8 ? <Link href="/clasificacion?tab=partidos" className="text-sm font-semibold text-pitch">Ver todos</Link> : undefined}>{t("home.past_matches")}</SectionTitle>
         {past.length ? (
           <div className="space-y-2">{past.slice(0, 8).map((m) => <MatchRow key={m.id} m={m} teams={ds.teamById} venues={ds.venueById} />)}</div>
         ) : <EmptyState title="Aún no hay partidos">{t("history.empty")}</EmptyState>}

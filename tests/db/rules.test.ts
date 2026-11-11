@@ -69,6 +69,13 @@ describe("usuarios y roles", () => {
     await expectError(db.as(null, `select * from public.dispatch_credentials('mal')`), /No autorizado/);
   });
 
+  it("muro de actividad: sólo usuarios registrados y sin acciones administrativas", async () => {
+    await expectError(db.as(null, `select * from public.public_activity()`), /permission denied/);
+    const u = await db.createUser("muro@example.com");
+    const rows = await db.as(u, `select action from public.public_activity(null, 100)`);
+    expect(rows.every((r: { action: string }) => !/^(user|push|stats|demo|link\.request)/.test(r.action))).toBe(true);
+  });
+
   it("organizadores: máximo 2 por equipo y nunca admin", async () => {
     orgCar = await linkedUser("org1@example.com", carPlayers[0]);
     const org2 = await linkedUser("org2@example.com", carPlayers[1]);

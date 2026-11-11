@@ -1,19 +1,19 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, CalendarDays, History, Shield, UserRound, Vote, Settings, ClipboardList } from "lucide-react";
+import { Activity, CalendarDays, Shield, Trophy, UserRound, Vote, Settings, ClipboardList } from "lucide-react";
 import { NAV, isActive } from "./nav-items";
 import { cx } from "@/components/ui";
 import { Brand } from "./brand";
 
-const ICONS = { CalendarDays, Shield, Vote, History, Briefcase, UserRound };
+const ICONS = { Trophy, CalendarDays, Vote, Activity, UserRound };
 
-/** Navegación inferior fija (móvil). Seis apartados, siempre visibles. */
+/** Navegación inferior fija (móvil). Cinco apartados, siempre visibles. */
 export function BottomNav({ labels, voteBadge }: { labels: Record<string, string>; voteBadge?: number }) {
   const path = usePathname();
   return (
     <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-elev/95 backdrop-blur lg:hidden">
-      <ul className="mx-auto grid max-w-xl grid-cols-6">
+      <ul className="mx-auto grid max-w-xl grid-cols-5">
         {NAV.map((item) => {
           const Icon = ICONS[item.icon];
           const active = isActive(path, item.href);
@@ -24,7 +24,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 pt-1.5 pb-1 text-[10.5px] font-semibold leading-tight",
+                  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 pt-1.5 pb-1 text-[11px] font-semibold leading-tight",
                   active ? "text-pitch" : "text-ink-3",
                 )}
               >
