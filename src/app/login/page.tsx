@@ -7,8 +7,8 @@ import { Brand } from "@/components/layout/brand";
 
 export const metadata = { title: "Entrar" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
-  const { next = "/", error } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string; ok?: string }> }) {
+  const { next = "/", error, ok } = await searchParams;
   const [session, settings] = await Promise.all([getSession(), getSettings()]);
   if (session) redirect(session.player ? next : "/registro");
   return (
@@ -18,6 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <Brand size="lg" stacked className="mx-auto mb-4" />
         <p className="mt-1 text-sm text-ink-2">Entra para votar, gestionar partidos y simular en El Despacho.</p>
       </div>
+      {ok === "confirmed" && <Notice tone="ok" className="mb-4">¡Correo confirmado! Ahora entra con tu email y contraseña.</Notice>}
       {error && <Notice tone="danger" className="mb-4">{error}</Notice>}
       <Card className="p-4">
         <EmailForms next={next} />
