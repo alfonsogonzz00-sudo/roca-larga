@@ -73,7 +73,7 @@ describe("usuarios y roles", () => {
     await expectError(db.as(null, `select * from public.public_activity()`), /permission denied/);
     const u = await db.createUser("muro@example.com");
     const rows = await db.as(u, `select action from public.public_activity(null, 100)`);
-    expect(rows.every((r: { action: string }) => !/^(user|push|stats|demo|link\.request)/.test(r.action))).toBe(true);
+    expect(rows.every((r) => !/^(user|push|stats|demo|link\.request)/.test(String(r.action)))).toBe(true);
   });
 
   it("organizadores: máximo 2 por equipo y nunca admin", async () => {
