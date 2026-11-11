@@ -336,6 +336,25 @@ describe("partidos históricos, invitados y configuración", () => {
     expect(mvp.length).toBe(1);
   });
 
+  it("editar un partido con participantes no convocados no rompe (match_players_some_flag)", async () => {
+    const [r] = await db.as<{ create_historical_match: string }>(orgCar, `select public.create_historical_match($1)`, [{
+      kickoff_at: "2026-02-10T19:00:00Z", home_team_id: car, away_team_id: mon, home_score: 1, away_score: 0,
+      home: { players: carPlayers.slice(0, 7) }, away: { players: monPlayers.slice(0, 7) },
+      goals: [{ team_id: car, scorer_id: carPlayers[0] }],
+    }]);
+    const id = r.create_historical_match;
+    const edit = (home: string[]) => db.as(orgCar, `select public.finalize_match($1,$2)`, [id, {
+      home_score: 1, away_score: 0, home: { players: home }, away: { players: monPlayers.slice(0, 7) },
+      goals: [{ team_id: car, scorer_id: home[0] }], gk_spells: [],
+    }]);
+    await edit(carPlayers.slice(0, 7));
+    await edit([...carPlayers.slice(1, 7), carPlayers[7]]); // cambia un participante
+    const rows = await db.su<{ player_id: string; participated: boolean }>(`select player_id, participated from public.match_players where match_id=$1 and team_id=$2`, [id, car]);
+    expect(rows.length).toBe(7);
+    expect(rows.map((x) => x.player_id)).not.toContain(carPlayers[0]);
+    expect(rows.every((x) => x.participated)).toBe(true);
+  });
+
   it("invitado con quien lo trae", async () => {
     const [g] = await db.as<{ create_guest: string }>(orgCar, `select public.create_guest('Pepe el primo')`);
     const [r] = await db.as<{ create_match: string }>(orgCar, `select public.create_match($1)`, [{
