@@ -4,7 +4,7 @@
  * - Push: muestra notificaciones y abre la URL indicada.
  * - Actualizaciones: la app pide SKIP_WAITING cuando el usuario acepta.
  */
-const VERSION = "rl-v3";
+const VERSION = "rl-v4";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";

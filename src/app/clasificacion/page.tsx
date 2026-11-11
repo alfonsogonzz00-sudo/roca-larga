@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Briefcase, MapPin } from "lucide-react";
 import { Card, Crest, EmptyState, PageHeader, SectionTitle, Select, Stat, cx, inputCls } from "@/components/ui";
 import { HBars, LineChart, WdlBar } from "@/components/charts";
 import { MatchRow } from "@/components/match/parts";
@@ -29,15 +30,15 @@ export default async function History({ searchParams }: { searchParams: Promise<
       <PageHeader title="Clasificación" subtitle={`${played.length} partidos disputados desde el primer registro.`} />
       <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {ds.teams.map((tm) => (
-          <Link key={tm.id} href={`/equipos/${tm.slug}`} className="flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+          <Link key={tm.id} href={`/equipos/${tm.slug}`} className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
             <Crest src={tm.crest_url} name={tm.name} size={28} /><span className="truncate">{tm.short_name}</span>
           </Link>
         ))}
-        <Link href="/despacho" className="flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
-          <span aria-hidden className="text-xl">💼</span><span className="truncate">El Despacho</span>
+        <Link href="/despacho" className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+          <Briefcase size={20} aria-hidden className="text-ink-3" /><span className="truncate">El Despacho</span>
         </Link>
-        <Link href="/estadios" className="flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
-          <span aria-hidden className="text-xl">🏟️</span><span className="truncate">Estadios</span>
+        <Link href="/estadios" className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+          <MapPin size={20} aria-hidden className="text-ink-3" /><span className="truncate">Estadios</span>
         </Link>
       </div>
       <nav aria-label="Secciones del histórico" className="no-scrollbar mb-5 flex gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1">

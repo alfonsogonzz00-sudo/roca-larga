@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Clock, Cloud, ExternalLink, Phone, CalendarCheck, Navigation, CloudFog, CloudRain, MapPin, Sun, Thermometer, Wind, HelpCircle } from "lucide-react";
+import { ChevronRight, Clock, LayoutGrid, Sprout, Cloud, ExternalLink, Phone, CalendarCheck, Navigation, CloudFog, CloudRain, MapPin, Sun, Thermometer, Wind, HelpCircle } from "lucide-react";
 import { Avatar, Card, Crest, Pill, cx } from "@/components/ui";
 import { fmtShortDay, fmtTime, num, pct, playerName, teamColor } from "@/lib/format";
 import type { MatchPrediction } from "@/lib/stats/model";
@@ -31,19 +31,22 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
   const a = teams.get(m.away_team_id)!;
   const played = m.status === "played";
   return (
-    <Link href={`/partidos/${m.id}`} className="group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 transition hover:border-line-strong">
-      <div className="w-14 shrink-0 text-center">
+    <Link href={`/partidos/${m.id}`} className="press group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 hover:border-line-strong">
+      <div className="w-12 shrink-0 text-center">
         <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ")[0].replace(",", "")}</div>
         <div className="font-display tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
       </div>
-      <div className="min-w-0 flex-1 space-y-1">
-        <TeamLine team={h} score={played ? m.home_score : null} winner={played && m.home_score! > m.away_score!} />
-        <TeamLine team={a} score={played ? m.away_score : null} winner={played && m.away_score! > m.home_score!} />
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-        {played ? <span className="text-[11px] text-ink-3">{m.origin === "historical" ? "Histórico" : "Final"}</span> : <StatusPill status={m.status} />}
-        {!played && <span className="tabular text-sm font-semibold">{fmtTime(m.kickoff_at)}</span>}
-        {m.venue_id && <span className="max-w-24 truncate text-[11px] text-ink-3">{venues.get(m.venue_id)?.name}</span>}
+      <div className="min-w-0 flex-1">
+        <div className="space-y-1">
+          <TeamLine team={h} score={played ? m.home_score : null} winner={played && m.home_score! > m.away_score!} />
+          <TeamLine team={a} score={played ? m.away_score : null} winner={played && m.away_score! > m.home_score!} />
+        </div>
+        {(m.venue_id || !played) && (
+          <div className="mt-1 flex items-center gap-1.5 truncate text-xs text-ink-3">
+            {!played && <><StatusPill status={m.status} /><span className="tabular font-semibold text-ink-2">{fmtTime(m.kickoff_at)}</span></>}
+            {m.venue_id && <span className="truncate">{!played && "· "}{venues.get(m.venue_id)?.name}</span>}
+          </div>
+        )}
       </div>
       <ChevronRight size={18} className="shrink-0 text-ink-3 transition group-hover:translate-x-0.5" aria-hidden />
     </Link>
@@ -54,7 +57,7 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
   return (
     <div className="flex items-center gap-2">
       <Crest src={team.crest_url} name={team.name} size={22} />
-      <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.short_name}</span>
+      <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.name}</span>
       {score != null && <span className={cx("font-display tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
     </div>
   );
@@ -97,7 +100,7 @@ function TeamBlock({ team, label, link }: { team: Team; label: string; link: boo
     <Wrap href={`/equipos/${team.slug}`} className="flex flex-col items-center gap-2 text-center">
       <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 p-1.5 sm:h-20 sm:w-20"><Crest src={team.crest_url} name={team.name} size={60} /></span>
       <span className="font-display text-base font-bold uppercase leading-tight sm:text-lg">{team.name}</span>
-      <span className="text-[10px] uppercase tracking-widest text-white/50">{label}</span>
+      <span className="text-[11px] uppercase tracking-widest text-white/50">{label}</span>
     </Wrap>
   );
 }
@@ -295,12 +298,12 @@ export function VenueCard({ v, compact = false }: { v: Venue; compact?: boolean 
         </div>
         {(v.pitch_info || v.surface || v.hours) && (
           <ul className="space-y-1 text-sm text-ink-2">
-            {v.pitch_info && <li>⚽ {v.pitch_info}</li>}
-            {v.surface && <li>🌱 {v.surface}</li>}
+            {v.pitch_info && <li className="flex items-start gap-1.5"><LayoutGrid size={14} aria-hidden className="mt-0.5 shrink-0 text-ink-3" />{v.pitch_info}</li>}
+            {v.surface && <li className="flex items-center gap-1.5"><Sprout size={14} aria-hidden className="shrink-0 text-ink-3" />{v.surface}</li>}
             {v.hours && <li className="flex items-center gap-1.5"><Clock size={14} aria-hidden className="shrink-0 text-ink-3" />{v.hours}</li>}
           </ul>
         )}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-2 [&>a]:min-w-[calc(50%-0.25rem)] [&>a]:flex-1 sm:[&>a]:min-w-0">
           {tel && <a href={`tel:${tel}`} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-pitch px-3 text-sm font-semibold text-pitch-ink"><Phone size={16} aria-hidden />Llamar</a>}
           {v.booking_url && <a href={v.booking_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><CalendarCheck size={16} aria-hidden />Reservar</a>}
           {v.maps_url && <a href={v.maps_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><Navigation size={16} aria-hidden />Cómo llegar</a>}

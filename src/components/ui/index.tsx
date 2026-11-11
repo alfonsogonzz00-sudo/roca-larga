@@ -38,7 +38,7 @@ const variants: Record<Variant, string> = {
   danger: "bg-danger text-white hover:brightness-110",
   gold: "bg-gold text-[#16130a] hover:brightness-110",
 };
-const base = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+const base = "press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
 
 export function Button({ variant = "primary", className, ...p }: ComponentProps<"button"> & { variant?: Variant }) {
   return <button className={cx(base, variants[variant], className)} {...p} />;

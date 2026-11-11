@@ -123,9 +123,9 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                 </div>
                 <div className="mt-3 grid grid-cols-5 gap-1 text-center">
                   {[["PJ", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]].map(([l, v]) => (
-                    <div key={l as string}><div className="text-[10px] font-semibold uppercase text-ink-3">{l}</div><div className="font-display tabular text-lg font-bold">{v}</div></div>
+                    <div key={l as string}><div className="text-[11px] font-semibold uppercase text-ink-3">{l}</div><div className="font-display tabular text-lg font-bold">{v}</div></div>
                   ))}
-                  <div className="rounded-lg bg-surface-2"><div className="text-[10px] font-semibold uppercase text-ink-3">🧤 Enc.</div><div className="font-display tabular text-lg font-bold">{tot.concededAsGk}</div></div>
+                  <div className="rounded-lg bg-surface-2"><div className="text-[11px] font-semibold uppercase text-ink-3">🧤 Enc.</div><div className="font-display tabular text-lg font-bold">{tot.concededAsGk}</div></div>
                 </div>
               </Link>
             );

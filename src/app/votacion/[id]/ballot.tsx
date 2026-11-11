@@ -22,7 +22,7 @@ function PlayerTile({ c, selected, color, onPick }: { c: Candidate; selected: bo
       {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-[#16130a]"><Check size={13} strokeWidth={3} aria-hidden /></span>}
       <Avatar name={c.name} src={c.photo} size={40} color={color} />
       <span className="line-clamp-2 text-xs font-semibold leading-tight">{c.nickname ?? c.name.split(" ")[0]}</span>
-      {c.nickname && <span className="-mt-0.5 line-clamp-1 text-[10px] text-ink-3">{c.name.split(" ").slice(0, 2).join(" ")}</span>}
+      {c.nickname && <span className="-mt-0.5 line-clamp-1 text-[11px] text-ink-3">{c.name.split(" ").slice(0, 2).join(" ")}</span>}
     </button>
   );
 }

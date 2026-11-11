@@ -84,7 +84,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                       <div className="text-sm font-semibold">{fmtShortDay(x.kickoff)} · {ds.teamById.get(m.home_team_id)?.short_name} {m.home_score}–{m.away_score} {ds.teamById.get(m.away_team_id)?.short_name}</div>
                       <div className="text-xs text-ink-3">{x.goals} goles · {x.assists} asist.{x.isMvp ? " · MVP" : ""}{x.isTeamBest ? " · mejor de su equipo" : ""}{x.guestsBrought ? ` · trajo ${x.guestsBrought} invitado${x.guestsBrought > 1 ? "s" : ""}` : ""}</div>
                     </div>
-                    <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 2)}</div><div className="text-[10px] uppercase text-ink-3">valoración</div></div>
+                    <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 2)}</div><div className="text-[11px] uppercase text-ink-3">valoración</div></div>
                     {x.isMvp && <Award size={18} className="text-gold" aria-label="MVP" />}
                   </Link>
                 );
