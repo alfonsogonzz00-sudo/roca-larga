@@ -26,7 +26,7 @@ export function Countdown({ to, serverNow, className }: { to: string; serverNow:
   return (
     <span className={className} aria-label={`Faltan ${d ? `${d} días, ` : ""}${h} horas y ${min} minutos`}>
       {cells.map(([v, u]) => (
-        <span key={u} className="inline-flex items-baseline gap-0.5"><span className="font-display tabular text-xl font-bold leading-none">{v}</span><span className="text-xs text-ink-3">{u}</span></span>
+        <span key={u} className="inline-flex items-baseline gap-0.5"><span className="tabular text-xl font-bold leading-none">{v}</span><span className="text-xs text-ink-3">{u}</span></span>
       ))}
     </span>
   );

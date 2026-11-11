@@ -31,7 +31,7 @@ export default async function Teams() {
                 <div className="space-y-3 border-t border-line p-4">
                   <div className="grid grid-cols-4 text-center">
                     {[["PJ", r.played], ["V", r.wins], ["E", r.draws], ["D", r.losses]].map(([l, v]) => (
-                      <div key={l as string}><div className="text-[11px] font-semibold text-ink-3">{l}</div><div className="font-display tabular text-2xl font-bold">{v}</div></div>
+                      <div key={l as string}><div className="text-[11px] font-semibold text-ink-3">{l}</div><div className="tabular text-2xl font-bold">{v}</div></div>
                     ))}
                   </div>
                   <WdlBar wins={r.wins} draws={r.draws} losses={r.losses} />

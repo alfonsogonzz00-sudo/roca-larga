@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Award, Vote } from "lucide-react";
-import { Card, Details, Notice, Pill, SectionTitle, Stat } from "@/components/ui";
+import { Card, Details, Notice, Pill, SectionTitle } from "@/components/ui";
 import { Tabs } from "@/components/ui/client";
-import { FormationBoard, PlayerChipList, PredictionPanel, Scoreboard, StatusPill, WeatherBadge, VenueCard } from "@/components/match/parts";
+import { PlayerChipList, PredictionPanel, StatusPill, WeatherBadge, VenueCard } from "@/components/match/parts";
 import { StaffActions } from "@/components/match/staff-actions";
 import { AttendanceButtons } from "@/components/match/attendance";
+import { LineupPitch } from "@/components/match/lineup-pitch";
+import { MatchHeader, type ScorerLine } from "@/components/match/match-header";
 import { Hint } from "@/components/onboarding/hint";
 import { getStats, predictionForMatch } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
 import { createClient } from "@/lib/supabase/server";
 import { fmtDateTime, fmtDay, fmtTime, nowMs, playerName, teamColor } from "@/lib/format";
-import type { MvpTally, Player, Position } from "@/lib/types";
+import type { MvpTally, Player } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,7 +37,6 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const played = m.status === "played";
   const mps = ds.matchPlayers.filter((x) => x.match_id === m.id);
   const goals = ds.goals.filter((g) => g.match_id === m.id);
-  const spells = ds.spells.filter((x) => x.match_id === m.id);
   const mvps = ds.mvps.filter((x) => x.match_id === m.id);
   const bests = ds.teamBests.filter((x) => x.match_id === m.id);
   const P = (pid: string) => ds.playerById.get(pid)!;
@@ -66,26 +67,42 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       return { player: p, position: x.lineup_position, note: notes || undefined, attendance: played ? undefined : x.attendance };
     });
   };
-  const positions = new Map<string, Position | null>(mps.map((x) => [x.player_id, x.lineup_position]));
+
+  const pitchSide = (tm: typeof home) => {
+    const fid = tm.id === home.id ? m.home_formation_id : m.away_formation_id;
+    const rows = mps.filter((x) => x.team_id === tm.id && (played ? x.participated : x.called));
+    return {
+      team: tm,
+      formation: fid ? ds.formationById.get(fid) ?? null : null,
+      players: rows.map((x) => ({
+        player: P(x.player_id),
+        position: x.lineup_position,
+        rating: played ? ratingOf.get(x.player_id) ?? null : null,
+        goals: played ? goals.filter((gg) => gg.scorer_id === x.player_id && !gg.is_own_goal).length : 0,
+        assists: played ? goals.filter((gg) => gg.assist_id === x.player_id).length : 0,
+        isMvp: mvps.some((mv) => mv.player_id === x.player_id),
+        attendance: played ? undefined : x.attendance,
+      })),
+    };
+  };
 
   const lineups = (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {[home, away].map((tm) => {
-        const list = sideList(tm.id);
-        const fid = tm.id === home.id ? m.home_formation_id : m.away_formation_id;
-        return (
-          <div key={tm.id} className="space-y-3">
-            <FormationBoard formation={fid ? ds.formationById.get(fid) ?? null : null} players={list.map((l) => l.player)} positions={positions} color={teamColor(tm)} teamName={tm.name}
-              attendance={played ? undefined : new Map(mps.filter((x) => x.team_id === tm.id).map((x) => [x.player_id, x.attendance]))} />
-            <Details summary={`${played ? "Participantes" : "Convocados"} · ${tm.short_name} (${list.length})`} defaultOpen={played}>
+    <div className="space-y-4">
+      <LineupPitch home={pitchSide(home)} away={pitchSide(away)} />
+      {played && <p className="text-xs text-ink-3">Nota sobre 10: parte de 6,0 · +0,5 por jugar · +2,5 por gol · +1,2 por asistencia · +0,8 por cada gol del equipo · −1,0 por gol encajado. Independiente de las votaciones.</p>}
+      <div className="grid gap-3 lg:grid-cols-2">
+        {[home, away].map((tm) => {
+          const list = sideList(tm.id);
+          return (
+            <Details key={tm.id} summary={`${played ? "Participantes" : "Convocados"} · ${tm.short_name} (${list.length})`}>
               <PlayerChipList items={list} color={teamColor(tm)} />
               {played && mps.some((x) => x.team_id === tm.id && x.called && !x.participated) && (
                 <p className="mt-2 text-xs text-ink-3">Convocados que no jugaron: {mps.filter((x) => x.team_id === tm.id && x.called && !x.participated).map((x) => playerName(P(x.player_id), "short")).join(", ")}</p>
               )}
             </Details>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -99,13 +116,12 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               const tm = ds.teamById.get(g.team_id)!;
               return (
                 <li key={g.id} className="flex items-start gap-3 text-sm">
-                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-full" style={{ background: teamColor(tm) }} />
-                  <span className="tabular w-8 shrink-0 text-ink-3">{g.minute != null ? `${g.minute}'` : "—"}</span>
+                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-none" style={{ background: teamColor(tm) }} />
+                  {g.minute != null && <span className="tabular w-8 shrink-0 text-ink-3">{g.minute}&apos;</span>}
                   <span className="flex-1">
                     <strong>{g.scorer_id ? playerName(P(g.scorer_id), "short") : "Goleador desconocido"}</strong>
                     {g.is_own_goal && <span className="text-ink-3"> (p.p.)</span>}
                     {g.assist_id && <span className="text-ink-2"> · asist. {playerName(P(g.assist_id), "short")}</span>}
-                    {g.conceded_gk_id && <span className="block text-xs text-ink-3">🧤 Encajado por {playerName(P(g.conceded_gk_id), "short")}</span>}
                   </span>
                   <span className="text-xs font-semibold text-ink-3">{tm.short_name}</span>
                 </li>
@@ -113,31 +129,6 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             })}
           </ol>
         )}
-      </Card>
-      <Card className="p-4">
-        <SectionTitle>Rotación de portería</SectionTitle>
-        {spells.length === 0 ? <p className="text-sm text-ink-3">No se registró la rotación.</p> : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[home, away].map((tm) => (
-              <div key={tm.id}>
-                <div className="mb-1 text-sm font-semibold">{tm.short_name}</div>
-                <ol className="space-y-1 text-sm">
-                  {!spells.some((x) => x.team_id === tm.id) && <li className="text-ink-3">Sin registrar</li>}
-                  {spells.filter((x) => x.team_id === tm.id).map((x) => {
-                    const conceded = goals.filter((g) => g.conceded_gk_id === x.player_id).length;
-                    return (
-                      <li key={x.id} className="flex justify-between gap-2">
-                        <span>{x.seq}. {playerName(P(x.player_id), "short")}</span>
-                        <span className="tabular text-ink-3">{x.start_minute != null ? `${x.start_minute}'–${x.end_minute ?? "?"}'` : ""} · {conceded} enc.</span>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            ))}
-          </div>
-        )}
-        <p className="mt-2 text-xs text-ink-3">Los goles encajados en portería no afectan a la nota de nadie.</p>
       </Card>
       {(m.actual_weather || m.actual_temp_c != null || m.incidents || m.final_notes) && (
         <Card className="space-y-2 p-4 text-sm">
@@ -175,7 +166,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               if (!list.length) return null;
               return (
                 <div key={tm.id} className="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: teamColor(tm) }} aria-hidden />
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-none" style={{ background: teamColor(tm) }} aria-hidden />
                   <span className="text-ink-3">{tm.short_name}</span>
                   <span className="font-semibold">{list.map((b) => <Link key={b.player_id} href={`/jugadores/${b.player_id}`} className="hover:underline">{playerName(P(b.player_id), "short")}</Link>).reduce<React.ReactNode[]>((acc, el, i) => (i ? [...acc, " y ", el] : [el]), [])}</span>
                   {list[0].votes != null && <span className="ml-auto text-xs text-ink-3">{list[0].votes} votos</span>}
@@ -217,13 +208,24 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     </Card>
   );
 
+  const scorersOf = (teamId: string): ScorerLine[] => {
+    const map = new Map<string, ScorerLine>();
+    for (const g of goals.filter((x) => x.team_id === teamId)) {
+      const key = (g.scorer_id ?? "?") + (g.is_own_goal ? "pp" : "");
+      const name = g.scorer_id ? playerName(P(g.scorer_id), "short") : "Desconocido";
+      const cur = map.get(key);
+      if (cur) cur.goals += 1; else map.set(key, { name, goals: 1, ownGoal: g.is_own_goal });
+    }
+    return [...map.values()];
+  };
+
   const okKey = sp.ok ? OK[sp.ok] : null;
   return (
     <div className="space-y-5">
+      <MatchHeader m={m} home={home} away={away} venue={venue} scorers={{ home: scorersOf(home.id), away: scorersOf(away.id) }} />
       {okKey && <Notice tone="ok">{t(okKey)}</Notice>}
-      <Scoreboard m={m} home={home} away={away} venue={venue} />
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusPill status={m.status} />
+      <div className="flex flex-wrap items-center gap-2 empty:hidden">
+        {!played && m.status !== "pending" && m.status !== "confirmed" && <StatusPill status={m.status} />}
         {m.origin === "historical" && <Pill>Partido histórico</Pill>}
         {m.is_demo && <Pill tone="gold">Datos de prueba</Pill>}
         {m.exceptional_lineup && <Pill tone="gold">Incidencia: {m.exceptional_reason ?? "alineación excepcional"}</Pill>}
@@ -238,18 +240,11 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         </Card>
       )}
       {!played && venue && <VenueCard v={venue} compact />}
-      {played && (
-        <div className="grid grid-cols-3 gap-2">
-          <Stat label="Goles" value={goals.length} />
-          <Stat label="Turnos portería" value={spells.length} />
-          <Stat label="Participantes" value={mps.filter((x) => x.participated).length} />
-        </div>
-      )}
       {s?.isStaff && <StaffActions id={m.id} status={m.status} isAdmin={s.isAdmin} started={started} />}
 
       <Tabs tabs={[
-        { label: played ? "Resumen" : "Convocatoria", content: played ? <div className="space-y-4">{mvpBlock}{events}</div> : lineups },
-        { label: played ? "Alineaciones" : "Pronóstico", content: played ? lineups : <div className="space-y-3"><Hint id="prediction" title="Es una estimación, no un resultado">El pronóstico sale del histórico real (equipos, estadio, rachas, clima y horario). Con pocos partidos la confianza es baja: tómatelo como charla de vestuario.</Hint><PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} /></div> },
+        { label: played ? "Alineaciones" : "Convocatoria", content: lineups },
+        { label: played ? "Resumen" : "Pronóstico", content: played ? <div className="space-y-4">{mvpBlock}{events}</div> : <div className="space-y-3"><Hint id="prediction" title="Es una estimación, no un resultado">El pronóstico sale del histórico real (equipos, estadio, rachas, clima y horario). Con pocos partidos la confianza es baja: tómatelo como charla de vestuario.</Hint><PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} /></div> },
         ...(played ? [{ label: "Pronóstico previo", content: (
           <div className="space-y-2">
             <p className="text-sm text-ink-2">Lo que el modelo habría pronosticado usando sólo los partidos anteriores a este encuentro.</p>

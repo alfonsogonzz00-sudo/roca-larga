@@ -46,11 +46,11 @@ export default async function AdminVenues() {
         ))}
       </section>
       <section>
-        <SectionTitle>Formaciones (6 de campo + portero rotatorio)</SectionTitle>
+        <SectionTitle>Formaciones</SectionTitle>
         <Card className="divide-y divide-line">
           {ds.formations.map((f) => (
             <div key={f.id} className="flex min-h-12 flex-wrap items-center gap-2 px-4 py-2">
-              <span className="font-display tabular flex-1 text-lg font-bold">{f.name}</span>
+              <span className="tabular flex-1 text-lg font-bold">{f.name}</span>
               {f.is_default && <Pill tone="pitch">Por defecto</Pill>}
               {!f.active && <Pill tone="danger">Oculta</Pill>}
               {!f.is_default && <ActionForm action={defaultFormationAction}><input type="hidden" name="id" value={f.id} /><SubmitButton variant="ghost" className="min-h-9">Por defecto</SubmitButton></ActionForm>}

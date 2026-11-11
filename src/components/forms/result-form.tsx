@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Check, Plus, Trash2, UserPlus, Wand2, X } from "lucide-react";
+import { Check, Plus, Trash2, UserPlus, X } from "lucide-react";
 import { createGuestAction, createHistoricalAction, finalizeMatchAction } from "@/app/actions/matches";
 import { Avatar, Button, Card, Crest, Field, Input, Notice, Select, Textarea, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
@@ -55,31 +55,9 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
     return p ? p.full_name + (p.nickname ? ` · ${p.nickname}` : "") : g?.name ?? "?";
   };
 
-  const autoGk = (g: GoalRow, spells = s.spells): string => {
-    if (g.minute === "") return g.conceded_gk_id;
-    const m = Number(g.minute);
-    const hit = spells.find((sp) => sp.team_id === other(g.team_id) && sp.start_minute !== "" && sp.end_minute !== "" && m >= Number(sp.start_minute) && m < Number(sp.end_minute));
-    return hit ? hit.player_id : g.conceded_gk_id;
-  };
-
   const editingGoal = editing ? s.goals.find((g) => g.key === editing) ?? null : null;
   const updGoal = (key: string, patch: Partial<GoalRow>) =>
-    setS((p) => ({ ...p, goals: p.goals.map((g) => (g.key === key ? (() => { const n = { ...g, ...patch }; return { ...n, conceded_gk_id: patch.conceded_gk_id ?? autoGk(n) }; })() : g)) }));
-  const updSpell = (key: string, patch: Partial<SpellRow>) => setS((p) => ({ ...p, spells: p.spells.map((x) => (x.key === key ? { ...x, ...patch } : x)) }));
-
-  const addSpell = (teamId: string) => setS((p) => {
-    const mine = p.spells.filter((x) => x.team_id === teamId);
-    const last = mine[mine.length - 1];
-    const start = last && last.end_minute !== "" ? Number(last.end_minute) : 0;
-    return { ...p, spells: [...p.spells, { key: k(), team_id: teamId, player_id: "", start_minute: String(start), end_minute: String(start + 7) }] };
-  });
-
-  const autoRotation = (teamId: string) => setS((p) => {
-    const ids = parts(teamId);
-    const spells = ids.map((pid, i) => ({ key: k(), team_id: teamId, player_id: pid, start_minute: String(i * 7), end_minute: String(i * 7 + 7) }));
-    const all = [...p.spells.filter((x) => x.team_id !== teamId), ...spells];
-    return { ...p, spells: all, goals: p.goals.map((g) => ({ ...g, conceded_gk_id: autoGk(g, all) })) };
-  });
+    setS((p) => ({ ...p, goals: p.goals.map((g) => (g.key === key ? { ...g, ...patch } : g)) }));
 
   const payload = useMemo(() => {
     const side = (sd: ResultSide) => ({ players: sd.players, guests: sd.guests.map((g) => ({ player_id: g.player_id, brought_by_id: g.brought_by_id })), positions: {} });
@@ -92,10 +70,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
         team_id: g.team_id, scorer_id: g.scorer_id || null, assist_id: g.is_own_goal ? null : g.assist_id || null,
         conceded_gk_id: g.conceded_gk_id || null, minute: g.minute === "" ? null : Number(g.minute), is_own_goal: g.is_own_goal,
       })),
-      gk_spells: s.spells.filter((x) => x.player_id).map((x) => ({
-        team_id: x.team_id, player_id: x.player_id,
-        start_minute: x.start_minute === "" ? null : Number(x.start_minute), end_minute: x.end_minute === "" ? null : Number(x.end_minute),
-      })),
+      gk_spells: [],
       actual_weather: s.actual_weather || null,
       actual_temp_c: s.actual_temp_c === "" ? null : Number(s.actual_temp_c),
       incidents: s.incidents || null,
@@ -156,7 +131,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
         {[s.home_team_id, s.away_team_id].map((tid, i) => (
           <div key={tid} className={cx("flex items-center gap-3", i === 1 && "flex-row-reverse")}>
             <Crest src={team(tid).crest_url} name={team(tid).name} size={40} />
-            <span className="font-display tabular text-5xl font-bold">{score(tid)}</span>
+            <span className="tabular text-5xl font-bold">{score(tid)}</span>
           </div>
         ))}
       </Card>
@@ -183,7 +158,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
               </Button>
             </div>
           ))}
-          <div className="order-2 px-2 text-center font-display tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
+          <div className="order-2 px-2 text-center tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
         </div>
         {s.goals.length === 0 ? <p className="mt-4 text-center text-sm text-ink-3">Sin goles: el partido acabará 0-0.</p> : (
           <ol className="mt-4 divide-y divide-line rounded-xl border border-line">
@@ -216,39 +191,6 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
           onDelete={() => { setS((p) => ({ ...p, goals: p.goals.filter((x) => x.key !== editingGoal.key) })); setEditing(null); }}
         />
       )}
-
-      {/* Rotación de portería */}
-      <Card className="p-4">
-        <h3 className="font-display text-lg font-bold uppercase">Rotación de portería</h3>
-        <p className="mb-3 text-xs text-ink-3">Cada ~7 minutos cambia el portero. Apunta quién estuvo en portería y en qué tramos. Los goles encajados en portería no cuentan en la nota de nadie.</p>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {[s.home_team_id, s.away_team_id].map((tid) => (
-            <div key={tid}>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold">{team(tid).name}</span>
-                <div className="flex gap-1">
-                  <Button type="button" variant="ghost" className="min-h-9 px-2 text-xs" disabled={!parts(tid).length} onClick={() => autoRotation(tid)}><Wand2 size={14} /> 1 por jugador</Button>
-                  <Button type="button" variant="ghost" className="min-h-9 px-2 text-xs" onClick={() => addSpell(tid)}><Plus size={14} /> Periodo</Button>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {s.spells.filter((x) => x.team_id === tid).map((x, i) => (
-                  <li key={x.key} className="grid grid-cols-[2rem_1fr_4rem_4rem_2.25rem] items-center gap-1.5">
-                    <span className="tabular text-xs font-bold text-ink-3">{i + 1}.</span>
-                    <Select aria-label="Portero" value={x.player_id} onChange={(e) => updSpell(x.key, { player_id: e.target.value })} className="min-h-10 px-2 text-sm">
-                      <option value="">Jugador…</option>
-                      {parts(tid).map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
-                    </Select>
-                    <Input aria-label="Desde minuto" type="number" min={0} value={x.start_minute} onChange={(e) => updSpell(x.key, { start_minute: e.target.value })} className="min-h-10 px-2" />
-                    <Input aria-label="Hasta minuto" type="number" min={0} value={x.end_minute} onChange={(e) => updSpell(x.key, { end_minute: e.target.value })} className="min-h-10 px-2" />
-                    <button type="button" aria-label="Quitar periodo" onClick={() => setS((p) => ({ ...p, spells: p.spells.filter((y) => y.key !== x.key) }))} className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2"><Trash2 size={15} /></button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Card>
 
       {showMvp && (
         <Card className="p-4">
@@ -296,7 +238,7 @@ function ParticipantPicker({ team, players, value, other, onChange, perSide, ok,
     <Card className="p-4" style={{ borderTop: `4px solid ${teamColor(team)}` }}>
       <div className="mb-2 flex items-center justify-between">
         <span className="font-semibold">Participantes · {team.short_name}</span>
-        <span className={cx("tabular rounded-full px-2 py-0.5 text-xs font-bold", ok || (hist && total <= perSide) || exceptional ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
+        <span className={cx("tabular rounded-none px-2 py-0.5 text-xs font-bold", ok || (hist && total <= perSide) || exceptional ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
       </div>
       <ul className="divide-y divide-line rounded-xl border border-line">
         {roster.map((p) => (
@@ -360,7 +302,7 @@ function GoalSheet({ goal, index, teamName, color, own, opp, nameOf, photoOf, on
       <button type="button" aria-label="Cerrar" className="animate-fade absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="animate-rise absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] max-w-xl flex-col rounded-t-3xl border-t border-line bg-elev shadow-card">
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <span className="h-3 w-3 rounded-full" style={{ background: color }} aria-hidden />
+          <span className="h-3 w-3 rounded-none" style={{ background: color }} aria-hidden />
           <h3 id="goal-sheet-title" className="flex-1 font-display text-xl font-bold uppercase">Gol {index} · {teamName}</h3>
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar" className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-3 hover:bg-surface-2"><X size={20} /></button>
         </div>
@@ -401,7 +343,7 @@ function PickTile({ id, selected, onPick, label, color, nameOf, photoOf }: {
   return (
     <button type="button" onClick={onPick} aria-pressed={selected}
       className={cx("press relative flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center", selected ? "border-pitch bg-pitch-soft ring-2 ring-pitch" : "border-line bg-surface")}>
-      {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-pitch text-pitch-ink"><Check size={13} strokeWidth={3} aria-hidden /></span>}
+      {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-none bg-pitch text-pitch-ink"><Check size={13} strokeWidth={3} aria-hidden /></span>}
       {id ? <Avatar name={nameOf(id)} src={photoOf(id)} size={36} color={color} /> : <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-dashed border-line-strong text-ink-3">?</span>}
       <span className="line-clamp-2 text-xs font-semibold leading-tight">{label}</span>
     </button>

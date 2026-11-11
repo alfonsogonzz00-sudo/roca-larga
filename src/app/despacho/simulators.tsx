@@ -39,7 +39,7 @@ function PickList({ title, players, value, onChange, max, disabled = [] }: { tit
           const dis = disabled.includes(p.id) || (!on && value.length >= max);
           return (
             <button key={p.id} type="button" aria-pressed={on} disabled={dis} onClick={() => onChange(on ? value.filter((x) => x !== p.id) : [...value, p.id])}
-              className={cx("min-h-10 rounded-full border px-3 text-sm transition disabled:opacity-40", on ? "border-pitch bg-pitch text-pitch-ink" : "border-line bg-surface text-ink-2")}>
+              className={cx("min-h-10 rounded-none border px-3 text-sm transition disabled:opacity-40", on ? "border-pitch bg-pitch text-pitch-ink" : "border-line bg-surface text-ink-2")}>
               {p.nickname || p.full_name.split(" ")[0]} <span className={on ? "opacity-80" : "text-ink-3"}>{p.full_name.split(" ").slice(-1)}</span>
             </button>
           );

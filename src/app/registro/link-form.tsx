@@ -15,7 +15,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
   return (
     <ActionForm action={requestLink} className="space-y-6">
       <div>
-        <div aria-hidden className="flex gap-1.5">{[1, 2, 3].map((k) => <span key={k} className={cx("h-1.5 flex-1 rounded-full transition-colors", k <= step ? "bg-pitch" : "bg-surface-3")} />)}</div>
+        <div aria-hidden className="flex gap-1.5">{[1, 2, 3].map((k) => <span key={k} className={cx("h-1.5 flex-1 rounded-none transition-colors", k <= step ? "bg-pitch" : "bg-surface-3")} />)}</div>
         <p className="mt-1.5 text-xs text-ink-3">Paso {step} de 3</p>
       </div>
       <fieldset>

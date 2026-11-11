@@ -75,9 +75,9 @@ export default async function Profile() {
             <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.nickname ?? s.player?.full_name ?? s.profile.display_name}</h1>
             {s.player?.nickname && <p className="mt-1 truncate text-sm text-white/80">{s.player.full_name}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
-              <span className="rounded-full bg-black/25 px-2 py-1">{ROLE[s.role]}</span>
-              {s.profile.status === "suspended" && <span className="rounded-full bg-black/40 px-2 py-1">Cuenta suspendida</span>}
+              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-black/25 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
+              <span className="rounded-none bg-black/25 px-2 py-1">{ROLE[s.role]}</span>
+              {s.profile.status === "suspended" && <span className="rounded-none bg-black/40 px-2 py-1">Cuenta suspendida</span>}
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@ export default async function Profile() {
             <div className="mt-5 flex items-end justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-white/70">Nota media</p>
-                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-white/60">/10</span></p>
+                <p className="tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-white/60">/10</span></p>
               </div>
               {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-white/85"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
             </div>
@@ -95,7 +95,7 @@ export default async function Profile() {
                 const r = rankOf(k);
                 return (
                   <div key={l}>
-                    <dd className="font-display tabular text-3xl font-bold leading-none">{v}</dd>
+                    <dd className="tabular text-3xl font-bold leading-none">{v}</dd>
                     <dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt>
                     {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-white/60">{r.pos}.º del grupo</p>}
                   </div>
@@ -126,9 +126,9 @@ export default async function Profile() {
             <Card className="flex items-center gap-4 p-4">
               <WdlDonut wins={tot.wins} draws={tot.draws} losses={tot.losses} size={110} label="Mis partidos" />
               <dl className="flex-1 space-y-1.5 text-sm">
-                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-win" />Victorias</dt><dd className="font-display tabular text-xl font-bold">{tot.wins}</dd></div>
-                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-draw" />Empates</dt><dd className="font-display tabular text-xl font-bold">{tot.draws}</dd></div>
-                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-loss" />Derrotas</dt><dd className="font-display tabular text-xl font-bold">{tot.losses}</dd></div>
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-win" />Victorias</dt><dd className="tabular text-xl font-bold">{tot.wins}</dd></div>
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-draw" />Empates</dt><dd className="tabular text-xl font-bold">{tot.draws}</dd></div>
+                <div className="flex items-center justify-between"><dt className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-loss" />Derrotas</dt><dd className="tabular text-xl font-bold">{tot.losses}</dd></div>
               </dl>
             </Card>
             <Card className="p-4">
@@ -140,7 +140,7 @@ export default async function Profile() {
                       <span className="w-full rounded-t-sm bg-gold" style={{ height: `${(x.assists / maxContrib) * 100}%` }} />
                       <span className={cx("w-full bg-pitch", x.assists ? "" : "rounded-t-sm")} style={{ height: `${(x.goals / maxContrib) * 100}%` }} />
                     </span>
-                    <span className={cx("h-1.5 w-full rounded-full", x.result === "W" ? "bg-win" : x.result === "D" ? "bg-draw" : "bg-loss")} />
+                    <span className={cx("h-1.5 w-full rounded-none", x.result === "W" ? "bg-win" : x.result === "D" ? "bg-draw" : "bg-loss")} />
                   </Link>
                 ))}
               </div>
@@ -156,9 +156,9 @@ export default async function Profile() {
                 const max = Math.max(me, avg, 0.01) * 1.15;
                 return (
                   <div key={l}>
-                    <div className="mb-1 flex items-baseline justify-between text-sm"><span>{l}</span><span><strong className="font-display tabular text-lg">{num(me, 2)}</strong> <span className="text-xs text-ink-3">media {num(avg, 2)}</span></span></div>
-                    <div className="relative h-2.5 rounded-full bg-surface-3">
-                      <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(me / max) * 100}%`, background: me >= avg ? "var(--win)" : "var(--gold)" }} />
+                    <div className="mb-1 flex items-baseline justify-between text-sm"><span>{l}</span><span><strong className="tabular text-lg">{num(me, 2)}</strong> <span className="text-xs text-ink-3">media {num(avg, 2)}</span></span></div>
+                    <div className="relative h-2.5 rounded-none bg-surface-3">
+                      <span className="absolute inset-y-0 left-0 rounded-none" style={{ width: `${(me / max) * 100}%`, background: me >= avg ? "var(--win)" : "var(--gold)" }} />
                       <span className="absolute -top-1 -bottom-1 w-0.5 rounded bg-ink" style={{ left: `${(avg / max) * 100}%` }} aria-hidden />
                     </div>
                   </div>
@@ -169,14 +169,13 @@ export default async function Profile() {
 
           {/* 4 · Logros */}
           <section className="grid grid-cols-3 gap-2">
-            {([["MVP", tot.mvps, "text-gold"], ["Mejor de su equipo", tot.teamBests, "text-pitch"], ["Turnos en portería", tot.gkSpells, "text-ink"]] as const).map(([l, v, c]) => (
+            {([["MVP", tot.mvps, "text-gold"], ["Mejor de su equipo", tot.teamBests, "text-pitch"], ["Victorias", tot.wins, "text-win"]] as const).map(([l, v, c]) => (
               <Card key={l} className="p-3 text-center">
-                <p className={`font-display tabular text-3xl font-bold ${c}`}>{v}</p>
+                <p className={`tabular text-3xl font-bold ${c}`}>{v}</p>
                 <p className="text-[11px] leading-tight text-ink-3">{l}</p>
               </Card>
             ))}
           </section>
-          {tot.gkSpells > 0 && <p className="-mt-3 text-xs text-ink-3">En portería has encajado {tot.concededAsGk} {tot.concededAsGk === 1 ? "gol" : "goles"} ({num(tot.concededPerSpell ?? 0, 2)} por turno). No afectan a tu nota.</p>}
 
           <section>
             <SectionTitle action={<Link href={`/jugadores/${s.player!.id}`} className="text-sm font-semibold text-pitch">Ficha completa</Link>}>Mis últimos partidos</SectionTitle>

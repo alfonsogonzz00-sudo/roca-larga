@@ -1,7 +1,6 @@
 /**
  * Motor estadístico: todo se deriva de los datos brutos del partido.
- * Regla clave: los goles encajados como portero NUNCA restan en la
- * nota del jugador; se muestran aparte como estadística de portería.
+ * La portería no se registra ni se tiene en cuenta.
  */
 import { localHour, seasonOf } from "@/lib/format";
 import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PerformanceWeights, Player, Team, TeamBest, Weather } from "@/lib/types";
@@ -339,7 +338,7 @@ export function teamBadges(teamId: string, parts: Participation[], players: Play
   return badges;
 }
 
-export type RankingStat = "goals" | "assists" | "mvps" | "teamBests" | "matches" | "ratingAvg" | "goalsPerMatch" | "assistsPerMatch" | "concededPerSpell" | "wins" | "ratingTotal";
+export type RankingStat = "goals" | "assists" | "mvps" | "teamBests" | "matches" | "ratingAvg" | "goalsPerMatch" | "assistsPerMatch" | "wins" | "ratingTotal";
 
 export const RANKING_LABELS: Record<RankingStat, string> = {
   goals: "Goles",
@@ -351,7 +350,6 @@ export const RANKING_LABELS: Record<RankingStat, string> = {
   ratingTotal: "Suma de notas",
   goalsPerMatch: "Goles por partido",
   assistsPerMatch: "Asistencias por partido",
-  concededPerSpell: "Encajados por turno de portería",
   wins: "Victorias",
 };
 
@@ -363,13 +361,11 @@ export function ranking(parts: Participation[], stat: RankingStat, opts: FilterO
     (opts.includeGuests || !p.isGuest),
   );
   const rows = [...allPlayerTotals(filtered).values()].filter((t) => t.matches >= (opts.minMatches ?? 1));
-  const asc = stat === "concededPerSpell";
   return rows
-    .filter((t) => (stat === "concededPerSpell" ? t.gkSpells > 0 : true))
     .sort((a, b) => {
       const va = (a[stat] ?? 0) as number;
       const vb = (b[stat] ?? 0) as number;
-      return (asc ? va - vb : vb - va) || b.matches - a.matches;
+      return vb - va || b.matches - a.matches;
     });
 }
 

@@ -6,28 +6,28 @@
  * (data-theme en <html>). Los colores de cada equipo vienen de la BD.
  */
 :root {
-  --bg: #f4f2ec;
+  --bg: #ffffff;
   --bg-elev: #ffffff;
   --surface: #ffffff;
-  --surface-2: #efece4;
-  --surface-3: #e5e1d6;
-  --line: #ddd8cc;
-  --line-strong: #c7c0b0;
-  --ink: #15170f;
-  --ink-2: #4a4c42;
-  --ink-3: #7a7b70;
-  --pitch: #1d6b39;
+  --surface-2: #f4f4f5;
+  --surface-3: #e8e8eb;
+  --line: #e4e4e7;
+  --line-strong: #c4c4ca;
+  --ink: #0a0a0a;
+  --ink-2: #3f3f46;
+  --ink-3: #74747c;
+  --pitch: #16733b;
   --pitch-ink: #ffffff;
-  --pitch-soft: #dcebdf;
-  --gold: #a8822c;
-  --gold-soft: #f3e9cf;
-  --win: #1d7a3e;
-  --draw: #8a7a3a;
-  --loss: #b3402e;
-  --danger: #b3402e;
-  --danger-soft: #f8e1dc;
-  --focus: #1d6b39;
-  --shadow: 0 1px 2px rgb(20 22 14 / 0.06), 0 4px 16px rgb(20 22 14 / 0.05);
+  --pitch-soft: #e3f2e8;
+  --gold: #9a7520;
+  --gold-soft: #f6eed8;
+  --win: #16733b;
+  --draw: #847226;
+  --loss: #c0392b;
+  --danger: #c0392b;
+  --danger-soft: #fbe7e4;
+  --focus: #0a0a0a;
+  --shadow: none;
   color-scheme: light;
 }
 
@@ -54,7 +54,7 @@
     --danger: #e5735f;
     --danger-soft: #3a1c17;
     --focus: #3fae66;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.25);
+    --shadow: none;
     color-scheme: dark;
   }
 }
@@ -81,7 +81,7 @@
   --danger: #e5735f;
   --danger-soft: #3a1c17;
   --focus: #3fae66;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.25);
+  --shadow: none;
   color-scheme: dark;
 }
 
@@ -115,8 +115,17 @@
   --color-loss: var(--loss);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Roboto, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Times New Roman", Georgia, serif;
+  /* Estética digital: todo en ángulo recto (avatares y balón siguen redondos con rounded-full) */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
   --shadow-card: var(--shadow);
 }
 
@@ -130,15 +139,20 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   overscroll-behavior-y: none;
 }
 
+/* Títulos en Instrument Serif: sólo existe en peso normal, sin negrita ni mayúsculas forzadas */
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: 0.01em;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  font-synthesis: none;
 }
+h1, h2 { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
 
 .tabular {
   font-variant-numeric: tabular-nums;
@@ -147,7 +161,7 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 0;
 }
 
 /* Áreas seguras de iOS en modo standalone */

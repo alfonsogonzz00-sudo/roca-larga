@@ -81,7 +81,7 @@ export function Tour({ enabled, initialStep = 0 }: { enabled: boolean; initialSt
         <p className="mt-1.5 text-sm text-ink-2">{step.body}</p>
         <div className="mt-4 flex items-center gap-2">
           <button type="button" onClick={finish} className="press min-h-11 rounded-xl px-3 text-sm font-semibold text-ink-3 hover:text-ink">Saltar</button>
-          <span className="flex flex-1 justify-center gap-1" aria-hidden>{STEPS.map((_, k) => <span key={k} className={`h-1.5 rounded-full transition-all ${k === i ? "w-4 bg-pitch" : "w-1.5 bg-line-strong"}`} />)}</span>
+          <span className="flex flex-1 justify-center gap-1" aria-hidden>{STEPS.map((_, k) => <span key={k} className={`h-1.5 rounded-none transition-all ${k === i ? "w-4 bg-pitch" : "w-1.5 bg-line-strong"}`} />)}</span>
           <button ref={nextRef} type="button" onClick={next} className="press min-h-11 rounded-xl bg-pitch px-4 text-sm font-semibold text-pitch-ink">{i === STEPS.length - 1 ? "¡A jugar!" : i === 0 ? "Empezar" : "Siguiente"}</button>
         </div>
       </div>

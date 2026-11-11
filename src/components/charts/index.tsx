@@ -28,7 +28,7 @@ export function WdlDonut({ wins, draws, losses, size = 132, label }: { wins: num
 export function WdlBar({ wins, draws, losses, className }: { wins: number; draws: number; losses: number; className?: string }) {
   const t = wins + draws + losses || 1;
   return (
-    <div className={cx("flex h-2.5 overflow-hidden rounded-full bg-surface-3", className)} role="img" aria-label={`${wins} V, ${draws} E, ${losses} D`}>
+    <div className={cx("flex h-2.5 overflow-hidden rounded-none bg-surface-3", className)} role="img" aria-label={`${wins} V, ${draws} E, ${losses} D`}>
       <span style={{ width: `${(wins / t) * 100}%` }} className="bg-win" />
       <span style={{ width: `${(draws / t) * 100}%` }} className="bg-draw" />
       <span style={{ width: `${(losses / t) * 100}%` }} className="bg-loss" />
@@ -80,9 +80,9 @@ export function HBars({ rows, format = (v: number) => String(v), color = "var(--
         <li key={i}>
           <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
             <span className="min-w-0 truncate"><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{r.label}</span>
-            <span className="font-display tabular text-lg font-bold">{format(r.value)}</span>
+            <span className="tabular text-lg font-bold">{format(r.value)}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full" style={{ width: `${(r.value / max) * 100}%`, background: r.color ?? color }} /></div>
+          <div className="h-2 overflow-hidden rounded-none bg-surface-3"><span className="block h-full rounded-none" style={{ width: `${(r.value / max) * 100}%`, background: r.color ?? color }} /></div>
           {r.sub && <div className="mt-0.5 text-xs text-ink-3">{r.sub}</div>}
         </li>
       ))}

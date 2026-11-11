@@ -34,7 +34,7 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
     <Link href={`/partidos/${m.id}`} className="press group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 hover:border-line-strong">
       <div className="w-12 shrink-0 text-center">
         <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ")[0].replace(",", "")}</div>
-        <div className="font-display tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
+        <div className="tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
       </div>
       <div className="min-w-0 flex-1">
         <div className="space-y-1">
@@ -58,7 +58,7 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
     <div className="flex items-center gap-2">
       <Crest src={team.crest_url} name={team.name} size={22} />
       <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.name}</span>
-      {score != null && <span className={cx("font-display tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
+      {score != null && <span className={cx("tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
     </div>
   );
 }
@@ -74,10 +74,10 @@ export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Matc
         <TeamBlock team={home} label="Local" link={linkTeams} />
         <div className="text-center">
           {played ? (
-            <div className="font-display tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
+            <div className="tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
           ) : (
             <div>
-              <div className="font-display tabular text-4xl font-bold leading-none sm:text-5xl">{fmtTime(m.kickoff_at)}</div>
+              <div className="tabular text-4xl font-bold leading-none sm:text-5xl">{fmtTime(m.kickoff_at)}</div>
               <div className="mt-1 text-xs uppercase tracking-wider text-white/60">{fmtShortDay(m.kickoff_at)}</div>
             </div>
           )}
@@ -125,7 +125,7 @@ export function FormationBoard({ formation, players, positions, color, teamName,
     <div className="rounded-2xl bg-[#14361f] p-3 text-white">
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-semibold">{teamName}</span>
-        <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
+        <span className="tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
       </div>
       <div className="relative flex min-h-60 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
         <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-b-xl border border-t-0 border-white/15" />
@@ -147,7 +147,7 @@ function Chip({ p, color, att }: { p?: Player; color: string; att?: "pending" | 
     <span className="flex max-w-[5.5rem] flex-col items-center gap-1 text-center">
       <span className={cx("relative rounded-full ring-2 ring-white/60", att === "no" && "opacity-40")}>
         {p ? <Avatar name={p.full_name} src={p.photo_url} size={34} color={color} /> : <span className="block h-[34px] w-[34px] rounded-full border-2 border-dashed border-white/40" />}
-        {att === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-win text-[10px] font-bold text-[#07130b]" aria-label="Confirmado">✓</span>}
+        {att === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-none bg-win text-[10px] font-bold text-[#07130b]" aria-label="Confirmado">✓</span>}
       </span>
       <span className="w-full truncate text-[11px] font-semibold leading-tight">{p ? playerName(p, "nick") : "—"}</span>
     </span>
@@ -198,13 +198,13 @@ export function PredictionPanel({ p, home, away, players, compact, lowText }: {
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-ink-3">Marcador más probable</div>
-          <div className="font-display tabular text-3xl font-bold">{home.short_name} {mx.mostLikely.home}–{mx.mostLikely.away} {away.short_name}</div>
+          <div className="tabular text-3xl font-bold">{home.short_name} {mx.mostLikely.home}–{mx.mostLikely.away} {away.short_name}</div>
           <div className="text-xs text-ink-3">Goles esperados: {num(p.lambdaHome)} – {num(p.lambdaAway)} · {pct(mx.mostLikely.p)} de ese marcador exacto</div>
         </div>
         <Pill tone={LEVEL_TONE[p.confidence.level]}>Confianza {p.confidence.level}</Pill>
       </div>
       <div>
-        <div className="flex h-3 overflow-hidden rounded-full" role="img" aria-label={bars.map((b) => `${b.label} ${pct(b.v)}`).join(", ")}>
+        <div className="flex h-3 overflow-hidden rounded-none" role="img" aria-label={bars.map((b) => `${b.label} ${pct(b.v)}`).join(", ")}>
           {bars.map((b) => <span key={b.label} style={{ width: `${b.v * 100}%`, background: b.c }} className="border-r border-surface last:border-0" />)}
         </div>
         <div className="mt-1.5 grid grid-cols-3 text-xs">
@@ -266,7 +266,7 @@ export function FactorTable({ factors, homeName, awayName, sample, config, indiv
                 <span className="font-semibold">{f.label}</span>
                 <span className="tabular text-xs text-ink-2">peso {pct(f.weight, 1)} → efectivo {pct(f.effectiveWeight, 1)}</span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-pitch" style={{ width: `${f.reliability * 100}%` }} /></div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-none bg-surface-3"><span className="block h-full rounded-none bg-pitch" style={{ width: `${f.reliability * 100}%` }} /></div>
               <div className="mt-1 flex justify-between text-xs text-ink-3">
                 <span>{f.note} · {num(f.sample)} obs.</span>
                 <span>{favors === "neutral" ? "Sin efecto" : individual ? `${favors === "sube" ? "Mejora" : "Empeora"} su producción` : `Favorece a ${favors}`}</span>

@@ -168,7 +168,7 @@ async function NextMatch({ m, st, s, t, now }: { m: Match; st: Stats; s: Session
         {mine && (
           <div className="space-y-2.5 px-4 py-3">
             <p className="flex items-center gap-2 text-sm">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(myTeam) }} aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-none" style={{ background: teamColor(myTeam) }} aria-hidden />
               <span><strong>Estás convocado</strong> con {myTeam?.short_name}. {mine.attendance === "yes" ? "Has confirmado que vas." : mine.attendance === "no" ? "Has dicho que no puedes." : "¿Vas?"}</span>
             </p>
             {new Date(m.kickoff_at).getTime() > now && <AttendanceButtons matchId={m.id} current={mine.attendance} />}
@@ -182,7 +182,7 @@ async function NextMatch({ m, st, s, t, now }: { m: Match; st: Stats; s: Session
             const f = ds.formationById.get((tm.id === m.home_team_id ? m.home_formation_id : m.away_formation_id) ?? "");
             return (
               <Link key={tm.id} href={`/partidos/${m.id}`} className="block px-4 py-3 hover:bg-surface-2">
-                <div className="flex items-center justify-between gap-2 text-sm font-semibold"><span className="truncate">{tm.short_name}</span><span className="font-display tabular text-ink-3">{f?.name ?? ""}</span></div>
+                <div className="flex items-center justify-between gap-2 text-sm font-semibold"><span className="truncate">{tm.short_name}</span><span className="tabular text-ink-3">{f?.name ?? ""}</span></div>
                 <div className="mt-2 flex -space-x-2">
                   {list.slice(0, 7).map((x) => { const p = ds.playerById.get(x.player_id); return <span key={x.player_id} className="rounded-full ring-2 ring-surface"><Avatar name={p?.full_name ?? "?"} src={p?.photo_url} size={26} color={teamColor(tm)} /></span>; })}
                   {list.length === 0 && <span className="text-xs text-ink-3">Sin convocatoria</span>}
@@ -248,7 +248,7 @@ function LastResult({ m, st }: { m: Match; st: Stats }) {
                 <span className={cx("text-sm leading-tight", winner === tm.id ? "font-bold" : "text-ink-2")}>{tm.short_name}</span>
               </div>
             ))}
-            <div className="order-2 font-display tabular text-4xl font-bold">{m.home_score}<span className="mx-1.5 text-ink-3">–</span>{m.away_score}</div>
+            <div className="order-2 tabular text-4xl font-bold">{m.home_score}<span className="mx-1.5 text-ink-3">–</span>{m.away_score}</div>
           </div>
           {(scorers.size > 0 || mvp) && (
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-ink-2">
@@ -286,7 +286,7 @@ function Highlights({ st }: { st: Stats }) {
               <Avatar name={p?.full_name ?? "?"} src={p?.photo_url} size={32} color={teamColor(ds.teamById.get(p?.team_id ?? ""))} />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">{playerName(p, "nick")}</span>
-                <span className="block text-xs text-ink-3"><span className="font-display tabular text-base font-bold text-ink">{v}</span> {unit}</span>
+                <span className="block text-xs text-ink-3"><span className="tabular text-base font-bold text-ink">{v}</span> {unit}</span>
               </span>
             </span>
           </Link>

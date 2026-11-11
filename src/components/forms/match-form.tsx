@@ -194,7 +194,7 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
           </Select>
         </div>
       </div>
-      <Field label="Formación" htmlFor={`f-${label}`} hint="Seis de campo + portero rotatorio">
+      <Field label="Formación" htmlFor={`f-${label}`} hint="Reparto de los jugadores en el campo">
         <Select id={`f-${label}`} value={formationId} onChange={(e) => onFormation(e.target.value)}>
           <option value="">Sin definir</option>
           {formations.filter((f) => f.active).map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -202,7 +202,7 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
       </Field>
       <div className="mt-4 mb-2 flex items-center justify-between">
         <span className="text-sm font-semibold">Convocados</span>
-        <span className={cx("tabular rounded-full px-2 py-0.5 text-xs font-bold", total === perSide ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
+        <span className={cx("tabular rounded-none px-2 py-0.5 text-xs font-bold", total === perSide ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
       </div>
       {roster.length === 0 ? <p className="text-sm text-ink-3">Este equipo no tiene jugadores activos.</p> : (
         <ul className="divide-y divide-line rounded-xl border border-line">
