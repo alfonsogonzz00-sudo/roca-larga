@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getTexts } from "@/lib/data/config";
+import { getSession } from "@/lib/data/session";
 import { friendlyError, type ActionResult } from "@/lib/errors";
 
 const nick = z.string().trim().min(1, "Escribe tu apodo").max(30, "Máximo 30 caracteres");
@@ -55,4 +56,16 @@ export async function setAttendance(_: ActionResult | null, fd: FormData): Promi
   revalidatePath("/", "layout");
   const t = await getTexts();
   return { ok: true, message: t(going ? "match.attendance_yes" : "match.attendance_no") };
+}
+
+/** Guarda la URL de la foto de perfil (la BD comprueba que esté en la carpeta del usuario) */
+export async function setMyPhoto(url: string | null): Promise<ActionResult> {
+  const s = await getSession();
+  if (!s) return { ok: false, error: "Inicia sesión para cambiar tu foto." };
+  if (url !== null && (typeof url !== "string" || url.length > 500)) return { ok: false, error: "Foto no válida" };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_my_photo", { p_url: url });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, message: url ? "Foto actualizada." : "Foto eliminada." };
 }

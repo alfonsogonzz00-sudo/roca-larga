@@ -2,10 +2,11 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePrefs } from "@/app/actions/profile";
-import { Avatar, ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, Pill, ResultBadge, SectionTitle, Stat } from "@/components/ui";
+import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, Pill, ResultBadge, SectionTitle, Stat } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { ThemeToggle } from "@/components/layout/theme";
 import { PushToggle } from "@/components/layout/push-toggle";
+import { AvatarUpload } from "@/components/forms/avatar-upload";
 import { getSession } from "@/lib/data/session";
 import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
@@ -51,8 +52,8 @@ export default async function Profile() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} size={64} color={teamColor(team)} />
+      <div className="flex items-start gap-4">
+        <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={teamColor(team)} />
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.full_name ?? s.profile.display_name}</h1>
           {s.player?.nickname && <p className="text-gold">«{s.player.nickname}»</p>}

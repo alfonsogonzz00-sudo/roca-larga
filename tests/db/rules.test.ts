@@ -76,6 +76,16 @@ describe("usuarios y roles", () => {
     expect(rows.every((r) => !/^(user|push|stats|demo|link\.request)/.test(String(r.action)))).toBe(true);
   });
 
+  it("foto de perfil: sólo URLs de la carpeta propia del usuario", async () => {
+    const u = await db.createUser("foto@example.com");
+    await expectError(db.as(u, `select public.update_my_photo('https://evil.example.com/x.jpg')`), /desde la app/);
+    await expectError(db.as(u, `select public.update_my_photo('https://abc.supabase.co/storage/v1/object/public/media/avatars/otro-uid/1.jpg')`), /desde la app/);
+    await db.as(u, `select public.update_my_photo($1)`, [`https://abc.supabase.co/storage/v1/object/public/media/avatars/${u}/1.jpg`]);
+    const r = await db.su(`select avatar_url from public.profiles where id=$1`, [u]);
+    expect(String(r[0].avatar_url)).toContain(u);
+    await db.as(u, `select public.update_my_photo(null)`);
+  });
+
   it("organizadores: máximo 2 por equipo y nunca admin", async () => {
     orgCar = await linkedUser("org1@example.com", carPlayers[0]);
     const org2 = await linkedUser("org2@example.com", carPlayers[1]);
