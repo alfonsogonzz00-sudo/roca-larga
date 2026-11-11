@@ -7,6 +7,7 @@ import { Settings, ClipboardList } from "lucide-react";
 import { BottomNav, SideNav } from "@/components/layout/nav";
 import { Tour } from "@/components/onboarding/tour";
 import { PushPrompt } from "@/components/layout/push-prompt";
+import { InstallPrompt } from "@/components/layout/install-prompt";
 import { createClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 import { themeScript } from "@/components/layout/theme";
@@ -79,6 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <BottomNav labels={labels} voteBadge={pending} />
         <Tour enabled={Boolean(session?.player)} />
         <PushPrompt enabled={Boolean(session)} vapidKey={vapidKey} afterTour={Boolean(session?.player)} />
+        <InstallPrompt />
         <ServiceWorkerRegister />
       </body>
     </html>
