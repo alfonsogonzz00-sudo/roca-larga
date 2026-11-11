@@ -34,7 +34,7 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
     <Link href={`/partidos/${m.id}`} className="press group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 hover:border-line-strong">
       <div className="w-12 shrink-0 text-center">
         <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ")[0].replace(",", "")}</div>
-        <div className="tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
+        <div className="font-display tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
       </div>
       <div className="min-w-0 flex-1">
         <div className="space-y-1">
@@ -58,7 +58,7 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
     <div className="flex items-center gap-2">
       <Crest src={team.crest_url} name={team.name} size={22} />
       <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.name}</span>
-      {score != null && <span className={cx("tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
+      {score != null && <span className={cx("font-display tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
     </div>
   );
 }
@@ -74,10 +74,10 @@ export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Matc
         <TeamBlock team={home} label="Local" link={linkTeams} />
         <div className="text-center">
           {played ? (
-            <div className="tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
+            <div className="font-display tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
           ) : (
             <div>
-              <div className="tabular text-4xl font-bold leading-none sm:text-5xl">{fmtTime(m.kickoff_at)}</div>
+              <div className="font-display tabular text-4xl font-bold leading-none sm:text-5xl">{fmtTime(m.kickoff_at)}</div>
               <div className="mt-1 text-xs uppercase tracking-wider text-white/60">{fmtShortDay(m.kickoff_at)}</div>
             </div>
           )}
@@ -125,7 +125,7 @@ export function FormationBoard({ formation, players, positions, color, teamName,
     <div className="rounded-2xl bg-[#14361f] p-3 text-white">
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-semibold">{teamName}</span>
-        <span className="tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
+        <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
       </div>
       <div className="relative flex min-h-60 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
         <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-b-xl border border-t-0 border-white/15" />
@@ -198,7 +198,7 @@ export function PredictionPanel({ p, home, away, players, compact, lowText }: {
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-ink-3">Marcador más probable</div>
-          <div className="tabular text-3xl font-bold">{home.short_name} {mx.mostLikely.home}–{mx.mostLikely.away} {away.short_name}</div>
+          <div className="font-display tabular text-3xl font-bold">{home.short_name} {mx.mostLikely.home}–{mx.mostLikely.away} {away.short_name}</div>
           <div className="text-xs text-ink-3">Goles esperados: {num(p.lambdaHome)} – {num(p.lambdaAway)} · {pct(mx.mostLikely.p)} de ese marcador exacto</div>
         </div>
         <Pill tone={LEVEL_TONE[p.confidence.level]}>Confianza {p.confidence.level}</Pill>

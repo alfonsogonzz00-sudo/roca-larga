@@ -56,7 +56,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                   <div className="truncate text-sm font-semibold">{fmtShortDay(x.kickoff)} · {ds.teamById.get(m.home_team_id)?.short_name} {m.home_score}–{m.away_score} {ds.teamById.get(m.away_team_id)?.short_name}</div>
                   <div className="truncate text-xs text-ink-3">{x.goals} goles · {x.assists} asist.{x.isMvp ? " · MVP" : ""}{x.isTeamBest ? " · mejor de su equipo" : ""}{x.guestsBrought ? ` · trajo ${x.guestsBrought} invitado${x.guestsBrought > 1 ? "s" : ""}` : ""}</div>
                 </div>
-                <div className="text-right"><div className="tabular text-2xl font-bold">{num(x.rating, 1)}</div><div className="text-[11px] uppercase text-ink-3">nota</div></div>
+                <div className="text-right"><div className="font-display tabular text-2xl font-bold">{num(x.rating, 1)}</div><div className="text-[11px] uppercase text-ink-3">nota</div></div>
                 {x.isMvp && <Award size={18} className="text-gold" aria-label="MVP" />}
               </Link>
             );
@@ -120,7 +120,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           </div>
           {tot.matches > 0 && (
             <div className="shrink-0 text-center">
-              <div className="tabular text-4xl font-bold leading-none">{num(tot.ratingAvg, 1)}</div>
+              <div className="font-display tabular text-4xl font-bold leading-none">{num(tot.ratingAvg, 1)}</div>
               <div className="text-[11px] uppercase tracking-wider text-white/75">nota media</div>
             </div>
           )}
@@ -128,7 +128,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         {tot.matches > 0 && (
           <dl className="mt-5 grid grid-cols-4 rounded-2xl bg-black/25 py-2.5 text-center">
             {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
-              <div key={l}><dd className="tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt></div>
+              <div key={l}><dd className="font-display tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{l}</dt></div>
             ))}
           </dl>
         )}

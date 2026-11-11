@@ -131,7 +131,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
         {[s.home_team_id, s.away_team_id].map((tid, i) => (
           <div key={tid} className={cx("flex items-center gap-3", i === 1 && "flex-row-reverse")}>
             <Crest src={team(tid).crest_url} name={team(tid).name} size={40} />
-            <span className="tabular text-5xl font-bold">{score(tid)}</span>
+            <span className="font-display tabular text-5xl font-bold">{score(tid)}</span>
           </div>
         ))}
       </Card>
@@ -158,7 +158,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
               </Button>
             </div>
           ))}
-          <div className="order-2 px-2 text-center tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
+          <div className="order-2 px-2 text-center font-display tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
         </div>
         {s.goals.length === 0 ? <p className="mt-4 text-center text-sm text-ink-3">Sin goles: el partido acabará 0-0.</p> : (
           <ol className="mt-4 divide-y divide-line rounded-xl border border-line">

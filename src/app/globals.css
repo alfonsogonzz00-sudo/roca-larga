@@ -116,7 +116,7 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Roboto, "Segoe UI", system-ui, sans-serif;
-  --font-display: "Instrument Serif", "Times New Roman", Georgia, serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
   /* Estética digital: todo en ángulo recto (avatares y balón siguen redondos con rounded-full) */
   --radius-xs: 0px;
   --radius-sm: 0px;
@@ -144,15 +144,10 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Títulos en Instrument Serif: sólo existe en peso normal, sin negrita ni mayúsculas forzadas */
 .font-display {
   font-family: var(--font-display);
-  font-weight: 400 !important;
-  text-transform: none !important;
-  letter-spacing: -0.01em !important;
-  font-synthesis: none;
+  letter-spacing: 0.01em;
 }
-h1, h2 { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
 
 .tabular {
   font-variant-numeric: tabular-nums;

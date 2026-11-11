@@ -51,7 +51,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                 <WdlDonut wins={r.wins} draws={r.draws} losses={r.losses} label={team.name} />
                 <dl className="grid flex-1 grid-cols-3 text-center">
                   {([["Victorias", r.wins, "text-win"], ["Empates", r.draws, "text-draw"], ["Derrotas", r.losses, "text-loss"]] as const).map(([l, v, c]) => (
-                    <div key={l}><dt className="text-xs text-ink-3">{l}</dt><dd className={`tabular text-3xl font-bold ${c}`}>{v}</dd></div>
+                    <div key={l}><dt className="text-xs text-ink-3">{l}</dt><dd className={`font-display tabular text-3xl font-bold ${c}`}>{v}</dd></div>
                   ))}
                 </dl>
               </div>
@@ -119,7 +119,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                   <span className="block truncate text-sm font-semibold">{p.nickname ?? playerName(p, "short")}</span>
                   <span className="block truncate text-xs text-ink-3">{[p.nickname && playerName(p, "short"), p.usual_position && POSITION_LABELS[p.usual_position], !p.active && "Inactivo"].filter(Boolean).join(" · ") || "Sin partidos"}</span>
                 </span>
-                <span className="grid w-[8.5rem] shrink-0 grid-cols-4 text-center tabular text-lg font-bold" aria-label={`${tot.matches} partidos, ${tot.goals} goles, ${tot.assists} asistencias, ${tot.mvps} MVP`}>
+                <span className="grid w-[8.5rem] shrink-0 grid-cols-4 text-center font-display tabular text-lg font-bold" aria-label={`${tot.matches} partidos, ${tot.goals} goles, ${tot.assists} asistencias, ${tot.mvps} MVP`}>
                   <span className="text-ink-2">{tot.matches}</span><span>{tot.goals}</span><span>{tot.assists}</span><span className={tot.mvps ? "text-gold" : "text-ink-3"}>{tot.mvps}</span>
                 </span>
               </Link>

@@ -80,7 +80,7 @@ export function HBars({ rows, format = (v: number) => String(v), color = "var(--
         <li key={i}>
           <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
             <span className="min-w-0 truncate"><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{r.label}</span>
-            <span className="tabular text-lg font-bold">{format(r.value)}</span>
+            <span className="font-display tabular text-lg font-bold">{format(r.value)}</span>
           </div>
           <div className="h-2 overflow-hidden rounded-none bg-surface-3"><span className="block h-full rounded-none" style={{ width: `${(r.value / max) * 100}%`, background: r.color ?? color }} /></div>
           {r.sub && <div className="mt-0.5 text-xs text-ink-3">{r.sub}</div>}

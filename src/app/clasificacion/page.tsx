@@ -83,7 +83,7 @@ async function TeamsTab() {
       <Card className="p-4">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
           <TeamHead team={a} wins={sa.record.wins} />
-          <div><div className="tabular text-3xl font-bold text-ink-3">{sa.record.draws}</div><div className="text-[11px] uppercase text-ink-3">empates</div></div>
+          <div><div className="font-display tabular text-3xl font-bold text-ink-3">{sa.record.draws}</div><div className="text-[11px] uppercase text-ink-3">empates</div></div>
           <TeamHead team={b} wins={sb.record.wins} />
         </div>
         <div className="mt-4 flex h-3 overflow-hidden rounded-none">
@@ -110,9 +110,9 @@ async function TeamsTab() {
             return (
               <div key={label}>
                 <div className="flex items-baseline justify-between text-sm">
-                  <span className={va >= vb ? "tabular text-lg font-bold" : "tabular text-lg text-ink-3"}>{f(va)}</span>
+                  <span className={va >= vb ? "font-display tabular text-lg font-bold" : "font-display tabular text-lg text-ink-3"}>{f(va)}</span>
                   <dt className="text-xs text-ink-3">{label}</dt>
-                  <span className={vb >= va ? "tabular text-lg font-bold" : "tabular text-lg text-ink-3"}>{f(vb)}</span>
+                  <span className={vb >= va ? "font-display tabular text-lg font-bold" : "font-display tabular text-lg text-ink-3"}>{f(vb)}</span>
                 </div>
                 <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-none" aria-hidden>
                   <span style={{ width: `${(va / total) * 100}%`, background: teamColor(a) }} />
@@ -122,9 +122,9 @@ async function TeamsTab() {
             );
           })}
           <div className="flex items-baseline justify-between border-t border-line pt-2.5 text-sm">
-            <span className="tabular text-lg font-bold">{sa.biggestWin ? `${sa.biggestWin.gf}-${sa.biggestWin.ga}` : "—"}</span>
+            <span className="font-display tabular text-lg font-bold">{sa.biggestWin ? `${sa.biggestWin.gf}-${sa.biggestWin.ga}` : "—"}</span>
             <dt className="text-xs text-ink-3">Mayor victoria</dt>
-            <span className="tabular text-lg font-bold">{sb.biggestWin ? `${sb.biggestWin.gf}-${sb.biggestWin.ga}` : "—"}</span>
+            <span className="font-display tabular text-lg font-bold">{sb.biggestWin ? `${sb.biggestWin.gf}-${sb.biggestWin.ga}` : "—"}</span>
           </div>
         </dl>
       </Card>
@@ -178,7 +178,7 @@ function TeamHead({ team, wins }: { team: { name: string; short_name: string; cr
   return (
     <Link href={`/equipos/${team.slug}`} className="flex flex-col items-center gap-1">
       <Crest src={team.crest_url} name={team.name} size={52} />
-      <span className="tabular text-4xl font-bold">{wins}</span>
+      <span className="font-display tabular text-4xl font-bold">{wins}</span>
       <span className="text-[11px] uppercase text-ink-3">victorias {team.short_name}</span>
     </Link>
   );
@@ -222,7 +222,7 @@ async function IndividualTab() {
         <SectionTitle>Mejores actuaciones</SectionTitle>
         <ol className="space-y-2 text-sm">
           {bestPerf.map((p, i) => (
-            <li key={`${p.matchId}${p.playerId}`}><Link href={`/partidos/${p.matchId}`} className="flex justify-between gap-2"><span><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{playerName(P(p.playerId), "short")} <span className="text-ink-3">· {fmtDate(p.kickoff)} · {p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></span><span className="tabular font-bold">{num(p.rating, 1)}</span></Link></li>
+            <li key={`${p.matchId}${p.playerId}`}><Link href={`/partidos/${p.matchId}`} className="flex justify-between gap-2"><span><span className="tabular mr-2 text-ink-3">{i + 1}.</span>{playerName(P(p.playerId), "short")} <span className="text-ink-3">· {fmtDate(p.kickoff)} · {p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></span><span className="font-display tabular font-bold">{num(p.rating, 1)}</span></Link></li>
           ))}
         </ol>
       </Card>
@@ -273,7 +273,7 @@ async function RankingsTab({ sp }: { sp: SP }) {
                     <span className={k === 0 ? "rounded-full ring-4 ring-gold" : "rounded-full ring-2 ring-line-strong"}><Avatar name={p?.full_name ?? "?"} src={p?.photo_url} size={k === 0 ? 56 : 44} color={teamColor(tm)} /></span>
                     <span className="w-full truncate text-xs font-semibold">{playerName(p, "nick")}</span>
                     <span className={`flex w-full flex-col items-center justify-start rounded-t-xl pt-1.5 ${h} ${k === 0 ? "bg-gold-soft" : "bg-surface-2"}`}>
-                      <span className={`tabular text-xl font-bold ${k === 0 ? "text-gold" : ""}`}>{num(Number(r[stat] ?? 0), digits)}</span>
+                      <span className={`font-display tabular text-xl font-bold ${k === 0 ? "text-gold" : ""}`}>{num(Number(r[stat] ?? 0), digits)}</span>
                       <span className="text-[11px] text-ink-3">{k + 1}.º</span>
                     </span>
                   </Link>
