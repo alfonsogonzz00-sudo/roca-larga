@@ -27,3 +27,13 @@ export async function removePushSubscription(endpoint: string): Promise<ActionRe
   if (error) return { ok: false, error: friendlyError(error) };
   return { ok: true, message: "Avisos desactivados en este dispositivo." };
 }
+
+export async function sendTestPush(): Promise<ActionResult> {
+  const s = await getSession();
+  if (!s) return { ok: false, error: "Inicia sesión para probar los avisos." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("send_test_notification");
+  if (error) return { ok: false, error: friendlyError(error) };
+  if (!data) return { ok: false, error: "No hay ningún dispositivo con avisos activados en tu cuenta. Desactiva y vuelve a activar los avisos aquí." };
+  return { ok: true, message: "Aviso de prueba enviado: debería llegarte en menos de un minuto. Si no llega, revisa Ajustes → Notificaciones → Roca Larga y que no tengas un modo Concentración activo." };
+}

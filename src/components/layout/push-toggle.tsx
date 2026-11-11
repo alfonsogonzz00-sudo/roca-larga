@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Bell, BellOff, Share, SquarePlus } from "lucide-react";
-import { removePushSubscription, savePushSubscription } from "@/app/actions/push";
+import { Bell, BellOff, BellRing, Share, SquarePlus } from "lucide-react";
+import { removePushSubscription, savePushSubscription, sendTestPush } from "@/app/actions/push";
 import { Button, Notice } from "@/components/ui";
 
 type State = "loading" | "unsupported" | "ios-install" | "denied" | "off" | "on" | "nokey";
@@ -28,6 +28,8 @@ export function PushToggle({ vapidKey }: { vapidKey: string }) {
       if (Notification.permission === "denied") return setState("denied");
       const reg = await navigator.serviceWorker.getRegistration();
       const subscription = await reg?.pushManager.getSubscription();
+      // Re-sincroniza: si el servidor la perdió (claves regeneradas, otra cuenta…), vuelve a guardarla
+      if (subscription) await savePushSubscription(subscription.toJSON(), navigator.userAgent).catch(() => null);
       setState(subscription ? "on" : "off");
     })().catch(() => setState("unsupported"));
   }, [vapidKey]);
@@ -60,6 +62,13 @@ export function PushToggle({ vapidKey }: { vapidKey: string }) {
     setMsg({ ok: true, text: "Avisos desactivados en este dispositivo." });
   };
 
+  const test = async () => {
+    setBusy(true); setMsg(null);
+    const r = await sendTestPush();
+    setBusy(false);
+    setMsg(r.ok ? { ok: true, text: r.message ?? "Enviado" } : { ok: false, text: r.error });
+  };
+
   return (
     <div className="space-y-2">
       {state === "loading" && <p className="text-sm text-ink-3">Comprobando este dispositivo…</p>}
@@ -77,7 +86,12 @@ export function PushToggle({ vapidKey }: { vapidKey: string }) {
         </Notice>
       )}
       {state === "off" && <Button onClick={enable} disabled={busy}><Bell size={18} /> Activar avisos en este dispositivo</Button>}
-      {state === "on" && <Button variant="secondary" onClick={disable} disabled={busy}><BellOff size={18} /> Desactivar avisos aquí</Button>}
+      {state === "on" && (
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={test} disabled={busy}><BellRing size={18} /> Enviar aviso de prueba</Button>
+          <Button variant="secondary" onClick={disable} disabled={busy}><BellOff size={18} /> Desactivar avisos aquí</Button>
+        </div>
+      )}
       {msg && <Notice tone={msg.ok ? "ok" : "danger"}>{msg.text}</Notice>}
     </div>
   );

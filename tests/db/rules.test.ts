@@ -86,6 +86,15 @@ describe("usuarios y roles", () => {
     await db.as(u, `select public.update_my_photo(null)`);
   });
 
+  it("aviso de prueba: uno por minuto y sólo para uno mismo", async () => {
+    const u = await db.createUser("prueba-push@example.com");
+    await db.as(u, `select public.send_test_notification()`);
+    await db.as(u, `select public.send_test_notification()`);
+    const n = await db.su<{ n: number }>(`select count(*)::int n from public.notifications where type='test' and user_id=$1`, [u]);
+    expect(n[0].n).toBe(1);
+    await expectError(db.as(null, `select public.send_test_notification()`), /permission denied|iniciar sesión/);
+  });
+
   it("organizadores: máximo 2 por equipo y nunca admin", async () => {
     orgCar = await linkedUser("org1@example.com", carPlayers[0]);
     const org2 = await linkedUser("org2@example.com", carPlayers[1]);
