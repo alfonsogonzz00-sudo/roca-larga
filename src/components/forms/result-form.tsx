@@ -1,10 +1,10 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
-import { Plus, Trash2, UserPlus, Wand2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Check, Plus, Trash2, UserPlus, Wand2, X } from "lucide-react";
 import { createGuestAction, createHistoricalAction, finalizeMatchAction } from "@/app/actions/matches";
-import { Button, Card, Crest, Field, Input, Notice, Select, Textarea, cx } from "@/components/ui";
+import { Avatar, Button, Card, Crest, Field, Input, Notice, Select, Textarea, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
-import { madridLocalToIso , teamColor } from "@/lib/format";
+import { madridLocalToIso, playerName, teamColor } from "@/lib/format";
 import { WEATHER_LABELS, type Formation, type Player, type Team, type Venue } from "@/lib/types";
 
 export interface GoalRow { key: string; team_id: string; scorer_id: string; assist_id: string; conceded_gk_id: string; minute: string; is_own_goal: boolean }
@@ -31,6 +31,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
   teams: Team[]; players: Player[]; venues: Venue[]; formations: Formation[]; initial: ResultInitial; perSide: number;
 }) {
   const [s, setS] = useState(initial);
+  const [editing, setEditing] = useState<string | null>(null);
   const hist = s.mode === "historical";
   const showMvp = hist || Boolean(s.historicalOrigin);
   const pById = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
@@ -43,6 +44,11 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
   const other = (teamId: string) => (teamId === s.home_team_id ? s.away_team_id : s.home_team_id);
   const score = (teamId: string) => s.goals.filter((g) => g.team_id === teamId).length;
 
+  const shortOf = (id: string) => {
+    const p = pById.get(id);
+    const g = [...s.home.guests, ...s.away.guests].find((x) => x.player_id === id);
+    return p ? p.nickname || playerName(p, "short") : g?.name ?? "?";
+  };
   const nameOf = (id: string) => {
     const p = pById.get(id);
     const g = [...s.home.guests, ...s.away.guests].find((x) => x.player_id === id);
@@ -56,6 +62,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
     return hit ? hit.player_id : g.conceded_gk_id;
   };
 
+  const editingGoal = editing ? s.goals.find((g) => g.key === editing) ?? null : null;
   const updGoal = (key: string, patch: Partial<GoalRow>) =>
     setS((p) => ({ ...p, goals: p.goals.map((g) => (g.key === key ? (() => { const n = { ...g, ...patch }; return { ...n, conceded_gk_id: patch.conceded_gk_id ?? autoGk(n) }; })() : g)) }));
   const updSpell = (key: string, patch: Partial<SpellRow>) => setS((p) => ({ ...p, spells: p.spells.map((x) => (x.key === key ? { ...x, ...patch } : x)) }));
@@ -164,57 +171,56 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
         ))}
       </div>
 
-      {/* Goles */}
+      {/* Goles: marcador en directo + panel inferior para cada gol */}
       <Card className="p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-display text-lg font-bold uppercase">Goles y asistencias</h3>
-          <div className="flex gap-2">
-            {[s.home_team_id, s.away_team_id].map((tid) => (
-              <Button key={tid} type="button" variant="secondary" className="min-h-10" onClick={() => setS((p) => ({ ...p, goals: [...p.goals, { key: k(), team_id: tid, scorer_id: "", assist_id: "", conceded_gk_id: "", minute: "", is_own_goal: false }] }))}>
-                <Plus size={16} /> Gol {team(tid).short_name}
+        <h3 className="mb-3 font-display text-lg font-bold uppercase">Goles y asistencias</h3>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          {[s.home_team_id, s.away_team_id].map((tid, i) => (
+            <div key={tid} className={cx("flex flex-col items-center gap-2", i === 1 && "order-3")}>
+              <span className="flex items-center gap-1.5 text-sm font-semibold"><Crest src={team(tid).crest_url} name={team(tid).name} size={22} />{team(tid).short_name}</span>
+              <Button type="button" className="w-full" onClick={() => { const key = k(); setS((p) => ({ ...p, goals: [...p.goals, { key, team_id: tid, scorer_id: "", assist_id: "", conceded_gk_id: "", minute: "", is_own_goal: false }] })); setEditing(key); }}>
+                <Plus size={18} /> Gol
               </Button>
-            ))}
-          </div>
+            </div>
+          ))}
+          <div className="order-2 px-2 text-center font-display tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
         </div>
-        {s.goals.length === 0 ? <p className="text-sm text-ink-3">Sin goles: el partido acabará 0-0.</p> : (
-          <ol className="space-y-3">
-            {s.goals.map((g, i) => {
-              const own = parts(g.team_id), opp = parts(other(g.team_id));
-              return (
-                <li key={g.key} className="rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${teamColor(team(g.team_id))}` }}>
-                  <div className="mb-2 flex items-center justify-between text-sm font-semibold">
-                    <span>Gol {i + 1} · {team(g.team_id).short_name}</span>
-                    <button type="button" aria-label="Eliminar gol" onClick={() => setS((p) => ({ ...p, goals: p.goals.filter((x) => x.key !== g.key) }))} className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2"><Trash2 size={16} /></button>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    <Select aria-label="Goleador" value={g.scorer_id} onChange={(e) => updGoal(g.key, { scorer_id: e.target.value })}>
-                      <option value="">{g.is_own_goal ? "Autor (rival) desconocido" : "Goleador desconocido"}</option>
-                      {(g.is_own_goal ? opp : own).map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
-                    </Select>
-                    <Select aria-label="Asistencia" value={g.assist_id} disabled={g.is_own_goal} onChange={(e) => updGoal(g.key, { assist_id: e.target.value })}>
-                      <option value="">Sin asistencia</option>
-                      {own.filter((id) => id !== g.scorer_id).map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
-                    </Select>
-                    <Select aria-label="Portero que encajó" value={g.conceded_gk_id} onChange={(e) => updGoal(g.key, { conceded_gk_id: e.target.value })}>
-                      <option value="">Portero rival: no consta</option>
-                      {opp.map((id) => <option key={id} value={id}>🧤 {nameOf(id)}</option>)}
-                    </Select>
-                    <div className="flex gap-2">
-                      <Input aria-label="Minuto" type="number" inputMode="numeric" min={0} max={200} placeholder="Min." value={g.minute} onChange={(e) => updGoal(g.key, { minute: e.target.value })} />
-                      <label className="flex shrink-0 items-center gap-1.5 text-xs font-semibold"><input type="checkbox" className="h-4 w-4" checked={g.is_own_goal} onChange={(e) => updGoal(g.key, { is_own_goal: e.target.checked, scorer_id: "", assist_id: "" })} /> P.P.</label>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
+        {s.goals.length === 0 ? <p className="mt-4 text-center text-sm text-ink-3">Sin goles: el partido acabará 0-0.</p> : (
+          <ol className="mt-4 divide-y divide-line rounded-xl border border-line">
+            {s.goals.map((g, i) => (
+              <li key={g.key} className="flex items-center gap-2 py-1 pr-1 pl-3" style={{ borderLeft: `4px solid ${teamColor(team(g.team_id))}` }}>
+                <button type="button" onClick={() => setEditing(g.key)} className="press min-h-11 min-w-0 flex-1 text-left text-sm">
+                  <span className="text-ink-3">{i + 1}. {team(g.team_id).short_name} · </span>
+                  <strong>{g.scorer_id ? shortOf(g.scorer_id) : "Goleador sin indicar"}</strong>
+                  {g.is_own_goal ? <span className="text-ink-3"> (en propia)</span> : g.assist_id ? <span className="text-ink-3"> · asist. {shortOf(g.assist_id)}</span> : null}
+                </button>
+                <button type="button" aria-label={`Eliminar gol ${i + 1}`} onClick={() => setS((p) => ({ ...p, goals: p.goals.filter((x) => x.key !== g.key) }))} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2"><Trash2 size={16} /></button>
+              </li>
+            ))}
           </ol>
         )}
       </Card>
 
+      {editingGoal && (
+        <GoalSheet
+          goal={editingGoal}
+          index={s.goals.findIndex((g) => g.key === editingGoal.key) + 1}
+          teamName={team(editingGoal.team_id).short_name}
+          color={teamColor(team(editingGoal.team_id))}
+          own={parts(editingGoal.team_id)}
+          opp={parts(other(editingGoal.team_id))}
+          nameOf={shortOf}
+          photoOf={(id) => pById.get(id)?.photo_url ?? null}
+          onChange={(patch) => updGoal(editingGoal.key, patch)}
+          onClose={() => setEditing(null)}
+          onDelete={() => { setS((p) => ({ ...p, goals: p.goals.filter((x) => x.key !== editingGoal.key) })); setEditing(null); }}
+        />
+      )}
+
       {/* Rotación de portería */}
       <Card className="p-4">
         <h3 className="font-display text-lg font-bold uppercase">Rotación de portería</h3>
-        <p className="mb-3 text-xs text-ink-3">Cada ~7 minutos cambia el portero. Si indicas minutos, los goles se atribuyen solos al portero de ese periodo. Los encajados nunca restan en su valoración de campo.</p>
+        <p className="mb-3 text-xs text-ink-3">Cada ~7 minutos cambia el portero. Apunta quién estuvo en portería y en qué tramos. Los goles encajados nunca restan en su valoración de campo.</p>
         <div className="grid gap-4 lg:grid-cols-2">
           {[s.home_team_id, s.away_team_id].map((tid) => (
             <div key={tid}>
@@ -323,5 +329,81 @@ function ParticipantPicker({ team, players, value, other, onChange, perSide, ok,
       </div>
       {err && <Notice tone="danger" className="mt-2">{err}</Notice>}
     </Card>
+  );
+}
+
+
+/** Panel inferior para un gol: goleador → asistente, a toques. Sin minutos. */
+function GoalSheet({ goal, index, teamName, color, own, opp, nameOf, photoOf, onChange, onClose, onDelete }: {
+  goal: GoalRow; index: number; teamName: string; color: string; own: string[]; opp: string[];
+  nameOf: (id: string) => string; photoOf: (id: string) => string | null;
+  onChange: (patch: Partial<GoalRow>) => void; onClose: () => void; onDelete: () => void;
+}) {
+  const assistRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  const scorers = goal.is_own_goal ? opp : own;
+  const pickScorer = (id: string) => {
+    onChange({ scorer_id: id, assist_id: goal.assist_id === id ? "" : goal.assist_id });
+    if (!goal.is_own_goal) setTimeout(() => assistRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  };
+  const tp = { color, nameOf, photoOf };
+  return (
+    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-labelledby="goal-sheet-title">
+      <button type="button" aria-label="Cerrar" className="animate-fade absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="animate-rise absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] max-w-xl flex-col rounded-t-3xl border-t border-line bg-elev shadow-card">
+        <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+          <span className="h-3 w-3 rounded-full" style={{ background: color }} aria-hidden />
+          <h3 id="goal-sheet-title" className="flex-1 font-display text-xl font-bold uppercase">Gol {index} · {teamName}</h3>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar" className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-3 hover:bg-surface-2"><X size={20} /></button>
+        </div>
+        <div className="overflow-y-auto overscroll-contain px-4 py-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold">{goal.is_own_goal ? "¿Quién la metió en propia?" : "¿Quién marcó?"}</p>
+            <label className="flex min-h-11 items-center gap-2 text-xs font-semibold text-ink-2">
+              <input type="checkbox" className="h-5 w-5 accent-[var(--pitch)]" checked={goal.is_own_goal} onChange={(e) => onChange({ is_own_goal: e.target.checked, scorer_id: "", assist_id: "" })} /> En propia puerta
+            </label>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {scorers.map((id) => <PickTile {...tp} key={id} id={id} label={nameOf(id)} selected={goal.scorer_id === id} onPick={() => pickScorer(id)} />)}
+            <PickTile {...tp} label="No lo sé" selected={!goal.scorer_id} onPick={() => onChange({ scorer_id: "" })} />
+          </div>
+
+          {!goal.is_own_goal && (
+            <div ref={assistRef} className="scroll-mt-4 pt-5">
+              <p className="mb-2 text-sm font-semibold">¿Quién dio la asistencia?</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                <PickTile {...tp} label="Sin asistencia" selected={!goal.assist_id} onPick={() => onChange({ assist_id: "" })} />
+                {own.filter((id) => id !== goal.scorer_id).map((id) => <PickTile {...tp} key={id} id={id} label={nameOf(id)} selected={goal.assist_id === id} onPick={() => onChange({ assist_id: id })} />)}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 border-t border-line px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <Button type="button" variant="ghost" className="text-danger" onClick={onDelete}><Trash2 size={16} /> Quitar</Button>
+          <Button type="button" className="flex-1" onClick={onClose}><Check size={18} /> Listo</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PickTile({ id, selected, onPick, label, color, nameOf, photoOf }: {
+  id?: string; selected: boolean; onPick: () => void; label: string; color: string; nameOf: (id: string) => string; photoOf: (id: string) => string | null;
+}) {
+  return (
+    <button type="button" onClick={onPick} aria-pressed={selected}
+      className={cx("press relative flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center", selected ? "border-pitch bg-pitch-soft ring-2 ring-pitch" : "border-line bg-surface")}>
+      {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-pitch text-pitch-ink"><Check size={13} strokeWidth={3} aria-hidden /></span>}
+      {id ? <Avatar name={nameOf(id)} src={photoOf(id)} size={36} color={color} /> : <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-dashed border-line-strong text-ink-3">?</span>}
+      <span className="line-clamp-2 text-xs font-semibold leading-tight">{label}</span>
+    </button>
   );
 }
