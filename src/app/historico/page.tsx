@@ -5,7 +5,7 @@ import { MatchRow } from "@/components/match/parts";
 import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { RANKING_LABELS, bestVenue, playedMatches, ranking, teamStats, type RankingStat } from "@/lib/stats/engine";
-import { fmtDate, num, pct, playerName } from "@/lib/format";
+import { fmtDate, num, pct, playerName, teamColor } from "@/lib/format";
 
 export const metadata = { title: "Histórico" };
 
@@ -82,7 +82,7 @@ async function TeamsTab() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         {[{ tm: a, st: sa }, { tm: b, st: sb }].map(({ tm, st }) => (
-          <Card key={tm.id} className="p-4" style={{ borderTop: `4px solid ${tm.primary_color}` }}>
+          <Card key={tm.id} className="p-4" style={{ borderTop: `4px solid ${teamColor(tm)}` }}>
             <div className="mb-3 font-display text-lg font-bold uppercase">{tm.name}</div>
             <div className="grid grid-cols-3 gap-2">
               <Stat label="% victorias" value={pct(st.record.winPct)} />
@@ -100,8 +100,8 @@ async function TeamsTab() {
         <SectionTitle>Evolución (victorias acumuladas)</SectionTitle>
         <Card className="p-4">
           <LineChart labels={sa.form.map((f) => fmtDate(f.kickoff))} series={[
-            { name: a.short_name, color: a.primary_color, values: evoA },
-            { name: b.short_name, color: b.primary_color === "#151515" ? "var(--gold)" : b.primary_color, values: evoB },
+            { name: a.short_name, color: teamColor(a), values: evoA },
+            { name: b.short_name, color: teamColor(b), values: evoB },
           ]} />
         </Card>
       </section>
@@ -159,7 +159,7 @@ async function IndividualTab() {
   const fmtRow = (stat: RankingStat, digits = 0) => (r: ReturnType<typeof ranking>[number]) => ({
     label: <Link href={`/jugadores/${r.playerId}`} className="font-medium">{playerName(P(r.playerId), "short")}</Link>,
     value: Number(r[stat] ?? 0),
-    color: team(r.playerId)?.primary_color === "#151515" ? "var(--gold)" : team(r.playerId)?.primary_color,
+    color: teamColor(team(r.playerId)),
     sub: `${r.matches} PJ${digits ? "" : ""}`,
   });
   const gk = ranking(parts, "concededPerSpell", { minMatches: 1 }).filter((r) => r.gkSpells >= 2).slice(0, 5);
@@ -239,7 +239,7 @@ async function RankingsTab({ sp }: { sp: SP }) {
             return {
               label: <Link href={`/jugadores/${r.playerId}`} className="font-medium">{playerName(p, "short")}</Link>,
               value: Number(r[stat] ?? 0),
-              color: tm?.primary_color === "#151515" ? "var(--gold)" : tm?.primary_color,
+              color: teamColor(tm),
               sub: `${tm?.short_name ?? "Invitado"} · ${r.matches} PJ · ${r.goals}G ${r.assists}A ${r.mvps} MVP`,
             };
           })} format={(v) => num(v, digits)} />

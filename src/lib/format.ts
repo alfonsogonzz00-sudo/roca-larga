@@ -75,7 +75,11 @@ export function playerName(p: { full_name: string; nickname: string | null } | u
   if (mode === "nick") return p.nickname || p.full_name.split(" ")[0];
   if (mode === "short") {
     const parts = p.full_name.split(" ");
-    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : p.full_name;
+    if (parts.length <= 2) return p.full_name;
+    // Conserva partículas del apellido: «Raúl de la Fuente», «Juan del Río»
+    let i = parts.length - 1;
+    while (i > 1 && /^(de|la|del|las|los|y)$/i.test(parts[i - 1])) i--;
+    return `${parts[0]} ${parts.slice(i).join(" ")}`;
   }
   return p.full_name;
 }
@@ -92,4 +96,13 @@ export function relativeFromNow(iso: string): string {
   const m = Math.floor((abs % 3600000) / 60000);
   const label = h >= 24 ? `${Math.floor(h / 24)} d ${h % 24} h` : h > 0 ? `${h} h ${m} min` : `${m} min`;
   return diff >= 0 ? `en ${label}` : `hace ${label}`;
+}
+
+/** Color de equipo legible sobre fondos oscuros: si el principal es casi negro, usa el secundario */
+export function teamColor(t: { primary_color: string; secondary_color: string } | undefined | null): string {
+  if (!t) return "var(--ink-3)";
+  const hex = t.primary_color.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum < 0.12 ? t.secondary_color : t.primary_color;
 }

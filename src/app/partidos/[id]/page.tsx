@@ -10,7 +10,7 @@ import { getStats, predictionForMatch } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
 import { createClient } from "@/lib/supabase/server";
-import { fmtDateTime, fmtDay, fmtTime, nowMs, playerName } from "@/lib/format";
+import { fmtDateTime, fmtDay, fmtTime, nowMs, playerName, teamColor } from "@/lib/format";
 import type { MvpTally, Player, Position } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -73,10 +73,10 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         const fid = tm.id === home.id ? m.home_formation_id : m.away_formation_id;
         return (
           <div key={tm.id} className="space-y-3">
-            <FormationBoard formation={fid ? ds.formationById.get(fid) ?? null : null} players={list.map((l) => l.player)} positions={positions} color={tm.primary_color} teamName={tm.name} />
+            <FormationBoard formation={fid ? ds.formationById.get(fid) ?? null : null} players={list.map((l) => l.player)} positions={positions} color={teamColor(tm)} teamName={tm.name} />
             <Card className="p-4">
               <div className="mb-1 text-sm font-semibold">{played ? "Participantes" : "Convocados"} · {tm.short_name} ({list.length})</div>
-              <PlayerChipList items={list} color={tm.primary_color} />
+              <PlayerChipList items={list} color={teamColor(tm)} />
               {played && mps.some((x) => x.team_id === tm.id && x.called && !x.participated) && (
                 <p className="mt-2 text-xs text-ink-3">Convocados que no jugaron: {mps.filter((x) => x.team_id === tm.id && x.called && !x.participated).map((x) => playerName(P(x.player_id), "short")).join(", ")}</p>
               )}
@@ -97,7 +97,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               const tm = ds.teamById.get(g.team_id)!;
               return (
                 <li key={g.id} className="flex items-start gap-3 text-sm">
-                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-full" style={{ background: tm.primary_color }} />
+                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-full" style={{ background: teamColor(tm) }} />
                   <span className="tabular w-8 shrink-0 text-ink-3">{g.minute != null ? `${g.minute}'` : "—"}</span>
                   <span className="flex-1">
                     <strong>{g.scorer_id ? playerName(P(g.scorer_id), "short") : "Goleador desconocido"}</strong>
@@ -120,6 +120,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               <div key={tm.id}>
                 <div className="mb-1 text-sm font-semibold">{tm.short_name}</div>
                 <ol className="space-y-1 text-sm">
+                  {!spells.some((x) => x.team_id === tm.id) && <li className="text-ink-3">Sin registrar</li>}
                   {spells.filter((x) => x.team_id === tm.id).map((x) => {
                     const conceded = goals.filter((g) => g.conceded_gk_id === x.player_id).length;
                     return (

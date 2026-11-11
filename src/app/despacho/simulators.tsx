@@ -5,7 +5,7 @@ import { simulateIndividualAction, simulateMatchAction } from "@/app/actions/sim
 import { Button, Card, Crest, Field, Input, Notice, Pill, Select, Stat, cx } from "@/components/ui";
 import { Tabs } from "@/components/ui/client";
 import { FactorTable, PredictionPanel } from "@/components/match/parts";
-import { nowMs, num, pct } from "@/lib/format";
+import { nowMs, num, pct , teamColor } from "@/lib/format";
 import type { IndividualPrediction, MatchPrediction } from "@/lib/stats/model";
 import { WEATHER_LABELS, type Formation, type Player, type Team, type Venue } from "@/lib/types";
 
@@ -85,7 +85,7 @@ function MatchSim({ teams, players, venues, formations, lowText }: Common) {
         </Field>
         <Conditions v={cond} set={setCond} />
         {[{ t: home, v: hp, set: setHp, f: hf, setF: setHf }, { t: away, v: ap, set: setAp, f: af, setF: setAf }].map(({ t, v, set, f, setF }) => (
-          <div key={t.id} className="space-y-2 rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${t.primary_color}` }}>
+          <div key={t.id} className="space-y-2 rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${teamColor(t)}` }}>
             <div className="flex items-center gap-2"><Crest src={t.crest_url} name={t.name} size={24} /><span className="flex-1 font-semibold">{t.name}</span>
               <Select aria-label={`Formación de ${t.name}`} value={f} onChange={(e) => setF(e.target.value)} className="min-h-9 w-28 py-0 text-sm">{formations.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>
             </div>

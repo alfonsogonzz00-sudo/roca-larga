@@ -12,7 +12,7 @@ import { getTexts } from "@/lib/data/config";
 import { createClient } from "@/lib/supabase/server";
 import { playerTotals } from "@/lib/stats/engine";
 import { env } from "@/lib/env";
-import { fmtDateTime, fmtShortDay, num } from "@/lib/format";
+import { fmtDateTime, fmtShortDay, num, teamColor } from "@/lib/format";
 
 export const metadata = { title: "Perfil" };
 
@@ -50,7 +50,7 @@ export default async function Profile() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Avatar name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} size={64} color={team?.primary_color} />
+        <Avatar name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} size={64} color={teamColor(team)} />
         <div className="min-w-0">
           <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.full_name ?? s.profile.display_name}</h1>
           {s.player?.nickname && <p className="text-gold">«{s.player.nickname}»</p>}

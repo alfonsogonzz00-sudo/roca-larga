@@ -4,7 +4,7 @@ import { Plus, Trash2, UserPlus, Wand2 } from "lucide-react";
 import { createGuestAction, createHistoricalAction, finalizeMatchAction } from "@/app/actions/matches";
 import { Button, Card, Crest, Field, Input, Notice, Select, Textarea, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
-import { madridLocalToIso } from "@/lib/format";
+import { madridLocalToIso , teamColor } from "@/lib/format";
 import { WEATHER_LABELS, type Formation, type Player, type Team, type Venue } from "@/lib/types";
 
 export interface GoalRow { key: string; team_id: string; scorer_id: string; assist_id: string; conceded_gk_id: string; minute: string; is_own_goal: boolean }
@@ -181,7 +181,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
             {s.goals.map((g, i) => {
               const own = parts(g.team_id), opp = parts(other(g.team_id));
               return (
-                <li key={g.key} className="rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${team(g.team_id).primary_color}` }}>
+                <li key={g.key} className="rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${teamColor(team(g.team_id))}` }}>
                   <div className="mb-2 flex items-center justify-between text-sm font-semibold">
                     <span>Gol {i + 1} · {team(g.team_id).short_name}</span>
                     <button type="button" aria-label="Eliminar gol" onClick={() => setS((p) => ({ ...p, goals: p.goals.filter((x) => x.key !== g.key) }))} className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2"><Trash2 size={16} /></button>
@@ -287,7 +287,7 @@ function ParticipantPicker({ team, players, value, other, onChange, perSide, ok,
   const [pending, start] = useTransition();
   const toggle = (id: string) => onChange({ ...value, players: value.players.includes(id) ? value.players.filter((x) => x !== id) : [...value.players, id] });
   return (
-    <Card className="p-4" style={{ borderTop: `4px solid ${team.primary_color}` }}>
+    <Card className="p-4" style={{ borderTop: `4px solid ${teamColor(team)}` }}>
       <div className="mb-2 flex items-center justify-between">
         <span className="font-semibold">Participantes · {team.short_name}</span>
         <span className={cx("tabular rounded-full px-2 py-0.5 text-xs font-bold", ok || (hist && total <= perSide) || exceptional ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>

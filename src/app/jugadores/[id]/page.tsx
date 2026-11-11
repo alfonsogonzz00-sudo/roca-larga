@@ -5,7 +5,7 @@ import { Avatar, Card, Crest, EmptyState, Pill, ResultBadge, SectionTitle, Stat 
 import { LineChart, WdlBar } from "@/components/charts";
 import { getStats } from "@/lib/data/stats";
 import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats/engine";
-import { fmtDate, fmtShortDay, num, pct, playerName } from "@/lib/format";
+import { fmtDate, fmtShortDay, num, pct, playerName, teamColor } from "@/lib/format";
 import { POSITION_LABELS } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -20,7 +20,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const p = ds.playerById.get(id);
   if (!p) notFound();
   const team = p.team_id ? ds.teamById.get(p.team_id) : null;
-  const color = team?.primary_color ?? "var(--ink-3)";
+  const color = teamColor(team);
   const tot = playerTotals(id, parts);
   const top = topPerformances(id, parts, 3);
   const bv = bestVenue(id, parts);

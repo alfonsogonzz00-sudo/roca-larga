@@ -6,7 +6,7 @@ import { FormStrip, WdlBar, WdlDonut } from "@/components/charts";
 import { getStats } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
 import { playerTotals, teamBadges, teamStats } from "@/lib/stats/engine";
-import { num, pct, playerName } from "@/lib/format";
+import { num, pct, playerName, teamColor } from "@/lib/format";
 import { POSITION_LABELS } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -114,7 +114,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
             return (
               <Link key={p.id} href={`/jugadores/${p.id}`} className={`rounded-2xl border border-line bg-surface p-3 hover:border-line-strong ${p.active ? "" : "opacity-60"}`}>
                 <div className="flex items-center gap-3">
-                  <Avatar name={p.full_name} src={p.photo_url} size={44} color={team.primary_color} />
+                  <Avatar name={p.full_name} src={p.photo_url} size={44} color={teamColor(team)} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold">{p.full_name}</div>
                     <div className="truncate text-xs text-ink-3">{[p.nickname && `«${p.nickname}»`, p.usual_position && POSITION_LABELS[p.usual_position], !p.active && "Inactivo"].filter(Boolean).join(" · ") || "—"}</div>

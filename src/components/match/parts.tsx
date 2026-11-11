@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Cloud, CloudFog, CloudRain, MapPin, Sun, Thermometer, Wind, HelpCircle } from "lucide-react";
 import { Avatar, Card, Crest, Pill, cx } from "@/components/ui";
-import { fmtShortDay, fmtTime, num, pct, playerName } from "@/lib/format";
+import { fmtShortDay, fmtTime, num, pct, playerName, teamColor } from "@/lib/format";
 import type { MatchPrediction } from "@/lib/stats/model";
 import { POSITION_LABELS, STATUS_LABELS, WEATHER_LABELS, type Formation, type Match, type MatchStatus, type Player, type Position, type Team, type Venue, type Weather } from "@/lib/types";
 
@@ -33,7 +33,7 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
   return (
     <Link href={`/partidos/${m.id}`} className="group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 transition hover:border-line-strong">
       <div className="w-14 shrink-0 text-center">
-        <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ").slice(0, 1)}</div>
+        <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ")[0].replace(",", "")}</div>
         <div className="font-display tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
       </div>
       <div className="min-w-0 flex-1 space-y-1">
@@ -43,7 +43,7 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
       <div className="flex shrink-0 flex-col items-end gap-1 text-right">
         {played ? <span className="text-[11px] text-ink-3">{m.origin === "historical" ? "Histórico" : "Final"}</span> : <StatusPill status={m.status} />}
         {!played && <span className="tabular text-sm font-semibold">{fmtTime(m.kickoff_at)}</span>}
-        {m.venue_id && <span className="max-w-28 truncate text-[11px] text-ink-3">{venues.get(m.venue_id)?.name}</span>}
+        {m.venue_id && <span className="max-w-24 truncate text-[11px] text-ink-3">{venues.get(m.venue_id)?.name}</span>}
       </div>
       <ChevronRight size={18} className="shrink-0 text-ink-3 transition group-hover:translate-x-0.5" aria-hidden />
     </Link>
@@ -54,21 +54,21 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
   return (
     <div className="flex items-center gap-2">
       <Crest src={team.crest_url} name={team.name} size={22} />
-      <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.name}</span>
+      <span className={cx("flex-1 truncate text-sm", winner ? "font-bold text-ink" : "font-medium text-ink-2")}>{team.short_name}</span>
       {score != null && <span className={cx("font-display tabular text-xl font-bold", winner ? "text-ink" : "text-ink-3")}>{score}</span>}
     </div>
   );
 }
 
 /** Marcador grande / cabecera de partido */
-export function Scoreboard({ m, home, away, venue }: { m: Match; home: Team; away: Team; venue?: Venue }) {
+export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Match; home: Team; away: Team; venue?: Venue; linkTeams?: boolean }) {
   const played = m.status === "played";
   return (
     <div className="pitch-lines relative overflow-hidden rounded-3xl bg-[#0f2a18] p-5 text-white shadow-card">
       <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-white/10" />
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
       <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <TeamBlock team={home} label="Local" />
+        <TeamBlock team={home} label="Local" link={linkTeams} />
         <div className="text-center">
           {played ? (
             <div className="font-display tabular text-5xl font-bold leading-none sm:text-6xl">{m.home_score}<span className="mx-2 text-white/40">–</span>{m.away_score}</div>
@@ -79,7 +79,7 @@ export function Scoreboard({ m, home, away, venue }: { m: Match; home: Team; awa
             </div>
           )}
         </div>
-        <TeamBlock team={away} label="Visitante" />
+        <TeamBlock team={away} label="Visitante" link={linkTeams} />
       </div>
       <div className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/75">
         {played && <span>{fmtShortDay(m.kickoff_at)} · {fmtTime(m.kickoff_at)}</span>}
@@ -89,13 +89,14 @@ export function Scoreboard({ m, home, away, venue }: { m: Match; home: Team; awa
   );
 }
 
-function TeamBlock({ team, label }: { team: Team; label: string }) {
+function TeamBlock({ team, label, link }: { team: Team; label: string; link: boolean }) {
+  const Wrap = link ? Link : "div";
   return (
-    <Link href={`/equipos/${team.slug}`} className="flex flex-col items-center gap-2 text-center">
+    <Wrap href={`/equipos/${team.slug}`} className="flex flex-col items-center gap-2 text-center">
       <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 p-1.5 sm:h-20 sm:w-20"><Crest src={team.crest_url} name={team.name} size={60} /></span>
       <span className="font-display text-base font-bold uppercase leading-tight sm:text-lg">{team.name}</span>
       <span className="text-[10px] uppercase tracking-widest text-white/50">{label}</span>
-    </Link>
+    </Wrap>
   );
 }
 
@@ -103,7 +104,7 @@ function TeamBlock({ team, label }: { team: Team; label: string }) {
 export function FormationBoard({ formation, players, positions, color, teamName }: {
   formation: Formation | null; players: Player[]; positions: Map<string, Position | null>; color: string; teamName: string;
 }) {
-  const lines = formation?.lines ?? [];
+  const lines = formation?.lines ?? [2, 3, 1]; // sin formación: reparto orientativo
   const order: Position[] = ["DEF", "MED", "DEL"];
   const pool = [...players].sort((a, b) => {
     const pa = positions.get(a.id) ?? a.usual_position ?? "MED";
@@ -121,7 +122,7 @@ export function FormationBoard({ formation, players, positions, color, teamName 
     <div className="rounded-2xl bg-[#14361f] p-3 text-white">
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-semibold">{teamName}</span>
-        <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Formación sin definir"}</span>
+        <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
       </div>
       <div className="relative flex min-h-56 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
         <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-b-xl border border-t-0 border-white/15" />
@@ -183,9 +184,9 @@ export function PredictionPanel({ p, home, away, players, compact, lowText }: {
   }
   const mx = p.matrix;
   const bars = [
-    { label: home.short_name, v: mx.pHome, c: home.primary_color },
+    { label: home.short_name, v: mx.pHome, c: teamColor(home) },
     { label: "Empate", v: mx.pDraw, c: "var(--ink-3)" },
-    { label: away.short_name, v: mx.pAway, c: away.primary_color },
+    { label: away.short_name, v: mx.pAway, c: teamColor(away) },
   ];
   const topScorers = [...p.players].sort((a, b) => b.pScore - a.pScore).slice(0, 5);
   const topAssists = [...p.players].sort((a, b) => b.pAssist - a.pAssist).slice(0, 3);

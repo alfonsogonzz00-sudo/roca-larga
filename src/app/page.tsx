@@ -75,7 +75,7 @@ async function NextMatch({ matchId }: { matchId: string }) {
   const fa = m.away_formation_id ? ds.formationById.get(m.away_formation_id) : null;
   return (
     <div className="space-y-3">
-      <Link href={`/partidos/${m.id}`} className="block"><Scoreboard m={m} home={home} away={away} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} /></Link>
+      <Link href={`/partidos/${m.id}`} className="block"><Scoreboard m={m} home={home} away={away} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} linkTeams={false} /></Link>
       <Card className="space-y-3 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-semibold"><CalendarClock size={16} aria-hidden /> {fmtDay(m.kickoff_at)} · <span className="text-ink-3">{relativeFromNow(m.kickoff_at)}</span></div>
