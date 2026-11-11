@@ -30,14 +30,14 @@ export default async function History({ searchParams }: { searchParams: Promise<
       <PageHeader title="Clasificación" subtitle={`${played.length} partidos disputados desde el primer registro.`} />
       <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {ds.teams.map((tm) => (
-          <Link key={tm.id} href={`/equipos/${tm.slug}`} className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+          <Link key={tm.id} href={`/equipos/${tm.slug}`} className="press flex min-h-14 items-center gap-2 rounded-2xl bg-surface shadow-card px-3 text-sm font-semibold">
             <Crest src={tm.crest_url} name={tm.name} size={28} /><span className="truncate">{tm.short_name}</span>
           </Link>
         ))}
-        <Link href="/despacho" className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+        <Link href="/despacho" className="press flex min-h-14 items-center gap-2 rounded-2xl bg-surface shadow-card px-3 text-sm font-semibold">
           <Briefcase size={20} aria-hidden className="text-ink-3" /><span className="truncate">El Despacho</span>
         </Link>
-        <Link href="/estadios" className="press flex min-h-14 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-semibold hover:border-line-strong">
+        <Link href="/estadios" className="press flex min-h-14 items-center gap-2 rounded-2xl bg-surface shadow-card px-3 text-sm font-semibold">
           <MapPin size={20} aria-hidden className="text-ink-3" /><span className="truncate">Estadios</span>
         </Link>
       </div>
@@ -86,7 +86,7 @@ async function TeamsTab() {
           <div><div className="font-display tabular text-3xl font-bold text-ink-3">{sa.record.draws}</div><div className="text-[11px] uppercase text-ink-3">empates</div></div>
           <TeamHead team={b} wins={sb.record.wins} />
         </div>
-        <div className="mt-4 flex h-3 overflow-hidden rounded-none">
+        <div className="mt-4 flex h-3 overflow-hidden rounded-full">
           <span style={{ width: `${(sa.record.wins / (played || 1)) * 100}%`, background: a.primary_color }} />
           <span style={{ width: `${(sa.record.draws / (played || 1)) * 100}%` }} className="bg-surface-3" />
           <span style={{ width: `${(sb.record.wins / (played || 1)) * 100}%`, background: b.primary_color }} />
@@ -96,9 +96,9 @@ async function TeamsTab() {
 
       <Card className="p-4">
         <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center text-sm font-semibold">
-          <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-none" style={{ background: teamColor(a) }} aria-hidden />{a.short_name}</span>
+          <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(a) }} aria-hidden />{a.short_name}</span>
           <span className="text-xs font-normal text-ink-3">cara a cara</span>
-          <span className="flex items-center justify-end gap-2">{b.short_name}<span className="h-2.5 w-2.5 rounded-none" style={{ background: teamColor(b) }} aria-hidden /></span>
+          <span className="flex items-center justify-end gap-2">{b.short_name}<span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(b) }} aria-hidden /></span>
         </div>
         <dl className="space-y-2.5">
           {([
@@ -114,7 +114,7 @@ async function TeamsTab() {
                   <dt className="text-xs text-ink-3">{label}</dt>
                   <span className={vb >= va ? "font-display tabular text-lg font-bold" : "font-display tabular text-lg text-ink-3"}>{f(vb)}</span>
                 </div>
-                <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-none" aria-hidden>
+                <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-full" aria-hidden>
                   <span style={{ width: `${(va / total) * 100}%`, background: teamColor(a) }} />
                   <span style={{ width: `${(vb / total) * 100}%`, background: teamColor(b) }} />
                 </div>
@@ -157,7 +157,7 @@ async function TeamsTab() {
       {seasons.length > 0 && (
         <section>
           <SectionTitle>Por temporada</SectionTitle>
-          <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+          <ul className="divide-y divide-line rounded-2xl bg-surface shadow-card">
             {seasons.map((s) => {
               const r = sa.bySeason.get(s)!;
               return (
@@ -247,7 +247,7 @@ async function RankingsTab({ sp }: { sp: SP }) {
   const digits = ["ratingAvg", "goalsPerMatch", "assistsPerMatch", "ratingTotal"].includes(stat) ? 2 : 0;
   return (
     <div className="space-y-4">
-      <form method="get" className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-surface p-3 sm:grid-cols-3 lg:grid-cols-6">
+      <form method="get" className="grid grid-cols-2 gap-2 rounded-2xl bg-surface shadow-card p-3 sm:grid-cols-3 lg:grid-cols-6">
         <input type="hidden" name="tab" value="rankings" />
         <Select name="stat" defaultValue={stat} aria-label="Estadística">{Object.entries(RANKING_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
         <Select name="team" defaultValue={sp.team ?? ""} aria-label="Equipo"><option value="">Los dos equipos</option>{ds.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>

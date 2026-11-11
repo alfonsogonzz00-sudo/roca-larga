@@ -129,7 +129,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       {past.length === 0 && !next && <EmptyState title="Aún no hay partidos">{t("history.empty")}</EmptyState>}
 
       {s?.isStaff && (
-        <Link href="/partidos/nuevo" aria-label="Crear partido" className="press fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-pitch text-pitch-ink shadow-card sm:hidden">
+        <Link href="/partidos/nuevo" aria-label="Crear partido" className="press fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-pitch text-pitch-ink shadow-[0_8px_24px_-6px_rgb(22_122_64/0.55)] ring-1 ring-white/30 sm:hidden">
           <Plus size={26} />
         </Link>
       )}
@@ -168,7 +168,7 @@ async function NextMatch({ m, st, s, t, now }: { m: Match; st: Stats; s: Session
         {mine && (
           <div className="space-y-2.5 px-4 py-3">
             <p className="flex items-center gap-2 text-sm">
-              <span className="h-2.5 w-2.5 rounded-none" style={{ background: teamColor(myTeam) }} aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(myTeam) }} aria-hidden />
               <span><strong>Estás convocado</strong> con {myTeam?.short_name}. {mine.attendance === "yes" ? "Has confirmado que vas." : mine.attendance === "no" ? "Has dicho que no puedes." : "¿Vas?"}</span>
             </p>
             {new Date(m.kickoff_at).getTime() > now && <AttendanceButtons matchId={m.id} current={mine.attendance} />}
@@ -206,7 +206,7 @@ function MvpAnnouncement({ m, st }: { m: Match; st: Stats }) {
   const bests = ds.teamBests.filter((x) => x.match_id === m.id);
   const colors = ["#c99a2e", "#167a40", "#1a1d23", "#c99a2e", "#2457c5", "#c7283a"];
   return (
-    <Link href={`/partidos/${m.id}`} className="press relative block overflow-hidden rounded-3xl border border-gold/40 bg-gold-soft p-5">
+    <Link href={`/partidos/${m.id}`} className="press relative block overflow-hidden rounded-3xl bg-gold-soft p-5 shadow-card">
       <span className="confetti pointer-events-none absolute inset-x-0 top-0 h-40" aria-hidden>
         {Array.from({ length: 18 }, (_, i) => (
           <i key={i} style={{ left: `${(i * 37) % 100}%`, background: colors[i % colors.length], animationDelay: `${(i % 6) * 90}ms`, ["--dx" as string]: `${((i * 23) % 60) - 30}px` }} />
@@ -239,7 +239,7 @@ function LastResult({ m, st }: { m: Match; st: Stats }) {
     <section>
       <SectionTitle>Último resultado</SectionTitle>
       <Link href={`/partidos/${m.id}`} className="press block">
-        <Card className="p-4 hover:border-line-strong">
+        <Card className="p-4">
           <p className="mb-3 text-xs text-ink-3">{fmtDay(m.kickoff_at)}{m.venue_id ? ` · ${ds.venueById.get(m.venue_id)?.name}` : ""}</p>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             {[home, away].map((tm, i) => (
@@ -280,7 +280,7 @@ function Highlights({ st }: { st: Stats }) {
       <SectionTitle action={<Link href="/clasificacion?tab=rankings" className="text-sm font-semibold text-pitch">Rankings</Link>}>Destacados</SectionTitle>
       <div className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
         {items.map(({ label, unit, Icon, p, v }) => (
-          <Link key={label} href={p ? `/jugadores/${p.id}` : "#"} className="press flex min-w-[9.5rem] snap-start flex-col gap-2 rounded-2xl border border-line bg-surface p-3 hover:border-line-strong">
+          <Link key={label} href={p ? `/jugadores/${p.id}` : "#"} className="press flex min-w-[9.5rem] snap-start flex-col gap-2 rounded-2xl bg-surface shadow-card p-3">
             <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-3"><Icon size={14} aria-hidden />{label}</span>
             <span className="flex items-center gap-2">
               <Avatar name={p?.full_name ?? "?"} src={p?.photo_url} size={32} color={teamColor(ds.teamById.get(p?.team_id ?? ""))} />

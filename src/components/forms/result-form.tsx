@@ -161,7 +161,7 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
           <div className="order-2 px-2 text-center font-display tabular text-4xl font-bold">{score(s.home_team_id)}<span className="mx-1 text-ink-3">–</span>{score(s.away_team_id)}</div>
         </div>
         {s.goals.length === 0 ? <p className="mt-4 text-center text-sm text-ink-3">Sin goles: el partido acabará 0-0.</p> : (
-          <ol className="mt-4 divide-y divide-line rounded-xl border border-line">
+          <ol className="mt-4 divide-y divide-line rounded-xl bg-surface-2">
             {s.goals.map((g, i) => (
               <li key={g.key} className="flex items-center gap-2 py-1 pr-1 pl-3" style={{ borderLeft: `4px solid ${teamColor(team(g.team_id))}` }}>
                 <button type="button" onClick={() => setEditing(g.key)} className="press min-h-11 min-w-0 flex-1 text-left text-sm">
@@ -238,9 +238,9 @@ function ParticipantPicker({ team, players, value, other, onChange, perSide, ok,
     <Card className="p-4" style={{ borderTop: `4px solid ${teamColor(team)}` }}>
       <div className="mb-2 flex items-center justify-between">
         <span className="font-semibold">Participantes · {team.short_name}</span>
-        <span className={cx("tabular rounded-none px-2 py-0.5 text-xs font-bold", ok || (hist && total <= perSide) || exceptional ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
+        <span className={cx("tabular rounded-full px-2 py-0.5 text-xs font-bold", ok || (hist && total <= perSide) || exceptional ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
       </div>
-      <ul className="divide-y divide-line rounded-xl border border-line">
+      <ul className="divide-y divide-line rounded-xl bg-surface-2">
         {roster.map((p) => (
           <li key={p.id} className="flex min-h-11 items-center gap-3 px-3">
             <input id={`p-${team.id}-${p.id}`} type="checkbox" className="h-5 w-5 accent-[var(--pitch)]" checked={value.players.includes(p.id)} disabled={other.players.includes(p.id)} onChange={() => toggle(p.id)} />
@@ -302,7 +302,7 @@ function GoalSheet({ goal, index, teamName, color, own, opp, nameOf, photoOf, on
       <button type="button" aria-label="Cerrar" className="animate-fade absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="animate-rise absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] max-w-xl flex-col rounded-t-3xl border-t border-line bg-elev shadow-card">
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <span className="h-3 w-3 rounded-none" style={{ background: color }} aria-hidden />
+          <span className="h-3 w-3 rounded-full" style={{ background: color }} aria-hidden />
           <h3 id="goal-sheet-title" className="flex-1 font-display text-xl font-bold uppercase">Gol {index} · {teamName}</h3>
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar" className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-3 hover:bg-surface-2"><X size={20} /></button>
         </div>
@@ -342,8 +342,8 @@ function PickTile({ id, selected, onPick, label, color, nameOf, photoOf }: {
 }) {
   return (
     <button type="button" onClick={onPick} aria-pressed={selected}
-      className={cx("press relative flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center", selected ? "border-pitch bg-pitch-soft ring-2 ring-pitch" : "border-line bg-surface")}>
-      {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-none bg-pitch text-pitch-ink"><Check size={13} strokeWidth={3} aria-hidden /></span>}
+      className={cx("press relative flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center", selected ? "border-pitch bg-pitch-soft ring-2 ring-pitch" : "border-transparent bg-surface-2")}>
+      {selected && <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-pitch text-pitch-ink"><Check size={13} strokeWidth={3} aria-hidden /></span>}
       {id ? <Avatar name={nameOf(id)} src={photoOf(id)} size={36} color={color} /> : <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-dashed border-line-strong text-ink-3">?</span>}
       <span className="line-clamp-2 text-xs font-semibold leading-tight">{label}</span>
     </button>

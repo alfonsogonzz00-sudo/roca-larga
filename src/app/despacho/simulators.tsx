@@ -39,7 +39,7 @@ function PickList({ title, players, value, onChange, max, disabled = [] }: { tit
           const dis = disabled.includes(p.id) || (!on && value.length >= max);
           return (
             <button key={p.id} type="button" aria-pressed={on} disabled={dis} onClick={() => onChange(on ? value.filter((x) => x !== p.id) : [...value, p.id])}
-              className={cx("min-h-10 rounded-none border px-3 text-sm transition disabled:opacity-40", on ? "border-pitch bg-pitch text-pitch-ink" : "border-line bg-surface text-ink-2")}>
+              className={cx("min-h-10 rounded-full border px-3 text-sm transition disabled:opacity-40", on ? "border-pitch bg-pitch text-pitch-ink" : "border-transparent bg-surface-2 text-ink-2")}>
               {p.nickname || p.full_name.split(" ")[0]} <span className={on ? "opacity-80" : "text-ink-3"}>{p.full_name.split(" ").slice(-1)}</span>
             </button>
           );
@@ -85,7 +85,7 @@ function MatchSim({ teams, players, venues, formations, lowText }: Common) {
         </Field>
         <Conditions v={cond} set={setCond} />
         {[{ t: home, v: hp, set: setHp, f: hf, setF: setHf }, { t: away, v: ap, set: setAp, f: af, setF: setAf }].map(({ t, v, set, f, setF }) => (
-          <div key={t.id} className="space-y-2 rounded-xl border border-line p-3" style={{ borderLeft: `4px solid ${teamColor(t)}` }}>
+          <div key={t.id} className="space-y-2 rounded-xl bg-surface-2 p-3" style={{ borderLeft: `4px solid ${teamColor(t)}` }}>
             <div className="flex items-center gap-2"><Crest src={t.crest_url} name={t.name} size={24} /><span className="flex-1 font-semibold">{t.name}</span>
               <Select aria-label={`Formación de ${t.name}`} value={f} onChange={(e) => setF(e.target.value)} className="min-h-9 w-28 py-0 text-sm">{formations.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>
             </div>

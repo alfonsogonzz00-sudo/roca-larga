@@ -62,7 +62,7 @@ export function Tabs({ tabs, initial = 0, className }: { tabs: { label: string; 
   };
   return (
     <div className={className}>
-      <div role="tablist" onKeyDown={onKey} className="no-scrollbar mb-4 flex overflow-x-auto border-b border-line">
+      <div role="tablist" onKeyDown={onKey} className="no-scrollbar mb-4 flex gap-1 overflow-x-auto rounded-[0.875rem] bg-surface-3/70 p-1">
         {tabs.map((t, idx) => (
           <button
             key={t.label}
@@ -73,7 +73,7 @@ export function Tabs({ tabs, initial = 0, className }: { tabs: { label: string; 
             aria-controls={`${id}-p`}
             tabIndex={i === idx ? 0 : -1}
             onClick={() => setI(idx)}
-            className={cx("-mb-px min-h-11 flex-1 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition-colors", i === idx ? "border-pitch text-pitch" : "border-transparent text-ink-3 hover:text-ink")}
+            className={cx("min-h-9 flex-1 whitespace-nowrap rounded-[0.625rem] px-3 text-[13px] font-semibold transition-all duration-200", i === idx ? "bg-surface text-ink shadow-[0_1px_3px_rgb(16_24_40/0.12)]" : "text-ink-2 hover:text-ink")}
           >
             {t.label}
           </button>

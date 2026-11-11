@@ -31,7 +31,7 @@ export function MatchRow({ m, teams, venues }: { m: Match; teams: Map<string, Te
   const a = teams.get(m.away_team_id)!;
   const played = m.status === "played";
   return (
-    <Link href={`/partidos/${m.id}`} className="press group flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 hover:border-line-strong">
+    <Link href={`/partidos/${m.id}`} className="press group flex min-h-16 items-center gap-3 rounded-2xl bg-surface shadow-card px-3 py-2.5">
       <div className="w-12 shrink-0 text-center">
         <div className="text-[11px] font-semibold uppercase text-ink-3">{fmtShortDay(m.kickoff_at).split(" ")[0].replace(",", "")}</div>
         <div className="font-display tabular text-lg font-bold leading-none">{fmtShortDay(m.kickoff_at).split(" ").slice(1).join(" ")}</div>
@@ -67,7 +67,7 @@ function TeamLine({ team, score, winner }: { team: Team; score: number | null; w
 export function Scoreboard({ m, home, away, venue, linkTeams = true }: { m: Match; home: Team; away: Team; venue?: Venue; linkTeams?: boolean }) {
   const played = m.status === "played";
   return (
-    <div className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card">
+    <div className="relative overflow-hidden rounded-3xl bg-surface p-5 text-ink shadow-card">
       <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <TeamBlock team={home} label="Local" link={linkTeams} />
         <div className="text-center">
@@ -154,7 +154,7 @@ export function PredictionPanel({ p, home, away, players, compact, lowText }: {
         <Pill tone={LEVEL_TONE[p.confidence.level]}>Confianza {p.confidence.level}</Pill>
       </div>
       <div>
-        <div className="flex h-3 overflow-hidden rounded-none" role="img" aria-label={bars.map((b) => `${b.label} ${pct(b.v)}`).join(", ")}>
+        <div className="flex h-3 overflow-hidden rounded-full" role="img" aria-label={bars.map((b) => `${b.label} ${pct(b.v)}`).join(", ")}>
           {bars.map((b) => <span key={b.label} style={{ width: `${b.v * 100}%`, background: b.c }} className="border-r border-surface last:border-0" />)}
         </div>
         <div className="mt-1.5 grid grid-cols-3 text-xs">
@@ -200,7 +200,7 @@ export function FactorTable({ factors, homeName, awayName, sample, config, indiv
   factors: MatchPrediction["factors"]; homeName?: string; awayName?: string; sample: number; config: string; individual?: boolean;
 }) {
   return (
-    <details className="group rounded-xl border border-line">
+    <details className="group rounded-xl bg-surface-2">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-sm font-semibold">
         ¿Por qué este pronóstico?
         <span aria-hidden className="text-ink-3 transition group-open:rotate-180">▾</span>
@@ -216,7 +216,7 @@ export function FactorTable({ factors, homeName, awayName, sample, config, indiv
                 <span className="font-semibold">{f.label}</span>
                 <span className="tabular text-xs text-ink-2">peso {pct(f.weight, 1)} → efectivo {pct(f.effectiveWeight, 1)}</span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-none bg-surface-3"><span className="block h-full rounded-none bg-pitch" style={{ width: `${f.reliability * 100}%` }} /></div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-pitch" style={{ width: `${f.reliability * 100}%` }} /></div>
               <div className="mt-1 flex justify-between text-xs text-ink-3">
                 <span>{f.note} · {num(f.sample)} obs.</span>
                 <span>{favors === "neutral" ? "Sin efecto" : individual ? `${favors === "sube" ? "Mejora" : "Empeora"} su producción` : `Favorece a ${favors}`}</span>
@@ -253,9 +253,9 @@ export function VenueCard({ v, compact = false }: { v: Venue; compact?: boolean 
         )}
         <div className="flex flex-wrap gap-2 [&>a]:min-w-[calc(50%-0.25rem)] [&>a]:flex-1 sm:[&>a]:min-w-0">
           {tel && <a href={`tel:${tel}`} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-pitch px-3 text-sm font-semibold text-pitch-ink"><Phone size={16} aria-hidden />Llamar</a>}
-          {v.booking_url && <a href={v.booking_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><CalendarCheck size={16} aria-hidden />Reservar</a>}
-          {v.maps_url && <a href={v.maps_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><Navigation size={16} aria-hidden />Cómo llegar</a>}
-          {v.website && <a href={v.website} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-line-strong px-3 text-sm font-semibold"><ExternalLink size={16} aria-hidden />Web</a>}
+          {v.booking_url && <a href={v.booking_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 px-3 text-sm font-semibold"><CalendarCheck size={16} aria-hidden />Reservar</a>}
+          {v.maps_url && <a href={v.maps_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 px-3 text-sm font-semibold"><Navigation size={16} aria-hidden />Cómo llegar</a>}
+          {v.website && <a href={v.website} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 px-3 text-sm font-semibold"><ExternalLink size={16} aria-hidden />Web</a>}
         </div>
         {tel && <p className="text-xs text-ink-3">Reservas: <span className="tabular">{v.phone}</span>{v.phone_alt ? ` · ${v.phone_alt}` : ""}</p>}
       </div>

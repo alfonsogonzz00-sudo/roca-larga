@@ -75,13 +75,13 @@ export function Tour({ enabled, initialStep = 0 }: { enabled: boolean; initialSt
         <div aria-hidden className="pointer-events-none absolute rounded-2xl ring-2 ring-pitch transition-all duration-300 motion-reduce:transition-none"
           style={{ left: rect.left - 6, top: rect.top - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: "0 0 0 9999px rgb(0 0 0 / 0.78)" }} />
       ) : <div aria-hidden className="absolute inset-0 bg-black/75" />}
-      <div className="animate-rise absolute rounded-2xl border border-line bg-elev p-4 shadow-card" style={cardStyle}>
+      <div className="animate-rise absolute rounded-2xl glass p-4 shadow-card" style={cardStyle}>
         <p className="text-xs font-semibold text-ink-3">{i + 1} de {STEPS.length}</p>
         <h2 id="tour-title" className="mt-1 font-display text-2xl font-bold uppercase leading-tight">{step.title}</h2>
         <p className="mt-1.5 text-sm text-ink-2">{step.body}</p>
         <div className="mt-4 flex items-center gap-2">
           <button type="button" onClick={finish} className="press min-h-11 rounded-xl px-3 text-sm font-semibold text-ink-3 hover:text-ink">Saltar</button>
-          <span className="flex flex-1 justify-center gap-1" aria-hidden>{STEPS.map((_, k) => <span key={k} className={`h-1.5 rounded-none transition-all ${k === i ? "w-4 bg-pitch" : "w-1.5 bg-line-strong"}`} />)}</span>
+          <span className="flex flex-1 justify-center gap-1" aria-hidden>{STEPS.map((_, k) => <span key={k} className={`h-1.5 rounded-full transition-all ${k === i ? "w-4 bg-pitch" : "w-1.5 bg-line-strong"}`} />)}</span>
           <button ref={nextRef} type="button" onClick={next} className="press min-h-11 rounded-xl bg-pitch px-4 text-sm font-semibold text-pitch-ink">{i === STEPS.length - 1 ? "¡A jugar!" : i === 0 ? "Empezar" : "Siguiente"}</button>
         </div>
       </div>
@@ -93,7 +93,7 @@ export function Tour({ enabled, initialStep = 0 }: { enabled: boolean; initialSt
 export function RestartTour() {
   const router = useRouter();
   return (
-    <button type="button" onClick={() => { setFlag(KEY, null); router.push("/"); }} className="press inline-flex min-h-11 items-center rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-surface-2">
+    <button type="button" onClick={() => { setFlag(KEY, null); router.push("/"); }} className="press inline-flex min-h-11 items-center rounded-xl bg-surface-2 hover:bg-surface-3 px-4 text-sm font-semibold hover:bg-surface-2">
       Repetir el tutorial
     </button>
   );

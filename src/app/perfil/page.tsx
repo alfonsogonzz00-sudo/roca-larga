@@ -68,16 +68,16 @@ export default async function Profile() {
   return (
     <div className="space-y-6">
       {/* 1 · Quién soy + mis números */}
-      <section className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card" style={{ borderTop: `4px solid ${color}` }}>
+      <section className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <div className="flex items-center gap-4">
           <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.nickname ?? s.player?.full_name ?? s.profile.display_name}</h1>
             {s.player?.nickname && <p className="mt-1 truncate text-sm text-ink-2">{s.player.full_name}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
-              <span className="rounded-none bg-surface-2 px-2 py-1">{ROLE[s.role]}</span>
-              {s.profile.status === "suspended" && <span className="rounded-none bg-loss-soft px-2 py-1 text-loss">Cuenta suspendida</span>}
+              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
+              <span className="rounded-full bg-surface-2 px-2 py-1">{ROLE[s.role]}</span>
+              {s.profile.status === "suspended" && <span className="rounded-full bg-loss-soft px-2 py-1 text-loss">Cuenta suspendida</span>}
             </div>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function Profile() {
               </div>
               {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-ink-2"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
             </div>
-            <dl className="mt-4 grid grid-cols-4 divide-x divide-line border border-line bg-surface-2 py-3 text-center">
+            <dl className="mt-4 grid grid-cols-4 divide-x divide-line rounded-2xl bg-surface-2 py-3 text-center">
               {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
                 const r = rankOf(k);
                 return (
@@ -140,7 +140,7 @@ export default async function Profile() {
                       <span className="w-full rounded-t-sm bg-gold" style={{ height: `${(x.assists / maxContrib) * 100}%` }} />
                       <span className={cx("w-full bg-pitch", x.assists ? "" : "rounded-t-sm")} style={{ height: `${(x.goals / maxContrib) * 100}%` }} />
                     </span>
-                    <span className={cx("h-1.5 w-full rounded-none", x.result === "W" ? "bg-win" : x.result === "D" ? "bg-draw" : "bg-loss")} />
+                    <span className={cx("h-1.5 w-full rounded-full", x.result === "W" ? "bg-win" : x.result === "D" ? "bg-draw" : "bg-loss")} />
                   </Link>
                 ))}
               </div>
@@ -157,8 +157,8 @@ export default async function Profile() {
                 return (
                   <div key={l}>
                     <div className="mb-1 flex items-baseline justify-between text-sm"><span>{l}</span><span><strong className="font-display tabular text-lg">{num(me, 2)}</strong> <span className="text-xs text-ink-3">media {num(avg, 2)}</span></span></div>
-                    <div className="relative h-2.5 rounded-none bg-surface-3">
-                      <span className="absolute inset-y-0 left-0 rounded-none" style={{ width: `${(me / max) * 100}%`, background: me >= avg ? "var(--win)" : "var(--gold)" }} />
+                    <div className="relative h-2.5 rounded-full bg-surface-3">
+                      <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(me / max) * 100}%`, background: me >= avg ? "var(--win)" : "var(--gold)" }} />
                       <span className="absolute -top-1 -bottom-1 w-0.5 rounded bg-ink" style={{ left: `${(avg / max) * 100}%` }} aria-hidden />
                     </div>
                   </div>
@@ -179,7 +179,7 @@ export default async function Profile() {
 
           <section>
             <SectionTitle action={<Link href={`/jugadores/${s.player!.id}`} className="text-sm font-semibold text-pitch">Ficha completa</Link>}>Mis últimos partidos</SectionTitle>
-            <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+            <ul className="divide-y divide-line rounded-2xl bg-surface shadow-card">
               {mine.map((p) => (
                 <li key={p.matchId}><Link href={`/partidos/${p.matchId}`} className="flex min-h-11 items-center gap-3 px-3 text-sm hover:bg-surface-2"><ResultBadge r={p.result} /><span className="flex-1">{fmtShortDay(p.kickoff)} · {p.goalsFor}–{p.goalsAgainst}</span><span className="tabular text-xs text-ink-3">{p.goals}G {p.assists}A{p.isMvp ? " · MVP" : ""}</span></Link></li>
               ))}
@@ -220,7 +220,7 @@ export default async function Profile() {
         <section>
           <SectionTitle>Mis votaciones</SectionTitle>
           {receipts?.length ? (
-            <ul className="divide-y divide-line rounded-2xl border border-line bg-surface text-sm">
+            <ul className="divide-y divide-line rounded-2xl bg-surface shadow-card text-sm">
               {receipts.map((r) => {
                 const m = ds.matchById.get(r.match_id);
                 return (

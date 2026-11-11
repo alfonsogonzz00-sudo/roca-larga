@@ -42,12 +42,12 @@ export function InviteShare() {
     <div className="space-y-3">
       <label htmlFor="invite-text" className="block text-sm font-semibold">Mensaje de invitación</label>
       <textarea id="invite-text" value={text} onChange={(e) => setEdited(e.target.value)} rows={11}
-        className="w-full border border-line bg-surface px-3 py-2 text-sm leading-relaxed focus:border-pitch focus:outline-none" />
+        className="w-full bg-surface shadow-card px-3 py-2 text-sm leading-relaxed focus:border-pitch focus:outline-none" />
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={share} className="press inline-flex min-h-11 items-center gap-2 bg-[#25d366] px-4 text-sm font-semibold text-[#06210f]">
           <Share2 size={18} aria-hidden /> Compartir por WhatsApp
         </button>
-        <button type="button" onClick={copy} className="press inline-flex min-h-11 items-center gap-2 border border-line bg-surface px-4 text-sm font-semibold">
+        <button type="button" onClick={copy} className="press inline-flex min-h-11 items-center gap-2 bg-surface shadow-card px-4 text-sm font-semibold">
           {copied ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />} {copied ? "Copiado" : "Copiar texto"}
         </button>
         {edited !== null && <button type="button" onClick={() => setEdited(null)} className="min-h-11 px-3 text-sm text-ink-3 underline-offset-2 hover:underline">Restablecer</button>}

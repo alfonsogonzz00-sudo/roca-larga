@@ -12,7 +12,7 @@ const ICONS = { Trophy, CalendarDays, Vote, Activity, UserRound };
 export function BottomNav({ labels, voteBadge }: { labels: Record<string, string>; voteBadge?: number }) {
   const path = usePathname();
   return (
-    <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-elev/95 backdrop-blur lg:hidden">
+    <nav aria-label="Principal" className="glass fixed inset-x-0 bottom-0 z-40 border-t border-black/5 lg:hidden">
       <ul className="mx-auto grid max-w-xl grid-cols-5">
         {NAV.map((item) => {
           const Icon = ICONS[item.icon];
@@ -29,11 +29,10 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
                   active ? "text-pitch" : "text-ink-3",
                 )}
               >
-                {active && <span className="absolute top-0 h-0.5 w-8 rounded-none bg-pitch" />}
                 <span className="relative">
                   <Icon size={22} strokeWidth={active ? 2.4 : 1.9} aria-hidden />
                   {item.href === "/votacion" && voteBadge ? (
-                    <span className="absolute -top-1 -right-2 min-w-4 rounded-none bg-gold px-1 text-center text-[10px] font-bold text-white">{voteBadge}</span>
+                    <span className="absolute -top-1 -right-2 min-w-4 rounded-full bg-gold px-1 text-center text-[10px] font-bold text-white">{voteBadge}</span>
                   ) : null}
                 </span>
                 <span className="w-full truncate text-center">{label.replace(/^El /, "")}</span>
@@ -62,7 +61,7 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
       >
         <Icon size={19} aria-hidden />
         <span className="flex-1">{label}</span>
-        {badge ? <span className="rounded-none bg-gold px-1.5 text-xs font-bold text-white">{badge}</span> : null}
+        {badge ? <span className="rounded-full bg-gold px-1.5 text-xs font-bold text-white">{badge}</span> : null}
       </Link>
     );
   };

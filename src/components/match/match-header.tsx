@@ -59,9 +59,9 @@ export function MatchHeader({ m, home, away, venue, scorers, assists }: {
   const hs = m.home_score ?? 0, as = m.away_score ?? 0;
   const dim = (mine: number, other: number) => (played && mine < other ? "text-ink-3" : "");
   return (
-    <header className="-mx-4 -mt-5 border-b border-line bg-surface px-4 pt-4 pb-5 text-ink lg:mx-0 lg:mt-0 lg:border">
+    <header className="-mx-4 -mt-5 rounded-b-[1.75rem] bg-surface px-4 pt-4 pb-5 text-ink shadow-card lg:mx-0 lg:mt-0 lg:rounded-3xl">
       <div className="flex justify-center">
-        <span className="tabular bg-surface-2 px-3 py-1 text-xs font-semibold tracking-wide text-ink-2">{datePill(m.kickoff_at)}</span>
+        <span className="tabular rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold tracking-wide text-ink-2">{datePill(m.kickoff_at)}</span>
       </div>
       <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-start gap-2">
         <Side team={home} />
@@ -78,7 +78,7 @@ export function MatchHeader({ m, home, away, venue, scorers, assists }: {
         <Side team={away} />
       </div>
       {(hasScorers || hasAssists) && (
-        <div className="mt-4 space-y-2 border-t border-line pt-3 text-[13px] text-ink-2">
+        <div className="mt-5 space-y-2 text-[13px] text-ink-2">
           {hasScorers && (
             <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3" aria-label="Goleadores">
               <Scorers list={scorers.home} align="right" />

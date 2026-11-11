@@ -202,10 +202,10 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
       </Field>
       <div className="mt-4 mb-2 flex items-center justify-between">
         <span className="text-sm font-semibold">Convocados</span>
-        <span className={cx("tabular rounded-none px-2 py-0.5 text-xs font-bold", total === perSide ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
+        <span className={cx("tabular rounded-full px-2 py-0.5 text-xs font-bold", total === perSide ? "bg-pitch-soft text-pitch" : "bg-gold-soft text-gold")}>{total} / {perSide}</span>
       </div>
       {roster.length === 0 ? <p className="text-sm text-ink-3">Este equipo no tiene jugadores activos.</p> : (
-        <ul className="divide-y divide-line rounded-xl border border-line">
+        <ul className="divide-y divide-line rounded-xl bg-surface-2">
           {roster.map((p) => {
             const on = value.players.includes(p.id);
             return (
@@ -215,7 +215,7 @@ function SidePicker({ label, teams, teamId, otherTeamId, onTeam, formationId, on
                   {p.full_name}{p.nickname && <span className="text-ink-3"> · {p.nickname}</span>}
                 </label>
                 {on && (
-                  <select aria-label={`Posición de ${p.full_name}`} className="rounded-lg border border-line bg-elev px-1.5 py-1 text-xs"
+                  <select aria-label={`Posición de ${p.full_name}`} className="rounded-lg glass px-1.5 py-1 text-xs"
                     value={value.positions[p.id] ?? p.usual_position ?? ""}
                     onChange={(e) => onChange({ ...value, positions: { ...value.positions, [p.id]: e.target.value as Position } })}>
                     <option value="">Pos.</option>

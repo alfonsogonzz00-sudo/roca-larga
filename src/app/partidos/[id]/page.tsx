@@ -116,7 +116,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               const tm = ds.teamById.get(g.team_id)!;
               return (
                 <li key={g.id} className="flex items-start gap-3 text-sm">
-                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-none" style={{ background: teamColor(tm) }} />
+                  <span className="mt-0.5 h-5 w-1 shrink-0 rounded-full" style={{ background: teamColor(tm) }} />
                   {g.minute != null && <span className="tabular w-8 shrink-0 text-ink-3">{g.minute}&apos;</span>}
                   <span className="flex-1">
                     <strong>{g.scorer_id ? playerName(P(g.scorer_id), "short") : "Goleador desconocido"}</strong>
@@ -165,8 +165,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               const list = bests.filter((b) => b.team_id === tm.id);
               if (!list.length) return null;
               return (
-                <div key={tm.id} className="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-none" style={{ background: teamColor(tm) }} aria-hidden />
+                <div key={tm.id} className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: teamColor(tm) }} aria-hidden />
                   <span className="text-ink-3">{tm.short_name}</span>
                   <span className="font-semibold">{list.map((b) => <Link key={b.player_id} href={`/jugadores/${b.player_id}`} className="hover:underline">{playerName(P(b.player_id), "short")}</Link>).reduce<React.ReactNode[]>((acc, el, i) => (i ? [...acc, " y ", el] : [el]), [])}</span>
                   {list[0].votes != null && <span className="ml-auto text-xs text-ink-3">{list[0].votes} votos</span>}

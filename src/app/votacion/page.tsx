@@ -36,7 +36,7 @@ export default async function Votes() {
               const voted = myReceipts.has(m.id);
               return (
                 <Link key={m.id} href={`/votacion/${m.id}`} className="block">
-                  <Card className="flex items-center gap-3 p-4 hover:border-line-strong">
+                  <Card className="flex items-center gap-3 p-4">
                     <Vote className="text-gold" aria-hidden />
                     <div className="flex-1">
                       <div className="font-semibold">{label(m.id)} · {fmtShortDay(m.kickoff_at)}</div>
@@ -53,7 +53,7 @@ export default async function Votes() {
       <section>
         <SectionTitle>Últimos MVP</SectionTitle>
         {closed.length === 0 ? <p className="text-sm text-ink-3">Todavía no se ha cerrado ninguna votación.</p> : (
-          <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+          <ul className="divide-y divide-line rounded-2xl bg-surface shadow-card">
             {closed.map((m) => {
               const mv = ds.mvps.filter((x) => x.match_id === m.id);
               return (

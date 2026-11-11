@@ -50,7 +50,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           {top.map((x, i) => {
             const m = ds.matchById.get(x.matchId)!;
             return (
-              <Link key={x.matchId} href={`/partidos/${x.matchId}`} className="press flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:border-line-strong">
+              <Link key={x.matchId} href={`/partidos/${x.matchId}`} className="press flex items-center gap-3 rounded-2xl bg-surface shadow-card p-3">
                 <span className="font-display text-3xl font-bold text-gold">{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{fmtShortDay(x.kickoff)} · {ds.teamById.get(m.home_team_id)?.short_name} {m.home_score}–{m.away_score} {ds.teamById.get(m.away_team_id)?.short_name}</div>
@@ -67,7 +67,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       {bv && (
         <section>
           <SectionTitle>Su estadio</SectionTitle>
-          <Link href={`/estadios/${bv.venueId}`} className="press flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-line-strong">
+          <Link href={`/estadios/${bv.venueId}`} className="press flex items-center gap-3 rounded-2xl bg-surface shadow-card p-4">
             <MapPin className="text-pitch" aria-hidden />
             <div className="flex-1">
               <div className="font-semibold">{ds.venueById.get(bv.venueId)?.name}</div>
@@ -89,7 +89,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   );
 
   const matchesList = (
-    <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+    <ul className="divide-y divide-line rounded-2xl bg-surface shadow-card">
       {mine.map((x) => (
         <li key={x.matchId}>
           <Link href={`/partidos/${x.matchId}`} className="flex min-h-12 items-center gap-3 px-3 py-2 text-sm hover:bg-surface-2">
@@ -105,17 +105,17 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden border border-line bg-surface p-5 text-ink shadow-card" style={{ borderTop: `4px solid ${color}` }}>
+      <div className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <div className="flex items-center gap-4">
-          <span className="rounded-full ring-4 ring-line"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
+          <span className="rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-bold uppercase leading-none">{p.nickname ?? p.full_name}</h1>
             {p.nickname && <p className="mt-1 truncate text-sm text-ink-2">{p.full_name}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-2">
-              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-none bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.short_name}</Link> : <span className="rounded-none bg-surface-2 px-2 py-1">Invitado</span>}
-              {p.usual_position && <span className="rounded-none bg-surface-2 px-2 py-1">{POSITION_LABELS[p.usual_position]}</span>}
-              {p.shirt_number != null && <span className="rounded-none bg-surface-2 px-2 py-1">#{p.shirt_number}</span>}
-              {!p.active && <span className="rounded-none bg-loss-soft px-2 py-1 text-loss">Inactivo</span>}
+              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.short_name}</Link> : <span className="rounded-full bg-surface-2 px-2 py-1">Invitado</span>}
+              {p.usual_position && <span className="rounded-full bg-surface-2 px-2 py-1">{POSITION_LABELS[p.usual_position]}</span>}
+              {p.shirt_number != null && <span className="rounded-full bg-surface-2 px-2 py-1">#{p.shirt_number}</span>}
+              {!p.active && <span className="rounded-full bg-loss-soft px-2 py-1 text-loss">Inactivo</span>}
             </div>
           </div>
           {tot.matches > 0 && (
@@ -126,7 +126,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           )}
         </div>
         {tot.matches > 0 && (
-          <dl className="mt-5 grid grid-cols-4 divide-x divide-line border border-line bg-surface-2 py-2.5 text-center">
+          <dl className="mt-5 grid grid-cols-4 divide-x divide-line rounded-2xl bg-surface-2 py-2.5 text-center">
             {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
               <div key={l}><dd className="font-display tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-ink-3">{l}</dt></div>
             ))}

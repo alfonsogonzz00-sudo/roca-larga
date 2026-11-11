@@ -49,7 +49,7 @@ export function ServiceWorkerRegister() {
   }, []);
   if (!waiting) return null;
   return (
-    <div role="status" className="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-line bg-elev p-3 shadow-card lg:bottom-6">
+    <div role="status" className="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl glass p-3 shadow-card lg:bottom-6">
       <p className="flex-1 text-sm text-ink">Hay una versión nueva de la app.</p>
       <button className="min-h-10 rounded-xl bg-pitch px-3 text-sm font-semibold text-pitch-ink" onClick={() => waiting.postMessage({ type: "SKIP_WAITING" })}>
         Actualizar

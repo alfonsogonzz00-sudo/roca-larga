@@ -8,13 +8,13 @@
 :root {
   /* Claro (predeterminado) · inspirado en SofaScore: fondo neutro, tarjetas blancas,
      bloques en grises fríos sutiles. Todos los textos de estado cumplen WCAG AA (≥4,5:1). */
-  --bg: #eef1f5;
+  --bg: #f2f2f7;
   --bg-elev: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f5f7fa;
-  --surface-3: #e7ebf1;
-  --line: #e1e6ed;
-  --line-strong: #c5cdd8;
+  --surface-2: #f2f3f7;
+  --surface-3: #e6e8ee;
+  --line: #e8ebf0;
+  --line-strong: #cfd6df;
   --ink: #1a1d23;
   --ink-2: #3f4652;
   --ink-3: #5c6574;
@@ -34,7 +34,7 @@
   --danger: #c7283a;
   --danger-soft: #fdecee;
   --focus: #2457c5;
-  --shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px -12px rgb(16 24 40 / 0.10);
   color-scheme: light;
 }
 
@@ -145,15 +145,11 @@
   --color-danger-soft: var(--danger-soft);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Roboto, "Segoe UI", system-ui, sans-serif;
   --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
-  /* Estética digital: todo en ángulo recto (avatares y balón siguen redondos con rounded-full) */
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  /* Esquinas al estilo iOS */
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
   --shadow-card: var(--shadow);
 }
 
@@ -184,7 +180,7 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 0;
+  border-radius: 8px;
 }
 
 /* Áreas seguras de iOS en modo standalone */
@@ -246,3 +242,14 @@ body {
 .stagger > *:nth-child(4) { animation-delay: 120ms; }
 .stagger > *:nth-child(5) { animation-delay: 160ms; }
 .stagger > *:nth-child(n+6) { animation-delay: 200ms; }
+
+/* Cristal (iOS): sólo en barras flotantes, avisos y controles sobre contenido */
+.glass {
+  background: rgb(255 255 255 / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.7), 0 8px 32px -8px rgb(16 24 40 / 0.14);
+}
+:root[data-theme="dark"] .glass { background: rgb(20 26 21 / 0.72); box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 8px 32px -8px rgb(0 0 0 / 0.5); }
+@media (prefers-color-scheme: dark) { :root[data-theme="system"] .glass { background: rgb(20 26 21 / 0.72); } }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: var(--bg-elev); } }

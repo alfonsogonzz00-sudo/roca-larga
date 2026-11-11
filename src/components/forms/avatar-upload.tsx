@@ -61,7 +61,7 @@ export function AvatarUpload({ userId, name, src, color, size = 76, light }: { u
     <div className="flex flex-col items-center gap-1.5">
       <label className="relative cursor-pointer rounded-full focus-within:ring-2 focus-within:ring-pitch" aria-label="Cambiar foto de perfil">
         <Avatar name={name} src={url} size={size} color={color} />
-        <span className="absolute -right-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-none border-2 border-bg bg-pitch text-pitch-ink">
+        <span className="absolute -right-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-bg bg-pitch text-pitch-ink">
           {busy ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Camera size={14} aria-hidden />}
         </span>
         <input type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />

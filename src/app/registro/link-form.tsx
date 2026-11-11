@@ -15,7 +15,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
   return (
     <ActionForm action={requestLink} className="space-y-6">
       <div>
-        <div aria-hidden className="flex gap-1.5">{[1, 2, 3].map((k) => <span key={k} className={cx("h-1.5 flex-1 rounded-none transition-colors", k <= step ? "bg-pitch" : "bg-surface-3")} />)}</div>
+        <div aria-hidden className="flex gap-1.5">{[1, 2, 3].map((k) => <span key={k} className={cx("h-1.5 flex-1 rounded-full transition-colors", k <= step ? "bg-pitch" : "bg-surface-3")} />)}</div>
         <p className="mt-1.5 text-xs text-ink-3">Paso {step} de 3</p>
       </div>
       <fieldset>
@@ -23,7 +23,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
         <div className="grid grid-cols-2 gap-3">
           {teams.map((x) => (
             <button key={x.id} type="button" onClick={() => { setTeam(x.id); setPlayer(null); }} aria-pressed={team === x.id}
-              className={cx("press flex flex-col items-center gap-2 rounded-2xl border-2 bg-surface p-4", team === x.id ? "border-pitch" : "border-line")}>
+              className={cx("press flex flex-col items-center gap-2 rounded-2xl border-2 bg-surface p-4", team === x.id ? "border-pitch" : "border-transparent shadow-card")}>
               <Crest src={x.crest_url} name={x.name} size={56} />
               <span className="text-center text-sm font-bold">{x.name}</span>
             </button>
@@ -39,7 +39,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
             <ul className="grid gap-2 sm:grid-cols-2">
               {t.candidates.map((c) => (
                 <li key={c.id}>
-                  <label className={cx("flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3", player === c.id ? "border-pitch bg-pitch-soft" : "border-line bg-surface")}>
+                  <label className={cx("flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3", player === c.id ? "border-pitch bg-pitch-soft" : "border-transparent bg-surface-2")}>
                     <input type="radio" name="player_id" value={c.id} checked={player === c.id} onChange={() => setPlayer(c.id)} className="h-4 w-4 accent-[var(--pitch)]" />
                     <span className="flex-1 font-medium">{c.full_name}</span>
                     {c.pending_requests > 0 && <span className="text-xs text-ink-3">solicitud en curso</span>}

@@ -31,7 +31,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 border border-line bg-surface p-5 shadow-card" style={{ borderTop: `4px solid ${teamColor(team)}` }}>
+      <div className="flex items-center gap-4 rounded-3xl bg-surface p-5 shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${teamColor(team)} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <span className="flex h-24 w-24 shrink-0 items-center justify-center p-1"><Crest src={team.crest_url} name={team.name} size={80} /></span>
         <div className="min-w-0 text-ink">
           <h1 className="font-display text-3xl font-bold uppercase leading-none sm:text-4xl">{team.name}</h1>
@@ -91,7 +91,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
               const Icon = BADGE_ICON[b.key];
               const p = ds.playerById.get(b.playerId);
               return (
-                <Link key={b.key} href={`/jugadores/${b.playerId}`} className="press rounded-2xl border border-line bg-surface p-3 hover:border-line-strong">
+                <Link key={b.key} href={`/jugadores/${b.playerId}`} className="press rounded-2xl bg-surface shadow-card p-3">
                   <Icon size={20} className="text-gold" aria-hidden />
                   <div className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-3">{t(`badge.${b.key}`)}</div>
                   <div className="truncate font-semibold">{playerName(p, "short")}</div>

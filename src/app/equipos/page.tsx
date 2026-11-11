@@ -19,7 +19,7 @@ export default async function Teams() {
           const players = ds.players.filter((p) => p.team_id === t.id && p.kind === "member" && p.active).length;
           return (
             <Link key={t.id} href={`/equipos/${t.slug}`} className="block">
-              <Card className="overflow-hidden transition hover:border-line-strong">
+              <Card className="overflow-hidden transition">
                 <div className="flex items-center gap-4 p-4" style={{ background: `linear-gradient(135deg, ${t.primary_color}22, transparent 70%)` }}>
                   <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white p-2 shadow-card"><Crest src={t.crest_url} name={t.name} size={64} /></span>
                   <div className="min-w-0">
@@ -45,7 +45,7 @@ export default async function Teams() {
           );
         })}
       </div>
-      <Link href="/estadios" className="mt-4 flex min-h-12 items-center justify-between rounded-2xl border border-line bg-surface px-4 text-sm font-semibold hover:border-line-strong">
+      <Link href="/estadios" className="mt-4 flex min-h-12 items-center justify-between rounded-2xl bg-surface shadow-card px-4 text-sm font-semibold">
         <span className="flex items-center gap-2"><MapPin size={18} aria-hidden className="text-ink-3" />Estadios: teléfonos, reservas y cómo llegar</span><span aria-hidden className="text-ink-3">›</span>
       </Link>
     </div>

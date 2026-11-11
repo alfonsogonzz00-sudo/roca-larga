@@ -28,9 +28,9 @@ export function ImageUpload({ name, defaultValue, folder, label = "Imagen" }: { 
       <div className="flex items-center gap-3">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="h-14 w-14 rounded-xl border border-line bg-white object-contain p-1" />
+          <img src={url} alt="" className="h-14 w-14 rounded-xl bg-white shadow-card object-contain p-1" />
         ) : <span className="flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-line-strong text-ink-3"><Upload size={18} /></span>}
-        <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line-strong px-3 text-sm font-semibold hover:bg-surface-2">
+        <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-surface-2 hover:bg-surface-3 px-3 text-sm font-semibold hover:bg-surface-2">
           <Upload size={16} /> {busy ? "Subiendo…" : "Subir"}
           <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} disabled={busy} />
         </label>

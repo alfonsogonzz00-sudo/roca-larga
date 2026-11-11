@@ -56,7 +56,7 @@ function Event({ icon, n, label }: { icon: React.ReactNode; n: number; label: st
   return (
     <span className="relative inline-flex rounded-full shadow" aria-label={`${n} ${label}`}>
       {icon}
-      {n > 1 && <span className="absolute -top-1.5 -right-2 rounded-none bg-black px-1 text-[9px] font-bold leading-[0.85rem] text-white">{n}</span>}
+      {n > 1 && <span className="absolute -top-1.5 -right-2 rounded-full bg-black px-1 text-[9px] font-bold leading-[0.85rem] text-white">{n}</span>}
     </span>
   );
 }
@@ -74,8 +74,8 @@ function PlayerChip({ pp, color }: { pp: PitchPlayer; color: string }) {
             {pp.assists ? <Event icon={<BootIcon />} n={pp.assists} label={pp.assists === 1 ? "asistencia" : "asistencias"} /> : null}
           </span>
         ) : null}
-        {pp.isMvp && <span className="absolute -top-1.5 -left-2 rounded-none bg-[#d6b25e] px-1 text-[9px] font-black leading-[0.95rem] text-[#1a1d23]" aria-label="MVP">MVP</span>}
-        {pp.attendance === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-none bg-win text-[10px] font-bold text-white" aria-label="Confirmado">✓</span>}
+        {pp.isMvp && <span className="absolute -top-1.5 -left-2 rounded-full bg-[#d6b25e] px-1 text-[9px] font-black leading-[0.95rem] text-[#1a1d23]" aria-label="MVP">MVP</span>}
+        {pp.attendance === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-win text-[10px] font-bold text-white" aria-label="Confirmado">✓</span>}
         {pp.rating != null && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2"><RatingBadge value={pp.rating} /></span>}
       </span>
       <span className={cx("w-full truncate text-[11px] font-semibold leading-tight text-white", pp.rating != null ? "mt-3" : "mt-1")}>{p.nickname ?? playerName(p, "short").split(" ").slice(-1)[0]}</span>
@@ -122,7 +122,7 @@ export function LineupPitch({ home, away }: { home: PitchSide; away: PitchSide }
   const ar = [...rowsFor(away)].reverse();
   const hc = teamColor(home.team), ac = teamColor(away.team);
   return (
-    <div className="overflow-hidden rounded-2xl border border-line">
+    <div className="overflow-hidden rounded-2xl shadow-card">
       <TeamBar side={home} />
       <div className="relative bg-[#1d5a33] px-1 py-4" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent 0 56px, rgb(255 255 255 / 0.05) 56px 112px)" }}>
         {/* líneas del campo */}

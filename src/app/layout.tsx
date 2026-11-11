@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="flex">
           <SideNav labels={labels} appName={settings.app_name} tagline={settings.app_tagline} isAdmin={Boolean(session?.isAdmin)} isStaff={Boolean(session?.isStaff)} voteBadge={pending} />
           <div className="min-w-0 flex-1">
-            <header className="pt-safe sticky top-0 z-30 border-b border-line bg-elev/95 backdrop-blur lg:hidden">
+            <header className="glass pt-safe sticky top-0 z-30 border-b border-black/5 !shadow-none lg:hidden">
               <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
                 <Link href="/" aria-label="Inicio"><Brand size="sm" /></Link>
                 <div className="flex items-center gap-1">

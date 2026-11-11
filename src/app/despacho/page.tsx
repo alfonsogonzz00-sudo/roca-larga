@@ -30,7 +30,7 @@ export default async function Office({ searchParams }: { searchParams: Promise<{
         <Simulators teams={ds.teams} players={ds.players} venues={ds.venues.filter((v) => v.active)} formations={ds.formations.filter((f) => f.active)}
           lowText={t("office.low_confidence")} initialTab={sp.tab === "individual" ? 1 : 0} initialPlayer={sp.player} />
       )}
-      <details className="mt-6 rounded-2xl border border-line bg-surface p-4 text-sm text-ink-2">
+      <details className="mt-6 rounded-2xl bg-surface shadow-card p-4 text-sm text-ink-2">
         <summary className="cursor-pointer font-semibold text-ink">Cómo calcula El Despacho</summary>
         <div className="mt-3 space-y-2">
           <p>Cada equipo tiene una tasa de goles esperada (λ). Se parte de la media de goles del histórico y se ajusta con siete factores ponderados: compañeros (30 %), rivales (20 %), estadio (20 %), últimos partidos, últimos en ese estadio, clima y horario.</p>

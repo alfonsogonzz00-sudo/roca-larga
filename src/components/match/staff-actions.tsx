@@ -17,7 +17,7 @@ export function StaffActions({ id, status, isAdmin, started }: { id: string; sta
     <Card className="space-y-3 p-4">
       <div className="text-xs font-semibold uppercase tracking-wider text-ink-3">Gestión del partido</div>
       <div className="flex flex-wrap gap-2">
-        {status !== "played" && status !== "cancelled" && <Link href={`/partidos/${id}/editar`} className="inline-flex min-h-11 items-center rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-surface-2">Editar y convocatoria</Link>}
+        {status !== "played" && status !== "cancelled" && <Link href={`/partidos/${id}/editar`} className="inline-flex min-h-11 items-center rounded-xl bg-surface-2 hover:bg-surface-3 px-4 text-sm font-semibold hover:bg-surface-2">Editar y convocatoria</Link>}
         {(status === "pending" || status === "postponed") && (
           <ActionForm action={setMatchStatusAction}>
             <input type="hidden" name="id" value={id} /><input type="hidden" name="status" value="confirmed" />
@@ -25,7 +25,7 @@ export function StaffActions({ id, status, isAdmin, started }: { id: string; sta
           </ActionForm>
         )}
         {(status === "confirmed" || status === "pending") && started && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl bg-gold px-4 text-sm font-semibold text-white">Finalizar partido</Link>}
-        {status === "played" && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-surface-2">Editar resultado</Link>}
+        {status === "played" && <Link href={`/partidos/${id}/finalizar`} className="inline-flex min-h-11 items-center rounded-xl bg-surface-2 hover:bg-surface-3 px-4 text-sm font-semibold hover:bg-surface-2">Editar resultado</Link>}
         {status !== "played" && status !== "cancelled" && (
           <>
             <Button variant="secondary" onClick={() => setMode(mode === "postponed" ? null : "postponed")}>Aplazar</Button>
