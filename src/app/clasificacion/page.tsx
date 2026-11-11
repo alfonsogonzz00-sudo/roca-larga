@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Briefcase, MapPin } from "lucide-react";
-import { Card, Crest, EmptyState, PageHeader, SectionTitle, Select, Stat, cx, inputCls } from "@/components/ui";
+import { Avatar, Card, Crest, EmptyState, PageHeader, SectionTitle, Select, cx, inputCls } from "@/components/ui";
 import { HBars, LineChart, WdlBar } from "@/components/charts";
 import { MatchRow } from "@/components/match/parts";
 import { getStats } from "@/lib/data/stats";
@@ -94,21 +94,40 @@ async function TeamsTab() {
         <p className="mt-2 text-center text-xs text-ink-3">{played} enfrentamientos</p>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[{ tm: a, st: sa }, { tm: b, st: sb }].map(({ tm, st }) => (
-          <Card key={tm.id} className="p-4" style={{ borderTop: `4px solid ${teamColor(tm)}` }}>
-            <div className="mb-3 font-display text-lg font-bold uppercase">{tm.name}</div>
-            <div className="grid grid-cols-3 gap-2">
-              <Stat label="% victorias" value={pct(st.record.winPct)} />
-              <Stat label="Goles a favor" value={st.record.goalsFor} />
-              <Stat label="Goles en contra" value={st.record.goalsAgainst} />
-              <Stat label="Diferencia" value={`${st.record.goalDiff >= 0 ? "+" : ""}${st.record.goalDiff}`} />
-              <Stat label="GF / partido" value={num(st.record.goalsFor / (st.record.played || 1))} />
-              <Stat label="Mayor victoria" value={st.biggestWin ? `${st.biggestWin.gf}-${st.biggestWin.ga}` : "—"} />
-            </div>
-          </Card>
-        ))}
-      </div>
+      <Card className="p-4">
+        <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center text-sm font-semibold">
+          <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(a) }} aria-hidden />{a.short_name}</span>
+          <span className="text-xs font-normal text-ink-3">cara a cara</span>
+          <span className="flex items-center justify-end gap-2">{b.short_name}<span className="h-2.5 w-2.5 rounded-full" style={{ background: teamColor(b) }} aria-hidden /></span>
+        </div>
+        <dl className="space-y-2.5">
+          {([
+            ["% victorias", sa.record.winPct, sb.record.winPct, (v: number) => pct(v)],
+            ["Goles marcados", sa.record.goalsFor, sb.record.goalsFor, (v: number) => String(v)],
+            ["Goles por partido", sa.record.goalsFor / (sa.record.played || 1), sb.record.goalsFor / (sb.record.played || 1), (v: number) => num(v)],
+          ] as const).map(([label, va, vb, f]) => {
+            const total = va + vb || 1;
+            return (
+              <div key={label}>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span className={va >= vb ? "font-display tabular text-lg font-bold" : "font-display tabular text-lg text-ink-3"}>{f(va)}</span>
+                  <dt className="text-xs text-ink-3">{label}</dt>
+                  <span className={vb >= va ? "font-display tabular text-lg font-bold" : "font-display tabular text-lg text-ink-3"}>{f(vb)}</span>
+                </div>
+                <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-full" aria-hidden>
+                  <span style={{ width: `${(va / total) * 100}%`, background: teamColor(a) }} />
+                  <span style={{ width: `${(vb / total) * 100}%`, background: teamColor(b) }} />
+                </div>
+              </div>
+            );
+          })}
+          <div className="flex items-baseline justify-between border-t border-line pt-2.5 text-sm">
+            <span className="font-display tabular text-lg font-bold">{sa.biggestWin ? `${sa.biggestWin.gf}-${sa.biggestWin.ga}` : "—"}</span>
+            <dt className="text-xs text-ink-3">Mayor victoria</dt>
+            <span className="font-display tabular text-lg font-bold">{sb.biggestWin ? `${sb.biggestWin.gf}-${sb.biggestWin.ga}` : "—"}</span>
+          </div>
+        </dl>
+      </Card>
 
       <section>
         <SectionTitle>Evolución (victorias acumuladas)</SectionTitle>
@@ -238,15 +257,37 @@ async function RankingsTab({ sp }: { sp: SP }) {
       <form method="get" className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-surface p-3 sm:grid-cols-3 lg:grid-cols-6">
         <input type="hidden" name="tab" value="rankings" />
         <Select name="stat" defaultValue={stat} aria-label="Estadística">{Object.entries(RANKING_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
-        <Select name="team" defaultValue={sp.team ?? ""} aria-label="Equipo"><option value="">Ambos equipos</option>{ds.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
-        <Select name="season" defaultValue={sp.season ?? ""} aria-label="Temporada"><option value="">Todas las temporadas</option>{seasons.map((s) => <option key={s} value={s}>{s}</option>)}</Select>
-        <Select name="venue" defaultValue={sp.venue ?? ""} aria-label="Estadio"><option value="">Todos los estadios</option>{ds.venues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select>
+        <Select name="team" defaultValue={sp.team ?? ""} aria-label="Equipo"><option value="">Los dos equipos</option>{ds.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>
+        <Select name="season" defaultValue={sp.season ?? ""} aria-label="Temporada"><option value="">Siempre</option>{seasons.map((s) => <option key={s} value={s}>{s}</option>)}</Select>
+        <Select name="venue" defaultValue={sp.venue ?? ""} aria-label="Estadio"><option value="">Todo campo</option>{ds.venues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select>
         <label className="flex items-center gap-2 text-sm"><span className="shrink-0 text-ink-3">Mín. PJ</span><input name="min" type="number" min={1} defaultValue={min} className={inputCls} /></label>
         <button className="min-h-11 rounded-xl bg-pitch px-4 text-sm font-semibold text-pitch-ink">Aplicar</button>
       </form>
       <Card className="p-4">
         <SectionTitle>{RANKING_LABELS[stat]}</SectionTitle>
         {rows.length === 0 ? <p className="text-sm text-ink-3">Ningún jugador cumple los filtros. No inventamos datos: prueba a relajar el mínimo de partidos.</p> : (
+          <>
+          <ol className="mb-4 grid grid-cols-3 items-end gap-2 text-center" aria-label="Podio">
+            {[1, 0, 2].map((k) => {
+              const r = rows[k];
+              if (!r) return <li key={k} />;
+              const p = ds.playerById.get(r.playerId);
+              const tm = p?.team_id ? ds.teamById.get(p.team_id) : null;
+              const h = ["h-24", "h-16", "h-12"][k];
+              return (
+                <li key={k} className="stagger">
+                  <Link href={`/jugadores/${r.playerId}`} className="press flex flex-col items-center gap-1">
+                    <span className={k === 0 ? "rounded-full ring-4 ring-gold" : "rounded-full ring-2 ring-line-strong"}><Avatar name={p?.full_name ?? "?"} src={p?.photo_url} size={k === 0 ? 56 : 44} color={teamColor(tm)} /></span>
+                    <span className="w-full truncate text-xs font-semibold">{playerName(p, "nick")}</span>
+                    <span className={`flex w-full flex-col items-center justify-start rounded-t-xl pt-1.5 ${h} ${k === 0 ? "bg-gold-soft" : "bg-surface-2"}`}>
+                      <span className={`font-display tabular text-xl font-bold ${k === 0 ? "text-gold" : ""}`}>{num(Number(r[stat] ?? 0), digits)}</span>
+                      <span className="text-[11px] text-ink-3">{k + 1}.º</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
           <HBars rows={rows.slice(0, 25).map((r) => {
             const p = ds.playerById.get(r.playerId);
             const tm = p?.team_id ? ds.teamById.get(p.team_id) : null;
@@ -257,6 +298,7 @@ async function RankingsTab({ sp }: { sp: SP }) {
               sub: `${tm?.short_name ?? "Invitado"} · ${r.matches} PJ · ${r.goals}G ${r.assists}A ${r.mvps} MVP`,
             };
           })} format={(v) => num(v, digits)} />
+          </>
         )}
         {stat === "concededPerSpell" && <p className="mt-2 text-xs text-ink-3">Orden ascendente: menos encajados por turno es mejor.</p>}
       </Card>
