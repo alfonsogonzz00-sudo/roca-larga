@@ -41,10 +41,10 @@ export function ThemeToggle() {
     { m: "system", label: "Automático", Icon: Monitor },
   ];
   return (
-    <div role="radiogroup" aria-label="Tema" className="inline-flex rounded-xl border border-line bg-surface-2 p-1">
+    <div role="radiogroup" aria-label="Tema" className="inline-flex max-w-full flex-wrap rounded-xl border border-line bg-surface-2 p-1">
       {opts.map(({ m, label, Icon }) => (
         <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => applyTheme(m)}
-          className={cx("flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold", mode === m ? "bg-surface text-ink shadow-card" : "text-ink-3")}>
+          className={cx("press flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold", mode === m ? "bg-surface text-ink shadow-card" : "text-ink-3")}>
           <Icon size={16} aria-hidden /> {label}
         </button>
       ))}
