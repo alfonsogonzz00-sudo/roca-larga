@@ -218,11 +218,19 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     }
     return [...map.values()];
   };
+  const assistsOf = (teamId: string): ScorerLine[] => {
+    const map = new Map<string, ScorerLine>();
+    for (const g of goals.filter((x) => x.team_id === teamId && x.assist_id && !x.is_own_goal)) {
+      const cur = map.get(g.assist_id!);
+      if (cur) cur.goals += 1; else map.set(g.assist_id!, { name: playerName(P(g.assist_id!), "short"), goals: 1 });
+    }
+    return [...map.values()];
+  };
 
   const okKey = sp.ok ? OK[sp.ok] : null;
   return (
     <div className="space-y-5">
-      <MatchHeader m={m} home={home} away={away} venue={venue} scorers={{ home: scorersOf(home.id), away: scorersOf(away.id) }} />
+      <MatchHeader m={m} home={home} away={away} venue={venue} scorers={{ home: scorersOf(home.id), away: scorersOf(away.id) }} assists={{ home: assistsOf(home.id), away: assistsOf(away.id) }} />
       {okKey && <Notice tone="ok">{t(okKey)}</Notice>}
       <div className="flex flex-wrap items-center gap-2 empty:hidden">
         {!played && m.status !== "pending" && m.status !== "confirmed" && <StatusPill status={m.status} />}
@@ -240,7 +248,6 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         </Card>
       )}
       {!played && venue && <VenueCard v={venue} compact />}
-      {s?.isStaff && <StaffActions id={m.id} status={m.status} isAdmin={s.isAdmin} started={started} />}
 
       <Tabs tabs={[
         { label: played ? "Alineaciones" : "Convocatoria", content: lineups },
@@ -261,6 +268,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           </Card>
         ) }] : []),
       ]} />
+      {s?.isStaff && <div className="border-t border-line pt-5"><StaffActions id={m.id} status={m.status} isAdmin={s.isAdmin} started={started} /></div>}
     </div>
   );
 }

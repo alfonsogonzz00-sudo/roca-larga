@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { Crest } from "@/components/ui";
-import { BallIcon } from "@/components/match/lineup-pitch";
+import { BallIcon, BootIcon } from "@/components/match/lineup-pitch";
 import { fmtTime } from "@/lib/format";
 import { STATUS_LABELS, type Match, type Team, type Venue } from "@/lib/types";
 
 export interface ScorerLine { name: string; goals: number; ownGoal?: boolean }
+
+/** «Alfonso González» → «A. González» (como los marcadores deportivos) */
+export function compactName(name: string) {
+  const [first, ...rest] = name.split(" ");
+  return rest.length ? `${first[0]}. ${rest.join(" ")}` : name;
+}
 
 const pad = (n: number) => String(n).padStart(2, "0");
 function datePill(iso: string) {
@@ -29,7 +35,7 @@ function Scorers({ list, align }: { list: ScorerLine[]; align: "left" | "right" 
     <ul className={align === "right" ? "space-y-0.5 text-right" : "space-y-0.5 text-left"}>
       {list.map((s) => (
         <li key={s.name + (s.ownGoal ? "pp" : "")} className="truncate">
-          {s.name}{s.ownGoal ? " (p.p.)" : ""}{s.goals > 1 ? <span className="text-white/55"> ×{s.goals}</span> : null}
+          {compactName(s.name)}{s.ownGoal ? " (p.p.)" : ""}{s.goals > 1 ? <span className="text-white/55"> ×{s.goals}</span> : null}
         </li>
       ))}
     </ul>
@@ -37,12 +43,16 @@ function Scorers({ list, align }: { list: ScorerLine[]; align: "left" | "right" 
 }
 
 /** Cabecera de la ficha de partido (estilo marcador digital) */
-export function MatchHeader({ m, home, away, venue, scorers }: {
-  m: Match; home: Team; away: Team; venue?: Venue; scorers: { home: ScorerLine[]; away: ScorerLine[] };
+export function MatchHeader({ m, home, away, venue, scorers, assists }: {
+  m: Match; home: Team; away: Team; venue?: Venue;
+  scorers: { home: ScorerLine[]; away: ScorerLine[] }; assists: { home: ScorerLine[]; away: ScorerLine[] };
 }) {
   const played = m.status === "played";
   const status = played ? "Finalizado" : STATUS_LABELS[m.status];
   const hasScorers = played && (scorers.home.length > 0 || scorers.away.length > 0);
+  const hasAssists = played && (assists.home.length > 0 || assists.away.length > 0);
+  const hs = m.home_score ?? 0, as = m.away_score ?? 0;
+  const dim = (mine: number, other: number) => (played && mine < other ? "text-white/45" : "");
   return (
     <header className="-mx-4 -mt-5 bg-[linear-gradient(180deg,#0d1117_0%,#141b26_55%,#1a2333_100%)] px-4 pt-4 pb-5 text-white lg:mx-0 lg:mt-0">
       <div className="flex justify-center">
@@ -53,7 +63,7 @@ export function MatchHeader({ m, home, away, venue, scorers }: {
         <div className="flex min-w-[7.5rem] flex-col items-center pt-3">
           {played ? (
             <div className="tabular text-[2.75rem] font-bold leading-none">
-              {m.home_score}<span className="mx-2 text-white/45">-</span>{m.away_score}
+              <span className={dim(hs, as)}>{m.home_score}</span><span className="mx-2 text-white/45">-</span><span className={dim(as, hs)}>{m.away_score}</span>
             </div>
           ) : (
             <div className="tabular text-4xl font-bold leading-none">{fmtTime(m.kickoff_at)}</div>
@@ -62,11 +72,22 @@ export function MatchHeader({ m, home, away, venue, scorers }: {
         </div>
         <Side team={away} />
       </div>
-      {hasScorers && (
-        <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-start gap-3 text-xs text-white/85">
-          <Scorers list={scorers.home} align="right" />
-          <BallIcon className="mt-0.5 h-3.5 w-3.5 opacity-80" />
-          <Scorers list={scorers.away} align="left" />
+      {(hasScorers || hasAssists) && (
+        <div className="mt-4 space-y-2 text-[13px] text-white/80">
+          {hasScorers && (
+            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3" aria-label="Goleadores">
+              <Scorers list={scorers.home} align="right" />
+              <BallIcon className="mt-0.5 h-4 w-4" />
+              <Scorers list={scorers.away} align="left" />
+            </div>
+          )}
+          {hasAssists && (
+            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3" aria-label="Asistentes">
+              <Scorers list={assists.home} align="right" />
+              <BootIcon className="mt-0.5 h-4 w-4" />
+              <Scorers list={assists.away} align="left" />
+            </div>
+          )}
         </div>
       )}
       {venue && (

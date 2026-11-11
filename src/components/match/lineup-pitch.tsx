@@ -41,9 +41,9 @@ export function BallIcon({ className = "h-4 w-4" }: { className?: string }) {
     </svg>
   );
 }
-function BootIcon() {
+export function BootIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
       <circle cx="12" cy="12" r="11" fill="#fff" />
       <path d="M5 7h5l1.2 4.2c.2.6.7 1 1.3 1.1l5.6.9c.8.1 1.4.8 1.4 1.6V16H5z" fill="#111" />
       <path d="M5 17.2h14.5" stroke="#111" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="1.6 1.6" />
