@@ -23,6 +23,29 @@ export function ServiceWorkerRegister() {
       const t = setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
       return () => clearInterval(t);
     }).catch(() => {});
+
+    // Si hay un despliegue más nuevo que la versión cargada, recargamos solos
+    // (iOS mantiene la app instalada "congelada" en memoria durante días).
+    const mine = process.env.NEXT_PUBLIC_BUILD_ID;
+    let checking = false;
+    const check = async () => {
+      if (checking || document.visibilityState !== "visible" || !mine || mine === "dev") return;
+      checking = true;
+      try {
+        const r = await fetch("/api/version", { cache: "no-store" });
+        const { v } = (await r.json()) as { v?: string };
+        if (v && v !== "dev" && v !== mine && !reloading) {
+          reloading = true;
+          const reg = await navigator.serviceWorker.getRegistration();
+          await reg?.update().catch(() => {});
+          window.location.reload();
+        }
+      } catch { /* sin conexión: seguimos con lo que hay */ } finally { checking = false; }
+    };
+    check();
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => { document.removeEventListener("visibilitychange", check); window.removeEventListener("focus", check); };
   }, []);
   if (!waiting) return null;
   return (
