@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { writeFileSync } from "node:fs";
-const D = "/home/claude/roca-larga/public/icons/";
+const D = "public/icons/";
 const svg = (full, id="c") => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><clipPath id="${id}"><rect width="512" height="512" rx="${full ? 0 : 112}"/></clipPath></defs>
 <g clip-path="url(#${id})"><rect width="512" height="512" fill="#0f2a18"/>
 <g opacity="0.18">${[0,1,2,3,4,5].map(i=>`<rect x="${i*86}" y="0" width="43" height="512" fill="#2f7a46"/>`).join("")}</g></g>
@@ -13,10 +13,16 @@ await sharp(Buffer.from(svg(false))).resize(512).png().toFile(D+"icon-512.png");
 await sharp(Buffer.from(svg(true))).resize(512).png().toFile(D+"maskable-512.png");
 await sharp(Buffer.from(svg(true))).resize(180).png().toFile(D+"apple-touch-icon.png");
 await sharp(Buffer.from(svg(false))).resize(72).png().toFile(D+"badge-72.png");
+// Pantallas de inicio iOS: logotipo + «powered by LongRock»
+const logo = "public/brand/rocalarga.png";
 for (const [w,h] of [[1179,2556],[1290,2796],[1170,2532],[750,1334],[1242,2688],[828,1792]]) {
-  const s = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#0b0f0c"/>
-  <g transform="translate(${w/2-110},${h/2-180}) scale(0.43)">${svg(false,"s").replace(/<svg[^>]*>|<\/svg>/g,"")}</g>
-  <text x="50%" y="${h/2+120}" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="${Math.round(w/13)}" fill="#eef1ea" letter-spacing="4">ROCA LARGA</text>
-  <text x="50%" y="${h/2+120+Math.round(w/18)}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.round(w/34)}" fill="#d6b25e">CARAVELLE F.C. · S.D. MONECILLO</text></svg>`;
-  await sharp(Buffer.from(s)).png().toFile(D+`splash-${w}x${h}.png`);
+  const lw = Math.round(w * 0.72);
+  const logoBuf = await sharp(logo).resize({ width: lw }).png().toBuffer();
+  const { height: lh } = await sharp(logoBuf).metadata();
+  const fs = Math.round(w / 30);
+  const text = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${fs * 3}"><text x="50%" y="${fs * 1.6}" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="${fs}" letter-spacing="${fs * 0.15}" fill="#7f897d">POWERED BY <tspan fill="#b6bdb2">LONGROCK</tspan></text></svg>`);
+  const top = Math.round(h / 2 - lh / 2 - fs);
+  await sharp({ create: { width: w, height: h, channels: 4, background: "#0b0f0c" } })
+    .composite([{ input: logoBuf, left: Math.round((w - lw) / 2), top }, { input: text, left: 0, top: top + lh + Math.round(fs * 0.6) }])
+    .png().toFile(D + `splash-${w}x${h}.png`);
 }

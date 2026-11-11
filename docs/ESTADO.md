@@ -5,7 +5,7 @@
 ## Implementado y verificado con pruebas automáticas
 
 - **Base de datos** (Supabase, aplicada): 22 tablas, RLS en todas, ~50 funciones de negocio, auditoría automática, cron por minuto.
-- **Usuarios**: alta con Google o email, vinculación cuenta↔jugador con validación por organizador/admin, apodo editable, roles (admin único por configuración segura, máx. 2 organizadores por equipo), suspensión.
+- **Usuarios**: alta con email y contraseña (Google desactivado por decisión del grupo; el código OAuth sigue disponible), vinculación cuenta↔jugador con validación por organizador/admin, apodo editable, roles (admin único por configuración segura, máx. 2 organizadores por equipo), suspensión.
 - **Partidos**: crear (pendiente/confirmado), local/visitante configurable, convocatoria con invitados y quién los trae, formación por equipo, previsión del tiempo, confirmar asistencia, aplazar con nueva fecha, cancelar, reactivar (admin), finalizar con 7+7 participantes, goles/asistencias/propia puerta, rotación de portería con atribución automática de encajados por minuto, editar resultado con recálculo, partidos históricos con datos parciales y MVP manual, eliminar (admin).
 - **Estadísticas**: equipos (V/E/D, goles, diferencia, por estadio, por temporada, racha, evolución), jugadores (campo y portería separados, top 3, mejor estadio, evolución), destacados, rankings filtrables por equipo, temporada, estadio, mínimo de partidos y estadística.
 - **Votación MVP**: única, anónima (HMAC), 3-2-1 configurable, sin auto-voto ni repetidos, modificable, ventana de 24 h desde el inicio programado, cierre automático por servidor, desempate configurable, recuento que descarta votos de no participantes tras correcciones, justificantes de participación.
@@ -20,13 +20,13 @@ Pruebas: `npm test` → 26 pruebas de reglas y seguridad sobre Postgres real con
 
 1. Repositorio de GitHub para el despliegue por Git (ver DESPLIEGUE.md).
 2. Claves VAPID y secreto del despachador (DESPLIEGUE.md §1–2).
-3. Credenciales de Google OAuth en Supabase (DESPLIEGUE.md §3).
+3. ~~Google OAuth~~ — descartado: solo email y contraseña.
 4. Estadios y sedes reales; vocabulario del grupo.
 
 ## Pendiente de verificar en dispositivo real
 
 - Instalación y push en iPhone (iOS 16.4+) y Android con la app ya desplegada.
-- Flujo completo de Google OAuth (depende del paso 3).
+- (Google OAuth descartado.)
 
 ## Decisiones técnicas documentadas
 

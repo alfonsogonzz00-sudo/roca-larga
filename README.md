@@ -7,7 +7,7 @@ PWA de fútbol 7 para dos equipos: partidos, convocatorias, rotación de porter�
 | Capa | Tecnología |
 |---|---|
 | Frontend | Next.js 16 (App Router, Server Components, Server Actions), React 19, TypeScript, Tailwind CSS 4 |
-| Datos | Supabase: PostgreSQL 17, Auth (Google + email), Storage (bucket `media`), RLS, pg_cron, pg_net |
+| Datos | Supabase: PostgreSQL 17, Auth (email y contraseña), Storage (bucket `media`), RLS, pg_cron, pg_net |
 | Hosting | Vercel (despliegue por Git) |
 | PWA | `app/manifest.ts`, `public/sw.js` (offline + push + actualizaciones), iconos y splash iOS |
 | Push | Web Push con VAPID (`web-push`) |

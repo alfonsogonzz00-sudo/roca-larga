@@ -12,6 +12,7 @@ import { getSettings, getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
 import { getPendingVotesCount } from "@/lib/data/votes";
 import { NAV } from "@/components/layout/nav-items";
+import { Brand } from "@/components/layout/brand";
 
 export const metadata: Metadata = {
   title: { default: "Roca Larga", template: "%s · Roca Larga" },
@@ -37,10 +38,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f2ec" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0f0c" },
-  ],
+  themeColor: "#0b0f0c",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -48,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pending = await getPendingVotesCount(session);
   const labels = Object.fromEntries(NAV.map((n) => [n.key, t(n.key, n.label)]));
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -59,8 +57,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SideNav labels={labels} appName={settings.app_name} tagline={settings.app_tagline} isAdmin={Boolean(session?.isAdmin)} isStaff={Boolean(session?.isStaff)} voteBadge={pending} />
           <div className="min-w-0 flex-1">
             <header className="pt-safe sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur lg:hidden">
-              <div className="mx-auto flex h-12 max-w-3xl items-center justify-between px-4">
-                <Link href="/" className="font-display text-xl font-bold uppercase tracking-wide">{settings.app_name}</Link>
+              <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+                <Link href="/" aria-label="Inicio"><Brand size="sm" /></Link>
                 <div className="flex items-center gap-1">
                   {session?.isStaff && (
                     <Link href="/gestion" aria-label="Gestión" className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2"><ClipboardList size={20} /></Link>

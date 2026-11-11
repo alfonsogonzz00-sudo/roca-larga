@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Briefcase, CalendarDays, History, Shield, UserRound, Vote, Settings, ClipboardList } from "lucide-react";
 import { NAV, isActive } from "./nav-items";
 import { cx } from "@/components/ui";
+import { Brand } from "./brand";
 
 const ICONS = { CalendarDays, Shield, Vote, History, Briefcase, UserRound };
 
@@ -65,9 +66,9 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
   };
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-line bg-elev px-4 py-6 lg:flex">
-      <Link href="/" className="mb-8 block px-3">
-        <span className="font-display text-2xl font-bold uppercase tracking-wide text-ink">{appName}</span>
-        <span className="block text-xs text-ink-3">{tagline}</span>
+      <Link href="/" className="mb-8 block px-3" aria-label={appName}>
+        <Brand size="md" stacked className="items-start" />
+        <span className="mt-2 block text-xs text-ink-3">{tagline}</span>
       </Link>
       <nav aria-label="Principal" className="flex flex-col gap-1">
         {NAV.map((i) => link(i.href, labels[i.key] ?? i.label, ICONS[i.icon], i.href === "/votacion" ? voteBadge : undefined))}

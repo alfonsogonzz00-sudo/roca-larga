@@ -22,7 +22,7 @@ Todo se hace desde la app (Administración), sin tocar código ni la base de dat
 
 ## Flujo de alta de cada jugador
 
-1. Entra con Google o email.
+1. Entra con email y contraseña.
 2. Elige equipo → su nombre real → escribe su apodo.
 3. Un organizador de su equipo (o el administrador) aprueba la solicitud en Gestión.
 

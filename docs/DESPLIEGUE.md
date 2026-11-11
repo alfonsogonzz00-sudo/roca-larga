@@ -38,7 +38,7 @@ Pon el mismo secreto en `NOTIFICATIONS_DISPATCH_SECRET` en Vercel y vuelve a des
 
 ### 3. Autenticación (Supabase → Authentication)
 - **URL Configuration**: *Site URL* = URL de producción; *Redirect URLs*: `https://TU-DOMINIO/**` y `http://localhost:3000/**`.
-- **Google**: crea un cliente OAuth en Google Cloud (tipo «Aplicación web»), con URI de redirección `https://fsftghnwjvztwakgaifk.supabase.co/auth/v1/callback`; pega *Client ID* y *Secret* en Providers → Google.
+- **Google** (opcional, desactivado: el grupo usa solo email): crea un cliente OAuth en Google Cloud (tipo «Aplicación web»), con URI de redirección `https://fsftghnwjvztwakgaifk.supabase.co/auth/v1/callback`; pega *Client ID* y *Secret* en Providers → Google.
 - **Email**: activado por defecto con confirmación. El SMTP integrado de Supabase está limitado (pocos correos/hora); para el grupo basta, pero puedes configurar SMTP propio en Settings → Auth.
 
 ### 4. Administrador

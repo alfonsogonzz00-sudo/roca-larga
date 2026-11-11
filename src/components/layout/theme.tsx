@@ -6,22 +6,23 @@ import { cx } from "@/components/ui";
 type Mode = "system" | "light" | "dark";
 
 /** Script que se ejecuta antes de pintar para evitar el parpadeo de tema */
-export const themeScript = `(function(){try{var m=localStorage.getItem('theme');if(m==='light'||m==='dark'){document.documentElement.dataset.theme=m}}catch(e){}})();`;
+// Por defecto la app es oscura (el HTML sale con data-theme="dark"); sólo cambia si el usuario eligió otra cosa.
+export const themeScript = `(function(){try{var m=localStorage.getItem('theme'),r=document.documentElement;if(m==='light'){r.dataset.theme='light'}else if(m==='system'){r.removeAttribute('data-theme')}else{r.dataset.theme='dark'}}catch(e){}})();`;
 
 const listeners = new Set<() => void>();
 function read(): Mode {
   try {
     const m = localStorage.getItem("theme");
-    return m === "light" || m === "dark" ? m : "system";
+    return m === "light" || m === "system" ? m : "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 function applyTheme(m: Mode) {
   try {
     const root = document.documentElement;
     if (m === "system") {
-      localStorage.removeItem("theme");
+      localStorage.setItem("theme", "system");
       root.removeAttribute("data-theme");
     } else {
       localStorage.setItem("theme", m);
@@ -33,11 +34,11 @@ function applyTheme(m: Mode) {
 const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
 
 export function ThemeToggle() {
-  const mode = useSyncExternalStore(subscribe, read, () => "system" as Mode);
+  const mode = useSyncExternalStore(subscribe, read, () => "dark" as Mode);
   const opts: { m: Mode; label: string; Icon: typeof Sun }[] = [
-    { m: "system", label: "Automático", Icon: Monitor },
-    { m: "light", label: "Claro", Icon: Sun },
     { m: "dark", label: "Oscuro", Icon: Moon },
+    { m: "light", label: "Claro", Icon: Sun },
+    { m: "system", label: "Automático", Icon: Monitor },
   ];
   return (
     <div role="radiogroup" aria-label="Tema" className="inline-flex rounded-xl border border-line bg-surface-2 p-1">
