@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Button, Notice, cx } from "./index";
@@ -53,23 +53,33 @@ export function ActionForm({ action, children, className, onSuccess, resetOnSucc
 
 export function Tabs({ tabs, initial = 0, className }: { tabs: { label: string; content: ReactNode }[]; initial?: number; className?: string }) {
   const [i, setI] = useState(initial);
+  const id = useId();
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const n = (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    setI(n);
+    document.getElementById(`${id}-t${n}`)?.focus();
+  };
   return (
     <div className={className}>
-      <div role="tablist" className="no-scrollbar mb-4 flex gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1">
+      <div role="tablist" onKeyDown={onKey} className="no-scrollbar mb-4 flex gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1">
         {tabs.map((t, idx) => (
           <button
             key={t.label}
+            id={`${id}-t${idx}`}
             role="tab"
             type="button"
             aria-selected={i === idx}
+            aria-controls={`${id}-p`}
+            tabIndex={i === idx ? 0 : -1}
             onClick={() => setI(idx)}
-            className={cx("min-h-10 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition", i === idx ? "bg-surface text-ink shadow-card" : "text-ink-3 hover:text-ink")}
+            className={cx("press min-h-10 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-semibold", i === idx ? "bg-surface text-ink shadow-card" : "text-ink-3 hover:text-ink")}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <div role="tabpanel">{tabs[i]?.content}</div>
+      <div role="tabpanel" id={`${id}-p`} aria-labelledby={`${id}-t${i}`} key={i} className="animate-fade">{tabs[i]?.content}</div>
     </div>
   );
 }

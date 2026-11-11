@@ -106,52 +106,56 @@ function TeamBlock({ team, label, link }: { team: Team; label: string; link: boo
 }
 
 /** Pizarra con la formación (6 de campo + portero rotatorio) */
-export function FormationBoard({ formation, players, positions, color, teamName }: {
+export function FormationBoard({ formation, players, positions, color, teamName, attendance }: {
   formation: Formation | null; players: Player[]; positions: Map<string, Position | null>; color: string; teamName: string;
+  attendance?: Map<string, "pending" | "yes" | "no">;
 }) {
   const lines = formation?.lines ?? [2, 3, 1]; // sin formación: reparto orientativo
   const order: Position[] = ["DEF", "MED", "DEL"];
-  const pool = [...players].sort((a, b) => {
-    const pa = positions.get(a.id) ?? a.usual_position ?? "MED";
-    const pb = positions.get(b.id) ?? b.usual_position ?? "MED";
-    const ia = pa === "POR" ? 3 : order.indexOf(pa);
-    const ib = pb === "POR" ? 3 : order.indexOf(pb);
+  const posOf = (p: Player) => positions.get(p.id) ?? p.usual_position ?? "MED";
+  // Portería: quien tenga «POR» asignado; si no, el último del reparto (la portería rota entre los siete)
+  const gk = players.find((p) => positions.get(p.id) === "POR") ?? players.find((p) => p.usual_position === "POR");
+  const field = [...players.filter((p) => p !== gk)].sort((a, b) => {
+    const ia = posOf(a) === "POR" ? 3 : order.indexOf(posOf(a));
+    const ib = posOf(b) === "POR" ? 3 : order.indexOf(posOf(b));
     return ia - ib;
   });
-  // Reparte a los convocados por líneas (defensa → ataque); el portero rota
+  const slots = lines.reduce((x, y) => x + y, 0);
+  const inGoal = gk ?? (field.length > slots ? field.pop() : undefined);
   const rows: Player[][] = [];
   let i = 0;
-  for (const n of lines) { rows.push(pool.slice(i, i + n)); i += n; }
-  const extra = pool.slice(i);
+  for (const n of lines) { rows.push(field.slice(i, i + n)); i += n; }
+  const extra = field.slice(i);
   return (
     <div className="rounded-2xl bg-[#14361f] p-3 text-white">
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-semibold">{teamName}</span>
         <span className="font-display tabular text-sm font-bold">{formation?.name ?? "Sin formación"}</span>
       </div>
-      <div className="relative flex min-h-56 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
+      <div className="relative flex min-h-60 flex-col-reverse justify-around gap-3 rounded-xl border border-white/15 px-2 py-4">
         <div className="pointer-events-none absolute inset-x-6 top-0 h-8 rounded-b-xl border border-t-0 border-white/15" />
         <div className="pointer-events-none absolute inset-x-6 bottom-0 h-8 rounded-t-xl border border-b-0 border-white/15" />
-        <div className="flex justify-center"><Chip label="POR rotatorio" color="#d6b25e" dashed /></div>
+        <div className="flex justify-center"><Chip p={inGoal} color="#d6b25e" gk att={inGoal ? attendance?.get(inGoal.id) : undefined} /></div>
         {rows.map((r, idx) => (
           <div key={idx} className="flex justify-around">
-            {Array.from({ length: lines[idx] }).map((_, j) => {
-              const p = r[j];
-              return <Chip key={j} label={p ? playerName(p, "nick") : "—"} color={color} />;
-            })}
+            {Array.from({ length: lines[idx] }).map((_, j) => <Chip key={j} p={r[j]} color={color} att={r[j] ? attendance?.get(r[j].id) : undefined} />)}
           </div>
         ))}
       </div>
-      {extra.length > 0 && <p className="mt-2 text-xs text-white/70">Además: {extra.map((p) => playerName(p, "nick")).join(", ")}</p>}
+      <p className="mt-2 text-[11px] text-white/60">La portería rota cada ~7 min entre los siete.{extra.length > 0 && ` Además: ${extra.map((p) => playerName(p, "nick")).join(", ")}.`}</p>
     </div>
   );
 }
 
-function Chip({ label, color, dashed }: { label: string; color: string; dashed?: boolean }) {
+function Chip({ p, color, gk, att }: { p?: Player; color: string; gk?: boolean; att?: "pending" | "yes" | "no" }) {
   return (
     <span className="flex max-w-[5.5rem] flex-col items-center gap-1 text-center">
-      <span className={cx("h-7 w-7 rounded-full border-2", dashed ? "border-dashed" : "border-white/70")} style={{ background: dashed ? "transparent" : color, borderColor: dashed ? color : undefined }} />
-      <span className="w-full truncate text-[11px] font-semibold leading-tight">{label}</span>
+      <span className={cx("relative rounded-full", gk ? "outline-2 outline-offset-2 outline-dashed outline-[#d6b25e]" : "ring-2 ring-white/60", att === "no" && "opacity-40")}>
+        {p ? <Avatar name={p.full_name} src={p.photo_url} size={34} color={color} /> : <span className="block h-[34px] w-[34px] rounded-full border-2 border-dashed border-white/40" />}
+        {att === "yes" && <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-win text-[10px] font-bold text-[#07130b]" aria-label="Confirmado">✓</span>}
+      </span>
+      <span className="w-full truncate text-[11px] font-semibold leading-tight">{p ? playerName(p, "nick") : "—"}</span>
+      {gk && <span className="-mt-0.5 text-[10px] uppercase tracking-wider text-[#d6b25e]">Portería</span>}
     </span>
   );
 }

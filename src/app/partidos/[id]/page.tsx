@@ -58,8 +58,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       const a = goals.filter((gg) => gg.assist_id === x.player_id).length;
       const notes = [
         p.kind === "guest" ? `Invitado${bringer ? ` de ${playerName(bringer, "short")}` : ""}` : null,
-        played && g ? `⚽ ${g}` : null,
-        played && a ? `🅰 ${a}` : null,
+        played && g ? `${g} ${g === 1 ? "gol" : "goles"}` : null,
+        played && a ? `${a} asist.` : null,
         played && ratingOf.has(x.player_id) ? `valoración ${ratingOf.get(x.player_id)!.toFixed(2).replace(".", ",")}` : null,
       ].filter(Boolean).join(" · ");
       return { player: p, position: x.lineup_position, note: notes || undefined, attendance: played ? undefined : x.attendance };
@@ -74,14 +74,14 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         const fid = tm.id === home.id ? m.home_formation_id : m.away_formation_id;
         return (
           <div key={tm.id} className="space-y-3">
-            <FormationBoard formation={fid ? ds.formationById.get(fid) ?? null : null} players={list.map((l) => l.player)} positions={positions} color={teamColor(tm)} teamName={tm.name} />
-            <Card className="p-4">
-              <div className="mb-1 text-sm font-semibold">{played ? "Participantes" : "Convocados"} · {tm.short_name} ({list.length})</div>
+            <FormationBoard formation={fid ? ds.formationById.get(fid) ?? null : null} players={list.map((l) => l.player)} positions={positions} color={teamColor(tm)} teamName={tm.name}
+              attendance={played ? undefined : new Map(mps.filter((x) => x.team_id === tm.id).map((x) => [x.player_id, x.attendance]))} />
+            <Details summary={`${played ? "Participantes" : "Convocados"} · ${tm.short_name} (${list.length})`} defaultOpen={played}>
               <PlayerChipList items={list} color={teamColor(tm)} />
               {played && mps.some((x) => x.team_id === tm.id && x.called && !x.participated) && (
                 <p className="mt-2 text-xs text-ink-3">Convocados que no jugaron: {mps.filter((x) => x.team_id === tm.id && x.called && !x.participated).map((x) => playerName(P(x.player_id), "short")).join(", ")}</p>
               )}
-            </Card>
+            </Details>
           </div>
         );
       })}
@@ -254,7 +254,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             <p className="text-sm text-ink-2">Lo que el modelo habría pronosticado usando sólo los partidos anteriores a este encuentro.</p>
             <PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} />
           </div>
-        ) }] : [{ label: "MVP", content: mvpBlock }]),
+        ) }] : started ? [{ label: "Votación", content: mvpBlock }] : []),
         ...(s?.isStaff ? [{ label: "Actividad", content: (
           <Card className="p-4">
             {activity.length === 0 ? <p className="text-sm text-ink-3">Sin actividad.</p> : (
