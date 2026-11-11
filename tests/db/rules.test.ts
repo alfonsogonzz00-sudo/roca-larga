@@ -58,6 +58,17 @@ describe("usuarios y roles", () => {
     await expectError(db.as(u, `select public.request_player_link($1, 'x')`, [monPlayers[0]]), /ya está vinculado/);
   });
 
+  it("notificaciones: sólo el admin guarda claves VAPID y el despachador exige el secreto", async () => {
+    const pub = "B" + "a".repeat(86), priv = "c".repeat(43);
+    const nobody = await db.createUser("nadie@example.com");
+    await expectError(db.as(nobody, `select public.admin_set_vapid_keys($1, $2)`, [pub, priv]), /Sólo el administrador/);
+    await expectError(db.as(admin, `select public.admin_set_vapid_keys('corta', 'x')`), /no válidas/);
+    await db.as(admin, `select public.admin_set_vapid_keys($1, $2)`, [pub, priv]);
+    const k = await db.as(null, `select public.vapid_public_key() as k`);
+    expect(k[0].k).toBe(pub);
+    await expectError(db.as(null, `select * from public.dispatch_credentials('mal')`), /No autorizado/);
+  });
+
   it("organizadores: máximo 2 por equipo y nunca admin", async () => {
     orgCar = await linkedUser("org1@example.com", carPlayers[0]);
     const org2 = await linkedUser("org2@example.com", carPlayers[1]);

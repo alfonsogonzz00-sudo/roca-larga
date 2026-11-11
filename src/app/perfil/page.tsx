@@ -45,6 +45,8 @@ export default async function Profile() {
   const team = s.player?.team_id ? ds.teamById.get(s.player.team_id) : null;
   const tot = s.player ? playerTotals(s.player.id, parts) : null;
   const mine = s.player ? parts.filter((p) => p.playerId === s.player!.id).sort((a, b) => b.kickoff.localeCompare(a.kickoff)).slice(0, 10) : [];
+  const { data: dbVapid } = await supabase.rpc("vapid_public_key");
+  const vapidKey = (dbVapid as string | null) || env.vapidPublicKey;
   const provider = s.profile.auth_provider === "google" ? "Google" : "Correo y contraseña";
 
   return (
@@ -125,7 +127,7 @@ export default async function Profile() {
       <section>
         <SectionTitle>Notificaciones</SectionTitle>
         <Card className="space-y-4 p-4">
-          <PushToggle vapidKey={env.vapidPublicKey} />
+          <PushToggle vapidKey={vapidKey} />
           <ActionForm action={updatePrefs} className="space-y-2">
             {PREFS.map(([k, label]) => (
               <label key={k} className="flex min-h-11 items-center justify-between gap-3 text-sm">

@@ -220,3 +220,12 @@ export async function recalcAction(): Promise<ActionResult> {
 export async function purgeDemoAction(): Promise<ActionResult> {
   return run(async () => (await admin()).rpc("admin_purge_demo_data"), "Datos de demostración eliminados.");
 }
+
+/** Genera las claves VAPID en el servidor y las guarda en la BD. Nunca se muestran ni salen del servidor. */
+export async function enablePushAction(): Promise<ActionResult> {
+  const webpush = await import("web-push");
+  const keys = webpush.generateVAPIDKeys();
+  const r = await run(async () => (await admin()).rpc("admin_set_vapid_keys", { p_public: keys.publicKey, p_private: keys.privateKey }), "Notificaciones activadas. Ya podéis activar los avisos en Perfil.");
+  revalidatePath("/", "layout");
+  return r;
+}

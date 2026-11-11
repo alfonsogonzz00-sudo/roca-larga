@@ -63,7 +63,7 @@ export function PushToggle({ vapidKey }: { vapidKey: string }) {
   return (
     <div className="space-y-2">
       {state === "loading" && <p className="text-sm text-ink-3">Comprobando este dispositivo…</p>}
-      {state === "nokey" && <Notice tone="warn">Las notificaciones push aún no están configuradas en el servidor (faltan las claves VAPID).</Notice>}
+      {state === "nokey" && <Notice tone="warn">Las notificaciones push aún no están configuradas en el servidor (el administrador debe activarlas en Administración → Notificaciones).</Notice>}
       {state === "unsupported" && <Notice>Este navegador no admite notificaciones push. La app funciona igual; prueba con Chrome en Android o instalando la app en iPhone.</Notice>}
       {state === "denied" && <Notice tone="warn">Has bloqueado las notificaciones para esta app. Actívalas en los ajustes del navegador o del sistema (Ajustes → Notificaciones) y vuelve aquí.</Notice>}
       {state === "ios-install" && (

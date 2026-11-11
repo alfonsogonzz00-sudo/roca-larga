@@ -12,29 +12,24 @@
 | `NEXT_PUBLIC_SUPABASE_URL` | pública | `https://fsftghnwjvztwakgaifk.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | pública | clave `sb_publishable_…` (Supabase → Settings → API Keys) |
 | `NEXT_PUBLIC_SITE_URL` | pública | URL de producción |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | pública | clave pública VAPID |
-| `VAPID_PRIVATE_KEY` | **secreta** | clave privada VAPID |
-| `VAPID_SUBJECT` | secreta | `mailto:tu-email` |
-| `NOTIFICATIONS_DISPATCH_SECRET` | **secreta** | el mismo valor que `private.config('dispatch_secret')` |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | pública | *opcional/obsoleta*: ahora vive en la BD (ver §1) |
+| `VAPID_PRIVATE_KEY` | **secreta** | *opcional/obsoleta*: ahora vive en la BD (ver §1) |
+| `VAPID_SUBJECT` | secreta | *opcional/obsoleta*: ahora vive en la BD (ver §1) |
+| `NOTIFICATIONS_DISPATCH_SECRET` | **secreta** | *opcional/obsoleta*: ahora vive en la BD (ver §1) |
 
 No se usa la *service role key* en ningún sitio.
 
 ## Pasos manuales (una sola vez)
 
-### 1. Claves VAPID (push)
-```bash
-npx web-push generate-vapid-keys
-```
-Copia la pública a `NEXT_PUBLIC_VAPID_PUBLIC_KEY` y la privada a `VAPID_PRIVATE_KEY`.
+### 1–2. Notificaciones push
+Ya no hay que generar nada a mano ni tocar Vercel:
+1. Entra como administrador → **Administración → Notificaciones** → **Activar notificaciones**.
+   El servidor genera las claves VAPID y las guarda en `private.config` (nunca se muestran).
+2. El secreto del despachador se generó al crear la BD y pg_cron lo envía al endpoint; la BD lo valida.
+3. `app_url` ya apunta a `https://roca-larga.vercel.app` (cámbialo en `private.config` si usas otro dominio).
 
-### 2. Secreto del despachador y URL de la app
-Genera un secreto (p. ej. `openssl rand -hex 24`) y en Supabase → SQL Editor:
-```sql
-update private.config set value = 'TU_SECRETO' where key = 'dispatch_secret';
-insert into private.config (key, value) values ('app_url', 'https://TU-DOMINIO')
-  on conflict (key) do update set value = excluded.value;
-```
-Pon el mismo secreto en `NOTIFICATIONS_DISPATCH_SECRET` en Vercel y vuelve a desplegar.
+Cada usuario activa después los avisos en **Perfil → Notificaciones** (en iPhone, primero hay que instalar la app en la pantalla de inicio).
+Las variables de entorno VAPID/secreto siguen aceptándose como respaldo, pero no hacen falta.
 
 ### 3. Autenticación (Supabase → Authentication)
 - **URL Configuration**: *Site URL* = URL de producción; *Redirect URLs*: `https://TU-DOMINIO/**` y `http://localhost:3000/**`.
@@ -63,4 +58,4 @@ Las migraciones viven en `supabase/migrations`. Para nuevos cambios: crea un arc
 ## Comprobaciones tras desplegar
 
 - Abrir la web en el móvil → instalar (Android: menú → Instalar app; iPhone: Compartir → Añadir a pantalla de inicio).
-- Perfil → Activar avisos. Administración → Resumen muestra el estado de VAPID y del secreto.
+- Perfil → Activar avisos. Administración → Notificaciones muestra el estado del servicio.

@@ -9,16 +9,18 @@ import { serverEnv } from "@/lib/server-env";
 export default async function AdminHome() {
   const supabase = await createClient();
   const { ds } = await getStats();
-  const [{ data: users }, { data: pending }, { count: notifPending }, { count: subs }] = await Promise.all([
+  const [{ data: users }, { data: pending }, { count: notifPending }, { count: subs }, { data: push }] = await Promise.all([
     supabase.rpc("admin_list_users"),
     supabase.rpc("pending_link_requests"),
     supabase.from("notifications").select("*", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("push_subscriptions").select("*", { count: "exact", head: true }),
+    supabase.rpc("push_config_status"),
   ]);
+  const ps = (push ?? {}) as { vapid?: boolean; secret?: boolean; app_url?: boolean; cron?: boolean };
   const demo = ds.matches.filter((m) => m.is_demo).length + ds.players.filter((p) => p.is_demo).length + ds.venues.filter((v) => v.is_demo).length;
   const checks = [
-    { ok: Boolean(env.vapidPublicKey && serverEnv.vapidPrivateKey), label: "Claves VAPID para push" },
-    { ok: Boolean(serverEnv.dispatchSecret), label: "Secreto del despachador de avisos" },
+    { ok: Boolean(ps.vapid || (env.vapidPublicKey && serverEnv.vapidPrivateKey)), label: "Notificaciones push (Notificaciones → Activar)" },
+    { ok: Boolean(ps.secret && ps.app_url && ps.cron), label: "Envío automático de avisos" },
     { ok: ds.venues.length > 0, label: "Estadios dados de alta" },
     { ok: ds.teams.every((t) => t.headquarters), label: "Sedes de los equipos" },
   ];

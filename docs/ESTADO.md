@@ -19,7 +19,7 @@ Pruebas: `npm test` → 26 pruebas de reglas y seguridad sobre Postgres real con
 ## Requiere acción tuya
 
 1. Repositorio de GitHub para el despliegue por Git (ver DESPLIEGUE.md).
-2. Claves VAPID y secreto del despachador (DESPLIEGUE.md §1–2).
+2. ~~Claves VAPID~~ — ahora un botón en Administración → Notificaciones.
 3. ~~Google OAuth~~ — descartado: solo email y contraseña.
 4. Estadios y sedes reales; vocabulario del grupo.
 
