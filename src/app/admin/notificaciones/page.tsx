@@ -47,8 +47,8 @@ export default async function AdminNotifications() {
             {t.description && <p className="text-xs text-ink-3">{t.description}</p>}
             <Field label="Título" htmlFor={`tt-${t.type}`}><Input id={`tt-${t.type}`} name="title_template" defaultValue={t.title_template} required /></Field>
             <Field label="Texto" htmlFor={`tb-${t.type}`}><Textarea id={`tb-${t.type}`} name="body_template" defaultValue={t.body_template} required /></Field>
-            {t.type === "match_reminder"
-              ? <Field label="Antelación (minutos, separados por comas)" htmlFor="lead" hint="1440 = 24 h · 120 = 2 h"><Input id="lead" name="lead_minutes" defaultValue={t.lead_minutes.join(", ")} /></Field>
+            {["match_reminder", "reminder_confirm", "reminder_kickoff"].includes(t.type)
+              ? <Field label="Antelación (minutos, separados por comas)" htmlFor={`lead-${t.type}`} hint="1440 = 24 h · 120 = 2 h"><Input id={`lead-${t.type}`} name="lead_minutes" defaultValue={t.lead_minutes.join(", ")} /></Field>
               : <input type="hidden" name="lead_minutes" value="" />}
             <SubmitButton>Guardar</SubmitButton>
           </ActionForm>

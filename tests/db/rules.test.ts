@@ -174,6 +174,20 @@ describe("partidos", () => {
     expect(r.attendance).toBe("yes");
   });
 
+  it("2 h antes: «confirma» a quien no ha respondido y «quedan 2 horas» a quien va", async () => {
+    const [{ kickoff_at: orig }] = await db.su<{ kickoff_at: string }>(`select kickoff_at from public.matches where id=$1`, [matchId]);
+    await db.su(`update public.matches set kickoff_at = now() + interval '119 minutes' where id=$1`, [matchId]);
+    await db.su(`select private.enqueue_due_reminders()`);
+    const rows = await db.su<{ type: string; user_id: string; body: string }>(
+      `select type, user_id, body from public.notifications where match_id=$1 and type in ('reminder_confirm','reminder_kickoff')`, [matchId]);
+    const mine = rows.filter((r) => r.user_id === pMon1);
+    expect(mine.map((r) => r.type)).toEqual(["reminder_kickoff"]);
+    expect(mine[0].body).toMatch(/^Quedan 2 horas para que ruede el balón en Campo de pruebas/);
+    expect(rows.filter((r) => r.user_id === pMon2).map((r) => r.type)).toEqual(["reminder_confirm"]);
+    expect(rows.filter((r) => r.type === "match_reminder").length).toBe(0);
+    await db.su(`update public.matches set kickoff_at = $2 where id=$1`, [matchId, orig]);
+  });
+
   it("un jugador no puede escribir directamente en partidos ni goles", async () => {
     await expectError(db.as(pMon1, `update public.matches set home_score=9 where id=$1`, [matchId]), /permission denied/);
     await expectError(db.as(pMon1, `insert into public.goals(match_id, team_id, seq) values ($1, $2, 1)`, [matchId, mon]), /permission denied/);
