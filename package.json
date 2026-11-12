@@ -29,6 +29,8 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.16",
+    "@gltf-transform/core": "^4.1.1",
+    "@gltf-transform/extensions": "^4.1.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^22.20.5",
     "@types/react": "^19",

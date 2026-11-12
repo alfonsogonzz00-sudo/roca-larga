@@ -58,6 +58,9 @@ export interface Player {
   model_url?: string | null;
   card_photo_url?: string | null;
   model_updated_at?: string | null;
+  /** Mapa de zonas para personalizar (botas, medias, espalda) y la personalización guardada */
+  model_map_url?: string | null;
+  kit?: { boots?: string; socks?: string; back_name?: string } | null;
 }
 
 /** Altura y peso: sólo visibles con sesión iniciada */

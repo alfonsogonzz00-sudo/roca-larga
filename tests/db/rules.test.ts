@@ -433,3 +433,20 @@ describe("datos físicos y modelo 3D", () => {
     expect(p.model_updated_at).not.toBeNull();
   });
 });
+
+describe("personalización del jugador 3D", () => {
+  it("cada jugador guarda su kit y se valida", async () => {
+    const [{ player_id }] = await db.su<{ player_id: string }>(`select player_id from public.profiles where id=$1`, [pMon1]);
+    await db.as(pMon1, `select public.set_my_kit('rojo', null, 'Sito', 14::smallint)`);
+    const [p] = await db.su<{ kit: Record<string, string>; shirt_number: number }>(`select kit, shirt_number from public.players where id=$1`, [player_id]);
+    expect(p.kit).toEqual({ boots: "rojo", back_name: "SITO" });
+    expect(p.shirt_number).toBe(14);
+    await expectError(db.as(pMon1, `select public.set_my_kit('fucsia', null, null, null)`), /Color no disponible/);
+    await expectError(db.as(pMon1, `select public.set_my_kit(null, null, 'NOMBRE MUY LARGO', null)`), /12 letras/);
+    await expectError(db.as(pMon1, `select public.set_my_kit(null, null, null, 120::smallint)`), /0 al 99/);
+    await db.as(pMon1, `update public.players set kit='{"boots":"rojo"}' where id=$1`, [monPlayers[3]]).catch(() => null);
+    const [other] = await db.su<{ kit: object }>(`select kit from public.players where id=$1`, [monPlayers[3]]);
+    expect(other.kit).toEqual({}); // nadie toca el kit de otro
+    await expectError(db.as(null, `select public.set_my_kit('rojo', null, null, null)`), /permission denied/);
+  });
+});

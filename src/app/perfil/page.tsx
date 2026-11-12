@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, PenLine } from "lucide-react";
+import { kitPaint, type Kit } from "@/lib/kit";
 import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
 import { PhysicalFields } from "@/components/forms/physical-fields";
@@ -76,7 +77,16 @@ export default async function Profile() {
   return (
     <div className="space-y-6">
       {/* 1 · Quién soy + mis números */}
-      {s.player?.model_url && <PlayerStage src={s.player.model_url} poster={s.player.card_photo_url} name={s.player.nickname ?? s.player.full_name} color={color} />}
+      {s.player?.model_url && (
+        <PlayerStage src={s.player.model_url} poster={s.player.card_photo_url} name={s.player.nickname ?? s.player.full_name} color={color}
+          mapUrl={s.player.model_map_url} paint={kitPaint(s.player.kit as Kit, s.player.shirt_number)}>
+          {s.player.model_map_url && (
+            <Link href="/perfil/personalizar" className="glass press absolute bottom-3 left-3 inline-flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-ink">
+              <PenLine size={17} className="text-pitch" aria-hidden /> Personalizar
+            </Link>
+          )}
+        </PlayerStage>
+      )}
       <section className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <div className="flex items-center gap-4">
           <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} />

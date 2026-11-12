@@ -11,6 +11,7 @@ import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats
 import { fmtDate, fmtShortDay, num, teamColor } from "@/lib/format";
 import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { PlayerStage } from "@/components/player/player-stage";
+import { kitPaint, type Kit } from "@/lib/kit";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -122,7 +123,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
-      {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} />}
+      {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} mapUrl={p.model_map_url} paint={kitPaint(p.kit as Kit, p.shirt_number)} />}
       <div className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <div className="flex items-center gap-4">
           <span className="rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>

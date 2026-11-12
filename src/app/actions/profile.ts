@@ -91,3 +91,27 @@ export async function updatePhysical(_: ActionResult | null, fd: FormData): Prom
   revalidatePath("/", "layout");
   return { ok: true, message: "Datos físicos guardados." };
 }
+
+const KIT_COLOR = z.enum(["negro", "blanco", "rojo", "azul", "verde", "amarillo", "naranja", "rosa", "morado", "gris"]);
+const kitInput = z.object({
+  boots: KIT_COLOR,
+  socks: KIT_COLOR,
+  name: z.string().trim().toUpperCase().max(12, "El nombre de la espalda admite hasta 12 letras")
+    .regex(/^[A-ZÁÉÍÓÚÜÑ .'-]*$/, "Sólo letras, espacios, puntos y guiones"),
+  number: z.number().int().min(0).max(99).nullable(),
+});
+
+export async function saveKit(input: unknown): Promise<ActionResult> {
+  const k = kitInput.safeParse(input);
+  if (!k.success) return { ok: false, error: k.error.issues[0].message };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_my_kit", {
+    p_boots: k.data.boots === "negro" ? null : k.data.boots,
+    p_socks: k.data.socks === "blanco" ? null : k.data.socks,
+    p_back_name: k.data.name || null,
+    p_number: k.data.number,
+  });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, message: "¡Jugador guardado!" };
+}
