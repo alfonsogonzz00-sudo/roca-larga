@@ -1,16 +1,34 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { Activity, CalendarDays, Shield, Trophy, UserRound, Vote, Settings, ClipboardList } from "lucide-react";
 import { NAV, isActive } from "./nav-items";
 import { cx } from "@/components/ui";
 import { Brand } from "./brand";
+import { Bubble, useBadge } from "./nav-badges";
+import type { NavBadges } from "@/lib/data/badges";
 
 const ICONS = { Trophy, CalendarDays, Vote, Activity, UserRound };
 
 /** Navegación inferior fija (móvil). Cinco apartados, siempre visibles. */
-export function BottomNav({ labels, voteBadge }: { labels: Record<string, string>; voteBadge?: number }) {
+/** Cifras de novedades por apartado (se ponen a cero al entrar en cada uno) */
+function useNavCounts(badges: NavBadges, path: string): Record<string, number> {
+  const matches = useBadge("matches", badges.matches, isActive(path, "/"));
+  const votes = useBadge("votes", badges.votes, isActive(path, "/votacion"));
+  const activity = useBadge("activity", badges.activity, isActive(path, "/actividad"));
+  return { "/": matches, "/votacion": votes, "/actividad": activity };
+}
+
+export function BottomNav({ labels, badges }: { labels: Record<string, string>; badges: NavBadges }) {
   const path = usePathname();
+  const counts = useNavCounts(badges, path);
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  // También en el icono de la app instalada (iOS 16.4+, Android)
+  useEffect(() => {
+    const n = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    if (total > 0) n.setAppBadge?.(total).catch(() => {}); else n.clearAppBadge?.().catch(() => {});
+  }, [total]);
   return (
     <nav aria-label="Principal" className="glass fixed inset-x-0 bottom-0 z-40 border-t border-black/5 lg:hidden">
       <ul className="px-safe mx-auto grid max-w-xl grid-cols-5">
@@ -31,9 +49,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
               >
                 <span className="relative">
                   <Icon size={22} strokeWidth={active ? 2.4 : 1.9} aria-hidden />
-                  {item.href === "/votacion" && voteBadge ? (
-                    <span className="absolute -top-1 -right-2 min-w-4 rounded-full bg-gold px-1 text-center text-[10px] font-bold text-white">{voteBadge}</span>
-                  ) : null}
+                  <Bubble n={counts[item.href] ?? 0} />
                 </span>
                 <span className="w-full truncate text-center">{label.replace(/^El /, "")}</span>
               </Link>
@@ -47,8 +63,9 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
 }
 
 /** Navegación lateral (escritorio) */
-export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge }: { labels: Record<string, string>; appName: string; tagline: string; isAdmin: boolean; isStaff: boolean; voteBadge?: number }) {
+export function SideNav({ labels, appName, tagline, isAdmin, isStaff, badges }: { labels: Record<string, string>; appName: string; tagline: string; isAdmin: boolean; isStaff: boolean; badges: NavBadges }) {
   const path = usePathname();
+  const counts = useNavCounts(badges, path);
   const link = (href: string, label: string, Icon: typeof Shield, badge?: number) => {
     const active = isActive(path, href);
     return (
@@ -61,7 +78,7 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
       >
         <Icon size={19} aria-hidden />
         <span className="flex-1">{label}</span>
-        {badge ? <span className="rounded-full bg-gold px-1.5 text-xs font-bold text-white">{badge}</span> : null}
+        {badge ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e5383b] px-1.5 text-xs font-bold text-white">{badge > 9 ? "9+" : badge}</span> : null}
       </Link>
     );
   };
@@ -72,7 +89,7 @@ export function SideNav({ labels, appName, tagline, isAdmin, isStaff, voteBadge 
         <span className="mt-2 block text-xs text-ink-3">{tagline}</span>
       </Link>
       <nav aria-label="Principal" className="flex flex-col gap-1">
-        {NAV.map((i) => link(i.href, labels[i.key] ?? i.label, ICONS[i.icon], i.href === "/votacion" ? voteBadge : undefined))}
+        {NAV.map((i) => link(i.href, labels[i.key] ?? i.label, ICONS[i.icon], counts[i.href]))}
       </nav>
       {(isStaff || isAdmin) && (
         <div className="mt-8 border-t border-line pt-4">

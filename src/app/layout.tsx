@@ -14,7 +14,7 @@ import { themeScript } from "@/components/layout/theme";
 import { OfflineBanner, ServiceWorkerRegister } from "@/components/layout/sw-register";
 import { getSettings, getTexts } from "@/lib/data/config";
 import { getSession } from "@/lib/data/session";
-import { getPendingVotesCount } from "@/lib/data/votes";
+import { getNavBadges } from "@/lib/data/badges";
 import { NAV } from "@/components/layout/nav-items";
 import { Brand } from "@/components/layout/brand";
 
@@ -48,7 +48,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [settings, t, session] = await Promise.all([getSettings(), getTexts(), getSession()]);
   const vapidKey = session ? (((await (await createClient()).rpc("vapid_public_key")).data as string | null) || env.vapidPublicKey) : "";
-  const pending = await getPendingVotesCount(session);
+  const badges = await getNavBadges(session);
   const labels = Object.fromEntries(NAV.map((n) => [n.key, t(n.key, n.label)]));
   return (
     <html lang="es" data-theme="light" suppressHydrationWarning>
@@ -59,7 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2">Saltar al contenido</a>
         <OfflineBanner text={t("generic.offline")} />
         <div className="flex">
-          <SideNav labels={labels} appName={settings.app_name} tagline={settings.app_tagline} isAdmin={Boolean(session?.isAdmin)} isStaff={Boolean(session?.isStaff)} voteBadge={pending} />
+          <SideNav labels={labels} appName={settings.app_name} tagline={settings.app_tagline} isAdmin={Boolean(session?.isAdmin)} isStaff={Boolean(session?.isStaff)} badges={badges} />
           <div className="min-w-0 flex-1">
             <header className="glass pt-safe px-safe sticky top-0 z-30 border-b border-black/5 !shadow-none lg:hidden">
               <div className="h-top mx-auto flex max-w-3xl items-center justify-between px-4">
@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main id="main" className="pb-nav mx-auto max-w-3xl px-4 pt-5 lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-12">{children}</main>
           </div>
         </div>
-        <BottomNav labels={labels} voteBadge={pending} />
+        <BottomNav labels={labels} badges={badges} />
         <Tour enabled={Boolean(session?.player)} />
         <PushPrompt enabled={Boolean(session)} vapidKey={vapidKey} afterTour={Boolean(session?.player)} />
         <InstallPrompt />
