@@ -64,11 +64,11 @@ export function paintTexture(
       const v = mx / 255, s = mx ? (mx - mn) / mx : 0;
       if (boots && v < 0.38 && s < 0.45) {
         // bota: mantiene el sombreado del cuero
-        const shade = 0.2 + 1.25 * (v / 0.38);
+        const shade = 0.5 + 0.95 * (v / 0.38);
         base[o] = Math.min(255, boots[0] * shade); base[o + 1] = Math.min(255, boots[1] * shade); base[o + 2] = Math.min(255, boots[2] * shade);
-      } else if (socks && v > 0.6 && s < 0.18) {
-        // media: blanca → color, conservando pliegues
-        const shade = 0.55 + 0.5 * ((v - 0.6) / 0.4);
+      } else if (socks && v > 0.42 && s < 0.2) {
+        // media: blanca (y sus sombras y costuras) → color, conservando pliegues
+        const shade = 0.5 + 0.55 * ((v - 0.42) / 0.58);
         base[o] = Math.min(255, socks[0] * shade); base[o + 1] = Math.min(255, socks[1] * shade); base[o + 2] = Math.min(255, socks[2] * shade);
       }
     } else if (print) {

@@ -41,6 +41,7 @@ const KNEE = minY + 0.25 * H;
 const PRINT = { x0: -0.13 * H, x1: 0.13 * H, y0: minY + 0.52 * H, y1: minY + 0.80 * H };
 
 const buf = Buffer.alloc(W * Hh * 3);
+const covered = new Uint8Array(W * Hh);
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 let counts = { legs: 0, back: 0 };
@@ -51,8 +52,7 @@ for (const [[pa, ua], [pb, ub], [pc, uc]] of tris) {
   let zone = 0;
   if (cy < KNEE) zone = 80;
   else if (nz < -0.35 && cy > PRINT.y0 && cy < PRINT.y1 && cx > PRINT.x0 && cx < PRINT.x1) zone = 160;
-  if (!zone) continue;
-  zone === 80 ? counts.legs++ : counts.back++;
+  if (zone === 80) counts.legs++; else if (zone === 160) counts.back++;
   // rasterizado en UV (v invertida: origen arriba)
   const A = [ua[0] * W, ua[1] * Hh], B = [ub[0] * W, ub[1] * Hh], C = [uc[0] * W, uc[1] * Hh];
   const x0 = Math.max(0, Math.floor(Math.min(A[0], B[0], C[0])) - 1), x1 = Math.min(W - 1, Math.ceil(Math.max(A[0], B[0], C[0])) + 1);
@@ -66,6 +66,8 @@ for (const [[pa, ua], [pb, ub], [pc, uc]] of tris) {
     const w3 = 1 - w1 - w2;
     const eps = -1.2 / Math.max(1, Math.abs(den) ** 0.5); // dilata un pelín los bordes
     if (w1 < eps || w2 < eps || w3 < eps) continue;
+    if (w1 >= 0 && w2 >= 0 && w3 >= 0) covered[y * W + x] = 1; // el píxel pertenece a alguna pieza
+    if (!zone) continue;
     const o = (y * W + x) * 3;
     if (zone === 160) {
       const X = w1 * pa[0] + w2 * pb[0] + w3 * pc[0], Y = w1 * pa[1] + w2 * pb[1] + w3 * pc[1];
@@ -74,6 +76,21 @@ for (const [[pa, ua], [pb, ub], [pc, uc]] of tris) {
       buf[o + 1] = Math.round(Math.min(1, Math.max(0, (PRINT.y1 - Y) / (PRINT.y1 - PRINT.y0))) * 255);
     }
     buf[o + 2] = Math.max(buf[o + 2], zone);
+  }
+}
+// Dilata las zonas unos píxeles para cubrir las costuras entre islas de la textura
+// (si no, el filtrado de la GPU mezcla píxeles sin recolorear y se ven líneas blancas)
+for (let pass = 0; pass < 6; pass++) {
+  const src = Buffer.from(buf);
+  for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+    const o = (y * W + x) * 3;
+    if (src[o + 2] || covered[y * W + x]) continue; // sólo el hueco entre piezas
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= W || ny >= Hh) continue;
+      const n = (ny * W + nx) * 3;
+      if (src[n + 2]) { buf[o] = src[n]; buf[o + 1] = src[n + 1]; buf[o + 2] = src[n + 2]; break; }
+    }
   }
 }
 await sharp(buf, { raw: { width: W, height: Hh, channels: 3 } }).png({ compressionLevel: 9 }).toFile(output);
