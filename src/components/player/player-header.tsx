@@ -62,11 +62,11 @@ export function TeamCard({ team, subtitle }: { team: Team; subtitle?: string | n
 /** Detalles en rejilla de 3 columnas (etiqueta pequeña arriba, dato grande abajo) */
 export function DetailsGrid({ items }: { items: [string, ReactNode][] }) {
   return (
-    <dl className="grid grid-cols-3 gap-y-5 rounded-3xl bg-surface px-2 py-5 text-center shadow-card">
+    <dl className="grid grid-cols-3 gap-y-3 rounded-2xl bg-surface px-2 py-3 text-center shadow-card">
       {items.map(([label, value]) => (
-        <div key={label} className="flex min-w-0 flex-col-reverse items-center gap-1 px-1">
-          <dd className="max-w-full truncate text-[19px] font-bold tabular">{value}</dd>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">{label}</dt>
+        <div key={label} className="flex min-w-0 flex-col-reverse items-center gap-0.5 px-1">
+          <dd className="max-w-full truncate text-[15px] font-bold tabular">{value}</dd>
+          <dt className="text-[10px] font-semibold uppercase tracking-wide text-ink-3">{label}</dt>
         </div>
       ))}
     </dl>

@@ -5,7 +5,7 @@ import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
 import { PhysicalFields } from "@/components/forms/physical-fields";
 import { PlayerStage } from "@/components/player/player-stage";
-import { DetailsGrid, PlayerHeader, TeamCard } from "@/components/player/player-header";
+import { DetailsGrid, PlayerHeader } from "@/components/player/player-header";
 import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, ResultBadge, SectionTitle, cx } from "@/components/ui";
 import { FormStrip, WdlDonut } from "@/components/charts";
@@ -84,10 +84,10 @@ export default async function Profile() {
           <PlayerHeader name={s.player?.full_name ?? s.profile.display_name ?? "Mi perfil"} nickname={s.player?.nickname} team={team}
             photo={s.player?.photo_url ?? s.profile.avatar_url} cardPhoto={s.player?.card_photo_url} color={color}
             rating={tot && tot.matches > 0 ? num(tot.ratingAvg, 1) : null} ratingNote={r ? `${r.pos}.º del grupo` : null}
-            badge={s.profile.status === "suspended" ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Cuenta suspendida</span> : null} />
+            badge={s.profile.status === "suspended" ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Cuenta suspendida</span>
+              : s.role !== "player" ? <span className="mt-1.5 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold">{ROLE[s.role]}</span> : null} />
         );
       })()}
-      {team && <TeamCard team={team} subtitle={ROLE[s.role]} />}
       {s.player && (
         <DetailsGrid items={[
           ["Altura", phys?.height_cm ? `${phys.height_cm} cm` : "—"],

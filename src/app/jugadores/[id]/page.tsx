@@ -11,7 +11,7 @@ import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats
 import { fmtDate, fmtShortDay, num, teamColor } from "@/lib/format";
 import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { PlayerStage } from "@/components/player/player-stage";
-import { DetailsGrid, PlayerHeader, TeamCard } from "@/components/player/player-header";
+import { DetailsGrid, PlayerHeader } from "@/components/player/player-header";
 import { kitPaint, type Kit } from "@/lib/kit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -129,7 +129,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <PlayerHeader name={p.full_name} team={team} photo={p.photo_url} cardPhoto={p.card_photo_url} color={color}
         rating={tot.matches > 0 ? num(tot.ratingAvg, 1) : null}
         badge={!p.active ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Inactivo</span> : null} />
-      {team && <TeamCard team={team} subtitle={[p.usual_position && p.usual_position !== "POR" ? POSITION_LABELS[p.usual_position] : null, p.shirt_number != null ? `Dorsal ${p.shirt_number}` : null].filter(Boolean).join(" · ") || null} />}
       <DetailsGrid items={ficha} />
 
       {/* 2 · Visor 3D */}
