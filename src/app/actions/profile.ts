@@ -7,14 +7,26 @@ import { getSession } from "@/lib/data/session";
 import { friendlyError, type ActionResult } from "@/lib/errors";
 
 const nick = z.string().trim().min(1, "Escribe tu apodo").max(30, "Máximo 30 caracteres");
+const physical = z.object({
+  height: z.coerce.number({ message: "Indica tu altura" }).int("La altura va en centímetros, sin decimales").min(140, "La altura debe estar entre 140 y 220 cm").max(220, "La altura debe estar entre 140 y 220 cm"),
+  weight: z.coerce.number({ message: "Indica tu peso" }).min(40, "El peso debe estar entre 40 y 160 kg").max(160, "El peso debe estar entre 40 y 160 kg"),
+  position: z.enum(["DEF", "MED", "DEL"], { message: "Elige tu posición" }),
+});
+const readPhysical = (fd: FormData) => physical.safeParse({
+  height: fd.get("height_cm"), weight: String(fd.get("weight_kg") ?? "").replace(",", "."), position: fd.get("position"),
+});
 
 export async function requestLink(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
   const player = z.string().uuid("Elige tu nombre en la lista").safeParse(fd.get("player_id"));
   if (!player.success) return { ok: false, error: player.error.issues[0].message };
   const n = nick.safeParse(fd.get("nickname"));
   if (!n.success) return { ok: false, error: n.error.issues[0].message };
+  const ph = readPhysical(fd);
+  if (!ph.success) return { ok: false, error: ph.error.issues[0].message };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("request_player_link", { p_player: player.data, p_nickname: n.data });
+  const { error } = await supabase.rpc("request_player_link", {
+    p_player: player.data, p_nickname: n.data, p_height: ph.data.height, p_weight: ph.data.weight, p_position: ph.data.position,
+  });
   if (error) return { ok: false, error: friendlyError(error) };
   revalidatePath("/", "layout");
   return { ok: true, message: (await getTexts())("onboarding.sent") };
@@ -68,4 +80,14 @@ export async function setMyPhoto(url: string | null): Promise<ActionResult> {
   if (error) return { ok: false, error: friendlyError(error) };
   revalidatePath("/", "layout");
   return { ok: true, message: url ? "Foto actualizada." : "Foto eliminada." };
+}
+
+export async function updatePhysical(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  const ph = readPhysical(fd);
+  if (!ph.success) return { ok: false, error: ph.error.issues[0].message };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_my_physical", { p_height: ph.data.height, p_weight: ph.data.weight, p_position: ph.data.position });
+  if (error) return { ok: false, error: friendlyError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Datos físicos guardados." };
 }

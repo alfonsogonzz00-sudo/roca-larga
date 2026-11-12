@@ -4,7 +4,7 @@
  * - Push: muestra notificaciones y abre la URL indicada.
  * - Actualizaciones: la app pide SKIP_WAITING cuando el usuario acepta.
  */
-const VERSION = "rl-v5";
+const VERSION = "rl-v6";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
@@ -47,7 +47,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/crests/")) {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/crests/") || url.pathname.startsWith("/players/")) {
     event.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         const copy = res.clone();

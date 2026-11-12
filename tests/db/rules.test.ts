@@ -401,3 +401,35 @@ describe("partidos históricos, invitados y configuración", () => {
     expect(v.length).toBe(0);
   });
 });
+
+describe("datos físicos y modelo 3D", () => {
+  it("la solicitud guarda altura/peso/posición y se aplican al aprobar", async () => {
+    const u = await db.createUser("fisico@example.com");
+    await db.as(u, `select public.request_player_link($1, 'Torre', 185::smallint, 79.5, 'DEF')`, [carPlayers[10]]);
+    const [l] = await db.su<{ id: string }>(`select id from public.player_links where user_id=$1 and status='pending'`, [u]);
+    await db.as(admin, `select public.review_player_link($1, true, null)`, [l.id]);
+    const [f] = await db.su<{ height_cm: number; weight_kg: string }>(`select height_cm, weight_kg from public.player_physical where player_id=$1`, [carPlayers[10]]);
+    expect(f.height_cm).toBe(185);
+    expect(Number(f.weight_kg)).toBe(79.5);
+    const [p] = await db.su<{ usual_position: string }>(`select usual_position from public.players where id=$1`, [carPlayers[10]]);
+    expect(p.usual_position).toBe("DEF");
+
+    await expectError(db.as(u, `select public.set_my_physical(130::smallint, 70, 'DEL')`), /altura/);
+    await expectError(db.as(u, `select public.set_my_physical(180::smallint, 70, 'POR')`), /Central, Centrocampista o Delantero/);
+    await db.as(u, `select public.set_my_physical(186::smallint, 81, 'DEL')`);
+    const [g] = await db.su<{ height_cm: number }>(`select height_cm from public.player_physical where player_id=$1`, [carPlayers[10]]);
+    expect(g.height_cm).toBe(186);
+  });
+
+  it("altura y peso no son visibles sin sesión y sólo el admin pone modelos", async () => {
+    await expectError(db.as(null, `select * from public.player_physical`), /permission denied/);
+    const rows = await db.as(pMon1, `select * from public.player_physical`);
+    expect(rows.length).toBeGreaterThan(0);
+    await expectError(db.as(pMon1, `select public.admin_set_player_media($1, '/players/x.glb', null)`, [monPlayers[0]]), /administrador/);
+    await expectError(db.as(admin, `select public.admin_set_player_media($1, 'https://evil.com/x.glb', null)`, [monPlayers[0]]), /check/);
+    await db.as(admin, `select public.admin_set_player_media($1, '/players/sito.glb?v=2', '/players/sito.webp')`, [monPlayers[0]]);
+    const [p] = await db.su<{ model_url: string; model_updated_at: string | null }>(`select model_url, model_updated_at from public.players where id=$1`, [monPlayers[0]]);
+    expect(p.model_url).toBe("/players/sito.glb?v=2");
+    expect(p.model_updated_at).not.toBeNull();
+  });
+});

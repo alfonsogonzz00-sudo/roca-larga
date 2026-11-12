@@ -54,7 +54,14 @@ export interface Player {
   bio: string | null;
   active: boolean;
   is_demo: boolean;
+  /** Modelo 3D (GLB) y foto de cuerpo entero para la ficha */
+  model_url?: string | null;
+  card_photo_url?: string | null;
+  model_updated_at?: string | null;
 }
+
+/** Altura y peso: sólo visibles con sesión iniciada */
+export interface PlayerPhysical { player_id: string; height_cm: number | null; weight_kg: number | null }
 
 export interface Formation {
   id: string;

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { requestLink } from "@/app/actions/profile";
 import { Crest, Field, Input, cx } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
+import { PhysicalFields } from "@/components/forms/physical-fields";
 
 interface Candidate { id: string; full_name: string; pending_requests: number }
 interface TeamOpt { id: string; name: string; crest_url: string | null; primary_color: string; candidates: Candidate[] }
@@ -52,10 +53,11 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
       )}
       {player && (
         <fieldset className="animate-rise space-y-3">
-          <legend className="mb-2 text-sm font-semibold">3 · Tu apodo en el grupo</legend>
+          <legend className="mb-2 text-sm font-semibold">3 · Tu apodo y tu ficha</legend>
           <Field label="Apodo" htmlFor="nickname" hint="Se mostrará junto a tu nombre. Podrás cambiarlo después.">
             <Input id="nickname" name="nickname" required maxLength={30} autoComplete="off" />
           </Field>
+          <PhysicalFields />
           <SubmitButton className="w-full" pendingLabel="Enviando…">Enviar solicitud</SubmitButton>
         </fieldset>
       )}

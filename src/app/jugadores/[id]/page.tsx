@@ -9,7 +9,9 @@ import { LineChart, WdlBar } from "@/components/charts";
 import { getStats } from "@/lib/data/stats";
 import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats/engine";
 import { fmtDate, fmtShortDay, num, teamColor } from "@/lib/format";
-import { POSITION_LABELS } from "@/lib/types";
+import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
+import { PlayerStage } from "@/components/player/player-stage";
+import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,6 +30,21 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const top = topPerformances(id, parts, 3);
   const bv = bestVenue(id, parts);
   const evo = evolution(id, parts);
+  // Altura y peso: sólo con sesión (la tabla no es pública)
+  let phys: PlayerPhysical | null = null;
+  if (s) {
+    const { data } = await (await createClient()).from("player_physical").select("player_id, height_cm, weight_kg").eq("player_id", id).maybeSingle<PlayerPhysical>();
+    phys = data;
+  }
+  const fmtH = (cm: number) => `${(cm / 100).toFixed(2).replace(".", ",")} m`;
+  const fmtW = (kg: number) => `${num(Number(kg), Number(kg) % 1 ? 1 : 0)} kg`;
+  const ficha: [string, React.ReactNode][] = [
+    ["Altura", phys?.height_cm ? fmtH(phys.height_cm) : s ? "—" : <Link key="h" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
+    ["Peso", phys?.weight_kg ? fmtW(phys.weight_kg) : s ? "—" : <Link key="w" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
+    ["Posición", p.usual_position && p.usual_position !== "POR" ? POSITION_LABELS[p.usual_position] : "—"],
+    ["Equipo", team?.short_name ?? "Invitado"],
+    ["Victorias", tot.wins],
+  ];
   const mine = parts.filter((x) => x.playerId === id).sort((a, b) => b.kickoff.localeCompare(a.kickoff));
   const w = settings.performance_weights;
   const brought = ds.matchPlayers.filter((mp) => mp.brought_by_id === id).length;
@@ -105,6 +122,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
+      {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} />}
       <div className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
         <div className="flex items-center gap-4">
           <span className="rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
@@ -132,6 +150,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             ))}
           </dl>
         )}
+        <dl className="mt-3 grid grid-cols-6 gap-2 text-center sm:grid-cols-5" aria-label="Ficha">
+          {ficha.map(([l, v], i) => (
+            <div key={l} className={`min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5 ${i < 3 ? "col-span-2" : "col-span-3"} sm:col-span-1`}>
+              <dd className="truncate text-[15px] font-semibold tabular">{v}</dd>
+              <dt className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-3">{l}</dt>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>nota</strong> de cada partido es sobre 10: partes de 6,0, sumas por jugar, por tus goles y asistencias y por cada gol de tu equipo, y restas por cada gol que encaja tu equipo. Las votaciones no cuentan.</Hint>}

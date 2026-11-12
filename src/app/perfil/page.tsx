@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
-import { updateNickname, updatePrefs } from "@/app/actions/profile";
+import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
+import { PhysicalFields } from "@/components/forms/physical-fields";
+import type { PlayerPhysical } from "@/lib/types";
 import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, ResultBadge, SectionTitle, cx } from "@/components/ui";
 import { FormStrip, WdlDonut } from "@/components/charts";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
@@ -30,6 +32,11 @@ const PREFS = [
 export default async function Profile() {
   const s = await getSession();
   const t = await getTexts();
+  let phys: PlayerPhysical | null = null;
+  if (s?.player) {
+    const { data } = await (await createClient()).from("player_physical").select("player_id, height_cm, weight_kg").eq("player_id", s.player.id).maybeSingle<PlayerPhysical>();
+    phys = data;
+  }
   if (!s) {
     return (
       <div>
@@ -196,6 +203,18 @@ export default async function Profile() {
             <div className="flex-1"><Field label="Apodo" htmlFor="nick"><Input id="nick" name="nickname" defaultValue={s.player.nickname ?? ""} maxLength={30} required /></Field></div>
             <SubmitButton>Guardar</SubmitButton>
           </ActionForm>
+        </section>
+      )}
+      {s.player && (
+        <section>
+          <SectionTitle>Mis datos físicos</SectionTitle>
+          {!phys?.height_cm && <Notice tone="warn" className="mb-3">Completa tu altura, peso y posición: salen en tu ficha junto a tu modelo 3D.</Notice>}
+          <Card className="p-4">
+            <ActionForm action={updatePhysical} className="space-y-4">
+              <PhysicalFields height={phys?.height_cm} weight={phys?.weight_kg != null ? Number(phys.weight_kg) : null} position={s.player.usual_position} />
+              <SubmitButton className="w-full">Guardar datos</SubmitButton>
+            </ActionForm>
+          </Card>
         </section>
       )}
 
