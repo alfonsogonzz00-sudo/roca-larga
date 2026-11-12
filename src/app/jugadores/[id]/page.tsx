@@ -43,7 +43,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
     ["Altura", phys?.height_cm ? fmtH(phys.height_cm) : s ? "—" : <Link key="h" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
     ["Peso", phys?.weight_kg ? fmtW(phys.weight_kg) : s ? "—" : <Link key="w" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
     ["Posición", p.usual_position && p.usual_position !== "POR" ? POSITION_LABELS[p.usual_position] : "—"],
-    ["Equipo", team?.short_name ?? "Invitado"],
     ["Victorias", tot.wins],
   ];
   const mine = parts.filter((x) => x.playerId === id).sort((a, b) => b.kickoff.localeCompare(a.kickoff));
@@ -123,43 +122,46 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
-      {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} mapUrl={p.model_map_url} paint={kitPaint(p.kit as Kit, p.shirt_number)} />}
-      <div className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
-        <div className="flex items-center gap-4">
-          <span className="rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={84} color={color} /></span>
+      {/* 1 · Datos: nombre, equipo, nota media y ficha física */}
+      <div className="relative overflow-hidden rounded-3xl bg-surface p-5 text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
+        <div className="flex items-start gap-3">
+          {!p.model_url && <span className="shrink-0 rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={72} color={color} /></span>}
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-3xl font-bold uppercase leading-none">{p.nickname ?? p.full_name}</h1>
-            {p.nickname && <p className="mt-1 truncate text-sm text-ink-2">{p.full_name}</p>}
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-2">
-              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.short_name}</Link> : <span className="rounded-full bg-surface-2 px-2 py-1">Invitado</span>}
-              {p.usual_position && <span className="rounded-full bg-surface-2 px-2 py-1">{POSITION_LABELS[p.usual_position]}</span>}
-              {p.shirt_number != null && <span className="rounded-full bg-surface-2 px-2 py-1">#{p.shirt_number}</span>}
-              {!p.active && <span className="rounded-full bg-loss-soft px-2 py-1 text-loss">Inactivo</span>}
+            <h1 className="font-display text-[2rem] font-bold uppercase leading-[0.95]">{p.full_name}</h1>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">
+              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-1 pr-2.5 pl-1.5"><Crest src={team.crest_url} name={team.name} size={18} />{team.name}</Link> : <span className="rounded-full bg-surface-2 px-2.5 py-1">Invitado</span>}
+              {p.shirt_number != null && <span className="rounded-full bg-surface-2 px-2.5 py-1 tabular">#{p.shirt_number}</span>}
+              {!p.active && <span className="rounded-full bg-loss-soft px-2.5 py-1 text-loss">Inactivo</span>}
             </div>
           </div>
           {tot.matches > 0 && (
-            <div className="shrink-0 text-center">
-              <div className="font-display tabular text-4xl font-bold leading-none">{num(tot.ratingAvg, 1)}</div>
-              <div className="text-[11px] uppercase tracking-wider text-ink-3">nota media</div>
+            <div className="shrink-0 pt-0.5 text-center">
+              <div className="font-display tabular text-[2.75rem] font-bold leading-[0.9]">{num(tot.ratingAvg, 1)}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-ink-3">Nota media</div>
             </div>
           )}
         </div>
-        {tot.matches > 0 && (
-          <dl className="mt-5 grid grid-cols-4 divide-x divide-line rounded-2xl bg-surface-2 py-2.5 text-center">
-            {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
-              <div key={l}><dd className="font-display tabular text-2xl font-bold leading-none">{v}</dd><dt className="mt-1 text-[11px] uppercase tracking-wider text-ink-3">{l}</dt></div>
-            ))}
-          </dl>
-        )}
-        <dl className="mt-3 grid grid-cols-6 gap-2 text-center sm:grid-cols-5" aria-label="Ficha">
-          {ficha.map(([l, v], i) => (
-            <div key={l} className={`min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5 ${i < 3 ? "col-span-2" : "col-span-3"} sm:col-span-1`}>
+        <dl className="mt-4 grid grid-cols-4 gap-2 text-center" aria-label="Ficha">
+          {ficha.map(([l, v]) => (
+            <div key={l} className="min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5">
               <dd className="truncate text-[15px] font-semibold tabular">{v}</dd>
               <dt className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-3">{l}</dt>
             </div>
           ))}
         </dl>
       </div>
+
+      {/* 2 · Visor 3D */}
+      {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} mapUrl={p.model_map_url} paint={kitPaint(p.kit as Kit, p.shirt_number)} />}
+
+      {/* 3 · Números */}
+      {tot.matches > 0 && (
+        <dl className="grid grid-cols-4 rounded-3xl bg-surface py-3.5 text-center shadow-card">
+          {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
+            <div key={l}><dd className="font-display tabular text-[1.65rem] font-bold leading-none">{v}</dd><dt className="mt-1 text-[10px] uppercase tracking-wider text-ink-3">{l}</dt></div>
+          ))}
+        </dl>
+      )}
 
       {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>nota</strong> de cada partido es sobre 10: partes de 6,0, sumas por jugar, por tus goles y asistencias y por cada gol de tu equipo, y restas por cada gol que encaja tu equipo. Las votaciones no cuentan.</Hint>}
       {tot.matches === 0 ? <EmptyState title="Sin partidos todavía">Cuando dispute su primer partido aparecerán aquí sus estadísticas.</EmptyState> : (

@@ -5,7 +5,7 @@ import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
 import { PhysicalFields } from "@/components/forms/physical-fields";
 import { PlayerStage } from "@/components/player/player-stage";
-import type { PlayerPhysical } from "@/lib/types";
+import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, ResultBadge, SectionTitle, cx } from "@/components/ui";
 import { FormStrip, WdlDonut } from "@/components/charts";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
@@ -76,7 +76,45 @@ export default async function Profile() {
 
   return (
     <div className="space-y-6">
-      {/* 1 · Quién soy + mis números */}
+      {/* 1 · Quién soy: nombre, equipo, nota media y ficha física */}
+      <section className="relative overflow-hidden rounded-3xl bg-surface p-5 text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
+        <div className="flex items-start gap-3">
+          {!s.player?.model_url && <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={72} />}
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-[2rem] font-bold uppercase leading-[0.95]">{s.player?.full_name ?? s.profile.display_name}</h1>
+            {s.player?.nickname && <p className="mt-1 truncate text-sm text-ink-2">«{s.player.nickname}»</p>}
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">
+              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-1 pr-2.5 pl-1.5"><Crest src={team.crest_url} name={team.name} size={18} />{team.name}</Link>}
+              {s.role !== "player" && <span className="rounded-full bg-surface-2 px-2.5 py-1">{ROLE[s.role]}</span>}
+              {s.profile.status === "suspended" && <span className="rounded-full bg-loss-soft px-2.5 py-1 text-loss">Cuenta suspendida</span>}
+            </div>
+          </div>
+          {tot && tot.matches > 0 && (
+            <div className="shrink-0 pt-0.5 text-center">
+              <div className="font-display tabular text-[2.75rem] font-bold leading-[0.9]">{num(tot.ratingAvg, 1)}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-ink-3">Nota media</div>
+              {(() => { const r = rankOf("ratingAvg"); return r && <div className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</div>; })()}
+            </div>
+          )}
+        </div>
+        {s.player && (
+          <dl className="mt-4 grid grid-cols-4 gap-2 text-center" aria-label="Mi ficha">
+            {([
+              ["Altura", phys?.height_cm ? `${(phys.height_cm / 100).toFixed(2).replace(".", ",")} m` : "—"],
+              ["Peso", phys?.weight_kg ? `${num(Number(phys.weight_kg), Number(phys.weight_kg) % 1 ? 1 : 0)} kg` : "—"],
+              ["Posición", s.player.usual_position && s.player.usual_position !== "POR" ? POSITION_LABELS[s.player.usual_position] : "—"],
+              ["Victorias", tot?.wins ?? 0],
+            ] as const).map(([l, v]) => (
+              <div key={l} className="min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5">
+                <dd className="truncate text-[15px] font-semibold tabular">{v}</dd>
+                <dt className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-3">{l}</dt>
+              </div>
+            ))}
+          </dl>
+        )}
+      </section>
+
+      {/* 2 · Mi jugador en 3D */}
       {s.player?.model_url && (
         <PlayerStage src={s.player.model_url} poster={s.player.card_photo_url} name={s.player.nickname ?? s.player.full_name} color={color}
           mapUrl={s.player.model_map_url} paint={kitPaint(s.player.kit as Kit, s.player.shirt_number)}>
@@ -87,43 +125,22 @@ export default async function Profile() {
           )}
         </PlayerStage>
       )}
-      <section className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-card text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
-        <div className="flex items-center gap-4">
-          <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={88} />
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-3xl font-bold uppercase leading-none">{s.player?.nickname ?? s.player?.full_name ?? s.profile.display_name}</h1>
-            {s.player?.nickname && <p className="mt-1 truncate text-sm text-ink-2">{s.player.full_name}</p>}
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-1"><Crest src={team.crest_url} name={team.name} size={16} />{team.name}</Link>}
-              <span className="rounded-full bg-surface-2 px-2 py-1">{ROLE[s.role]}</span>
-              {s.profile.status === "suspended" && <span className="rounded-full bg-loss-soft px-2 py-1 text-loss">Cuenta suspendida</span>}
-            </div>
-          </div>
-        </div>
-        {tot && tot.matches > 0 && (
-          <>
-            <div className="mt-5 flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-ink-3">Nota media</p>
-                <p className="font-display tabular text-5xl font-bold leading-none">{num(tot.ratingAvg, 1)}<span className="text-2xl text-ink-3">/10</span></p>
+
+      {/* 3 · Mis números */}
+      {tot && tot.matches > 0 && (
+        <dl className="grid grid-cols-4 rounded-3xl bg-surface py-3.5 text-center shadow-card">
+          {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
+            const r = rankOf(k);
+            return (
+              <div key={l}>
+                <dd className="font-display tabular text-[1.65rem] font-bold leading-none">{v}</dd>
+                <dt className="mt-1 text-[10px] uppercase tracking-wider text-ink-3">{l}</dt>
+                {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</p>}
               </div>
-              {(() => { const r = rankOf("ratingAvg"); return r && <p className="text-right text-sm text-ink-2"><span className="font-display text-3xl font-bold">{r.pos}.º</span><br />de {r.of} jugadores</p>; })()}
-            </div>
-            <dl className="mt-4 grid grid-cols-4 divide-x divide-line rounded-2xl bg-surface-2 py-3 text-center">
-              {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
-                const r = rankOf(k);
-                return (
-                  <div key={l}>
-                    <dd className="font-display tabular text-3xl font-bold leading-none">{v}</dd>
-                    <dt className="mt-1 text-[11px] uppercase tracking-wider text-ink-3">{l}</dt>
-                    {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</p>}
-                  </div>
-                );
-              })}
-            </dl>
-          </>
-        )}
-      </section>
+            );
+          })}
+        </dl>
+      )}
 
       {!s.player && (
         <Notice tone="warn">
@@ -208,6 +225,15 @@ export default async function Profile() {
       )}
 
       {/* 5 · Datos de la cuenta y ajustes */}
+      {s.player?.model_url && (
+        <section>
+          <SectionTitle>Mi foto</SectionTitle>
+          <Card className="flex items-center gap-4 p-4">
+            <AvatarUpload userId={s.userId} name={s.player.full_name} src={s.player.photo_url ?? s.profile.avatar_url} color={color} size={64} />
+            <p className="text-sm text-ink-2">Sale en las alineaciones, las votaciones y la actividad. Toca la foto para cambiarla.</p>
+          </Card>
+        </section>
+      )}
       {s.player && (
         <section>
           <SectionTitle>Mi apodo</SectionTitle>
