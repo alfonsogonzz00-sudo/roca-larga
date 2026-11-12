@@ -7,6 +7,7 @@ export function friendlyError(e: unknown): string {
   if (/JWT|not authenticated/i.test(msg)) return "Tu sesión ha caducado. Vuelve a entrar.";
   if (/duplicate key/i.test(msg)) return "Ese registro ya existe.";
   if (/violates foreign key/i.test(msg)) return "No se puede borrar: hay datos que dependen de este registro. Desactívalo en su lugar.";
+  if (/rate limit/i.test(msg)) return "Ahora mismo hay demasiados registros seguidos y no se pueden enviar más correos. Espera unos minutos y vuelve a intentarlo, o avisa al administrador.";
   if (/Failed to fetch|NetworkError/i.test(msg)) return "Sin conexión. Revisa tu red e inténtalo de nuevo.";
   return msg;
 }
