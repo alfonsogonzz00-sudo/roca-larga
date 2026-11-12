@@ -78,7 +78,7 @@ export function Ballot({ matchId, myTeamId, teams, candidates, initial, labels }
         </div>
       </fieldset>
 
-      <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 -mx-4 border-t border-line bg-elev/95 px-4 py-3 backdrop-blur lg:bottom-0">
+      <div className="sticky bottom-[var(--nav-total)] z-10 lg:bottom-0 -mx-4 border-t border-line bg-elev/95 px-4 py-3 backdrop-blur lg:bottom-0">
         <div className="mb-2 grid grid-cols-2 gap-2 text-xs">
           <div className="min-w-0"><span className="block text-ink-3">{labels.team}</span><strong className="block truncate">{teamPick ? byId.get(teamPick)?.nickname ?? byId.get(teamPick)?.name : "—"}</strong></div>
           <div className="min-w-0"><span className="block text-ink-3">{labels.match}</span><strong className="block truncate">{matchPick ? byId.get(matchPick)?.nickname ?? byId.get(matchPick)?.name : "—"}</strong></div>

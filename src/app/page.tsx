@@ -129,7 +129,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       {past.length === 0 && !next && <EmptyState title="Aún no hay partidos">{t("history.empty")}</EmptyState>}
 
       {s?.isStaff && (
-        <Link href="/partidos/nuevo" aria-label="Crear partido" className="press fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-pitch text-pitch-ink shadow-[0_8px_24px_-6px_rgb(22_122_64/0.55)] ring-1 ring-white/30 sm:hidden">
+        <Link href="/partidos/nuevo" aria-label="Crear partido" className="press bottom-above-nav fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-pitch text-pitch-ink shadow-[0_8px_24px_-6px_rgb(22_122_64/0.55)] ring-1 ring-white/30 sm:hidden">
           <Plus size={26} />
         </Link>
       )}

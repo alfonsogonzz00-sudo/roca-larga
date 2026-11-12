@@ -183,10 +183,31 @@ body {
   border-radius: 8px;
 }
 
-/* Áreas seguras de iOS en modo standalone */
-.pt-safe { padding-top: env(safe-area-inset-top); }
-.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-.h-safe-bottom { height: env(safe-area-inset-bottom); }
+/* Áreas seguras (notch, isla dinámica, barra de inicio de iOS, barra de gestos de Android).
+   Variables para poder simularlas en pruebas; el menú inferior nunca queda pegado al borde. */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --top-h: 3.25rem;                      /* barra superior */
+  --nav-h: 3.25rem;                      /* iconos + etiqueta del menú inferior */
+  --nav-pad: max(var(--sab), 0.5rem);    /* margen bajo el menú (≥ 8 px si el móvil no reserva nada) */
+  --nav-total: calc(var(--nav-h) + var(--nav-pad));
+}
+.pt-safe { padding-top: var(--sat); }
+.pb-safe { padding-bottom: var(--sab); }
+.px-safe { padding-left: var(--sal); padding-right: var(--sar); }
+.h-safe-bottom { height: var(--nav-pad); }
+.h-top { height: var(--top-h); }
+.h-nav { height: var(--nav-h); }
+@media (max-width: 1023.98px) {
+  .pb-nav { padding-bottom: calc(var(--nav-total) + 1.75rem); }
+}
+.bottom-above-nav { bottom: calc(var(--nav-total) + 0.75rem); }
+@media (min-width: 1024px) { .bottom-above-nav { bottom: 1.5rem; } }
+.top-below-header { top: calc(var(--top-h) + var(--sat)); }
+@media (min-width: 1024px) { .top-below-header { top: 0; } }
 
 /* Rejilla del césped para cabeceras */
 .pitch-lines {

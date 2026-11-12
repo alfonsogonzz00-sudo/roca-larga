@@ -60,7 +60,7 @@ export function KitEditor({ player, teamColor, takenNumbers }: {
 
   return (
     <div className="-mx-4 -mt-5 lg:mx-0 lg:mt-0">
-      <div className="glass sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 grid grid-cols-3 items-center px-4 py-2 !shadow-none lg:top-0 lg:rounded-2xl">
+      <div className="glass top-below-header sticky z-20 grid grid-cols-3 items-center px-4 py-2 !shadow-none lg:top-0 lg:rounded-2xl">
         <Link href="/perfil" className="text-[16px] text-info">Cancelar</Link>
         <span className="text-center text-[16px] font-semibold">Mi jugador</span>
         <button type="button" onClick={save} disabled={pending || !dirty}

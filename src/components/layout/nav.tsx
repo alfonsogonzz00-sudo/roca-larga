@@ -13,7 +13,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
   const path = usePathname();
   return (
     <nav aria-label="Principal" className="glass fixed inset-x-0 bottom-0 z-40 border-t border-black/5 lg:hidden">
-      <ul className="mx-auto grid max-w-xl grid-cols-5">
+      <ul className="px-safe mx-auto grid max-w-xl grid-cols-5">
         {NAV.map((item) => {
           const Icon = ICONS[item.icon];
           const active = isActive(path, item.href);
@@ -25,7 +25,7 @@ export function BottomNav({ labels, voteBadge }: { labels: Record<string, string
                 data-tour={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 pt-1.5 pb-1 text-[11px] font-semibold leading-tight",
+                  "h-nav relative flex flex-col items-center justify-center gap-0.5 px-0.5 pt-1 text-[11px] font-semibold leading-tight max-[359px]:text-[10px] max-[359px]:tracking-tight",
                   active ? "text-pitch" : "text-ink-3",
                 )}
               >

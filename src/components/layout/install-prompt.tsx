@@ -44,7 +44,7 @@ export function InstallPrompt() {
   };
 
   return (
-    <div role="dialog" aria-label="Instalar Roca Larga" className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md glass p-3 shadow-card lg:hidden">
+    <div role="dialog" aria-label="Instalar Roca Larga" className="bottom-above-nav fixed inset-x-3 z-50 mx-auto max-w-md glass p-3 shadow-card lg:hidden">
       <div className="flex items-start gap-3">
         <Download size={20} className="mt-0.5 shrink-0 text-pitch" aria-hidden />
         <div className="flex-1 text-sm">
