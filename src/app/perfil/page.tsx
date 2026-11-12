@@ -129,7 +129,7 @@ export default async function Profile() {
 
       {!s.player && (
         <Notice tone="warn">
-          {s.pendingLink ? t("profile.pending_link") : <>Tu cuenta no está vinculada a ningún jugador. <Link href="/registro" className="font-semibold underline">Solicitar vinculación</Link></>}
+          {s.pendingLink ? t("profile.pending_link") : <>Te falta completar tu ficha de jugador. <Link href="/registro" className="font-semibold underline">Completar ficha</Link></>}
         </Notice>
       )}
 

@@ -43,7 +43,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
                   <label className={cx("flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3", player === c.id ? "border-pitch bg-pitch-soft" : "border-transparent bg-surface-2")}>
                     <input type="radio" name="player_id" value={c.id} checked={player === c.id} onChange={() => setPlayer(c.id)} className="h-4 w-4 accent-[var(--pitch)]" />
                     <span className="flex-1 font-medium">{c.full_name}</span>
-                    {c.pending_requests > 0 && <span className="text-xs text-ink-3">solicitud en curso</span>}
+                    
                   </label>
                 </li>
               ))}
@@ -58,7 +58,7 @@ export function LinkForm({ teams }: { teams: TeamOpt[] }) {
             <Input id="nickname" name="nickname" required maxLength={30} autoComplete="off" />
           </Field>
           <PhysicalFields />
-          <SubmitButton className="w-full" pendingLabel="Enviando…">Enviar solicitud</SubmitButton>
+          <SubmitButton className="w-full" pendingLabel="Guardando…">Entrar en la plantilla</SubmitButton>
         </fieldset>
       )}
     </ActionForm>

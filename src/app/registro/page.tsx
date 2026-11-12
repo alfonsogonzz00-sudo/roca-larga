@@ -7,7 +7,7 @@ import { requireSession } from "@/lib/data/session";
 import { getTexts } from "@/lib/data/config";
 import { LinkForm } from "./link-form";
 
-export const metadata = { title: "Vincular cuenta" };
+export const metadata = { title: "Tu ficha" };
 
 export default async function Registro() {
   const s = await requireSession("/registro");
@@ -38,7 +38,7 @@ export default async function Registro() {
   }));
   return (
     <div className="mx-auto max-w-lg">
-      <PageHeader eyebrow="Registro" title={t("onboarding.title")} subtitle="Elige tu equipo y tu nombre. Un organizador validará la solicitud." />
+      <PageHeader eyebrow="Registro" title={t("onboarding.title")} subtitle="Elige tu equipo, quién eres y completa tu ficha. En un minuto estás dentro." />
       <LinkForm teams={withCandidates} />
     </div>
   );

@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getTexts } from "@/lib/data/config";
@@ -29,7 +30,7 @@ export async function requestLink(_: ActionResult | null, fd: FormData): Promise
   });
   if (error) return { ok: false, error: friendlyError(error) };
   revalidatePath("/", "layout");
-  return { ok: true, message: (await getTexts())("onboarding.sent") };
+  redirect("/perfil");
 }
 
 export async function cancelLink(): Promise<ActionResult> {

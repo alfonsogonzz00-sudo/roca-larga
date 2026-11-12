@@ -11,12 +11,10 @@ async function expectError(p: Promise<unknown>, match: RegExp) {
   await expect(p).rejects.toThrow(match);
 }
 
-/** Crea un usuario, solicita vínculo y lo aprueba el admin */
+/** Crea un usuario y completa su ficha (queda vinculado al momento) */
 async function linkedUser(email: string, playerId: string) {
   const id = await db.createUser(email);
   await db.as(id, `select public.request_player_link($1, $2)`, [playerId, email.split("@")[0]]);
-  const [l] = await db.su<{ id: string }>(`select id from public.player_links where user_id = $1 and status='pending'`, [id]);
-  await db.as(admin, `select public.review_player_link($1, true, null)`, [l.id]);
   return id;
 }
 
@@ -110,14 +108,16 @@ describe("usuarios y roles", () => {
     expect(p.role).toBe("organizer");
   });
 
-  it("un organizador sólo valida solicitudes de su equipo", async () => {
+  it("el registro vincula al momento y no deja quitar un jugador ya cogido", async () => {
     const u = await db.createUser("mon2@example.com");
     await db.as(u, `select public.request_player_link($1, 'Kala')`, [monPlayers[1]]);
-    const [l] = await db.su<{ id: string }>(`select id from public.player_links where user_id=$1`, [u]);
-    await expectError(db.as(orgCar, `select public.review_player_link($1, true, null)`, [l.id]), /organizador del equipo/);
-    const visible = await db.as(orgCar, `select * from public.pending_link_requests()`);
-    expect(visible.length).toBe(0);
-    await db.as(admin, `select public.review_player_link($1, true, null)`, [l.id]);
+    const [p] = await db.su<{ player_id: string }>(`select player_id from public.profiles where id=$1`, [u]);
+    expect(p.player_id).toBe(monPlayers[1]);
+    const [n] = await db.su<{ nickname: string }>(`select nickname from public.players where id=$1`, [monPlayers[1]]);
+    expect(n.nickname).toBe("Kala");
+    const intruso = await db.createUser("intruso@example.com");
+    await expectError(db.as(intruso, `select public.request_player_link($1, 'Yo')`, [monPlayers[1]]), /ya está vinculado/);
+    await expectError(db.as(u, `select public.request_player_link($1, 'Otro')`, [monPlayers[2]]), /ya está vinculada/);
     pMon2 = u;
   });
 
@@ -403,11 +403,9 @@ describe("partidos históricos, invitados y configuración", () => {
 });
 
 describe("datos físicos y modelo 3D", () => {
-  it("la solicitud guarda altura/peso/posición y se aplican al aprobar", async () => {
+  it("el registro guarda altura/peso/posición", async () => {
     const u = await db.createUser("fisico@example.com");
     await db.as(u, `select public.request_player_link($1, 'Torre', 185::smallint, 79.5, 'DEF')`, [carPlayers[10]]);
-    const [l] = await db.su<{ id: string }>(`select id from public.player_links where user_id=$1 and status='pending'`, [u]);
-    await db.as(admin, `select public.review_player_link($1, true, null)`, [l.id]);
     const [f] = await db.su<{ height_cm: number; weight_kg: string }>(`select height_cm, weight_kg from public.player_physical where player_id=$1`, [carPlayers[10]]);
     expect(f.height_cm).toBe(185);
     expect(Number(f.weight_kg)).toBe(79.5);

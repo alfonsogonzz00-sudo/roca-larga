@@ -62,7 +62,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       {sp.ok === "deleted" && <Notice tone="ok">Partido eliminado.</Notice>}
       {s && !s.player && (
         <Notice tone="warn">
-          {s.pendingLink ? t("profile.pending_link") : <>Tu cuenta aún no está vinculada a un jugador. <Link className="font-semibold underline" href="/registro">Vincúlala aquí</Link>.</>}
+          {s.pendingLink ? t("profile.pending_link") : <>Te falta completar tu ficha de jugador. <Link className="font-semibold underline" href="/registro">Complétala aquí</Link>.</>}
         </Notice>
       )}
 
