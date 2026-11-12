@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Award, MapPin } from "lucide-react";
-import { Avatar, Card, Crest, EmptyState, ResultBadge, SectionTitle, Stat } from "@/components/ui";
+import { Card, EmptyState, ResultBadge, SectionTitle, Stat } from "@/components/ui";
 import { Tabs } from "@/components/ui/client";
 import { Hint } from "@/components/onboarding/hint";
 import { getSession } from "@/lib/data/session";
@@ -11,6 +11,7 @@ import { bestVenue, evolution, playerTotals, topPerformances } from "@/lib/stats
 import { fmtDate, fmtShortDay, num, teamColor } from "@/lib/format";
 import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { PlayerStage } from "@/components/player/player-stage";
+import { DetailsGrid, PlayerHeader, TeamCard } from "@/components/player/player-header";
 import { kitPaint, type Kit } from "@/lib/kit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,12 +38,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
     const { data } = await (await createClient()).from("player_physical").select("player_id, height_cm, weight_kg").eq("player_id", id).maybeSingle<PlayerPhysical>();
     phys = data;
   }
-  const fmtH = (cm: number) => `${(cm / 100).toFixed(2).replace(".", ",")} m`;
+  const fmtH = (cm: number) => `${cm} cm`;
   const fmtW = (kg: number) => `${num(Number(kg), Number(kg) % 1 ? 1 : 0)} kg`;
   const ficha: [string, React.ReactNode][] = [
     ["Altura", phys?.height_cm ? fmtH(phys.height_cm) : s ? "—" : <Link key="h" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
     ["Peso", phys?.weight_kg ? fmtW(phys.weight_kg) : s ? "—" : <Link key="w" href={`/login?next=/jugadores/${id}`} className="text-pitch">Entra</Link>],
     ["Posición", p.usual_position && p.usual_position !== "POR" ? POSITION_LABELS[p.usual_position] : "—"],
+    ["Dorsal", p.shirt_number ?? "—"],
+    ["Partidos", tot.matches],
     ["Victorias", tot.wins],
   ];
   const mine = parts.filter((x) => x.playerId === id).sort((a, b) => b.kickoff.localeCompare(a.kickoff));
@@ -122,42 +125,20 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-5">
-      {/* 1 · Datos: nombre, equipo, nota media y ficha física */}
-      <div className="relative overflow-hidden rounded-3xl bg-surface p-5 text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
-        <div className="flex items-start gap-3">
-          {!p.model_url && <span className="shrink-0 rounded-full ring-4 ring-surface"><Avatar name={p.full_name} src={p.photo_url} size={72} color={color} /></span>}
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-[2rem] font-bold uppercase leading-[0.95]">{p.full_name}</h1>
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">
-              {team ? <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-1 pr-2.5 pl-1.5"><Crest src={team.crest_url} name={team.name} size={18} />{team.name}</Link> : <span className="rounded-full bg-surface-2 px-2.5 py-1">Invitado</span>}
-              {p.shirt_number != null && <span className="rounded-full bg-surface-2 px-2.5 py-1 tabular">#{p.shirt_number}</span>}
-              {!p.active && <span className="rounded-full bg-loss-soft px-2.5 py-1 text-loss">Inactivo</span>}
-            </div>
-          </div>
-          {tot.matches > 0 && (
-            <div className="shrink-0 pt-0.5 text-center">
-              <div className="font-display tabular text-[2.75rem] font-bold leading-[0.9]">{num(tot.ratingAvg, 1)}</div>
-              <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-ink-3">Nota media</div>
-            </div>
-          )}
-        </div>
-        <dl className="mt-4 grid grid-cols-4 gap-2 text-center" aria-label="Ficha">
-          {ficha.map(([l, v]) => (
-            <div key={l} className="min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5">
-              <dd className="truncate text-[15px] font-semibold tabular">{v}</dd>
-              <dt className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-3">{l}</dt>
-            </div>
-          ))}
-        </dl>
-      </div>
+      {/* 1 · Cabecera, equipo y detalles */}
+      <PlayerHeader name={p.full_name} team={team} photo={p.photo_url} cardPhoto={p.card_photo_url} color={color}
+        rating={tot.matches > 0 ? num(tot.ratingAvg, 1) : null}
+        badge={!p.active ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Inactivo</span> : null} />
+      {team && <TeamCard team={team} subtitle={[p.usual_position && p.usual_position !== "POR" ? POSITION_LABELS[p.usual_position] : null, p.shirt_number != null ? `Dorsal ${p.shirt_number}` : null].filter(Boolean).join(" · ") || null} />}
+      <DetailsGrid items={ficha} />
 
       {/* 2 · Visor 3D */}
       {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} mapUrl={p.model_map_url} paint={kitPaint(p.kit as Kit, p.shirt_number)} />}
 
       {/* 3 · Números */}
       {tot.matches > 0 && (
-        <dl className="grid grid-cols-4 rounded-3xl bg-surface py-3.5 text-center shadow-card">
-          {([["Partidos", tot.matches], ["Goles", tot.goals], ["Asist.", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
+        <dl className="grid grid-cols-3 rounded-3xl bg-surface py-3.5 text-center shadow-card">
+          {([["Goles", tot.goals], ["Asistencias", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
             <div key={l}><dd className="font-display tabular text-[1.65rem] font-bold leading-none">{v}</dd><dt className="mt-1 text-[10px] uppercase tracking-wider text-ink-3">{l}</dt></div>
           ))}
         </dl>

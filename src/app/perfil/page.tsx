@@ -5,6 +5,7 @@ import { signOut } from "@/app/actions/auth";
 import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
 import { PhysicalFields } from "@/components/forms/physical-fields";
 import { PlayerStage } from "@/components/player/player-stage";
+import { DetailsGrid, PlayerHeader, TeamCard } from "@/components/player/player-header";
 import { POSITION_LABELS, type PlayerPhysical } from "@/lib/types";
 import { ButtonLink, Card, Crest, Field, Input, Notice, PageHeader, ResultBadge, SectionTitle, cx } from "@/components/ui";
 import { FormStrip, WdlDonut } from "@/components/charts";
@@ -76,43 +77,27 @@ export default async function Profile() {
 
   return (
     <div className="space-y-6">
-      {/* 1 · Quién soy: nombre, equipo, nota media y ficha física */}
-      <section className="relative overflow-hidden rounded-3xl bg-surface p-5 text-ink shadow-card" style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${color} 12%, var(--surface)) 0%, var(--surface) 75%)` }}>
-        <div className="flex items-start gap-3">
-          {!s.player?.model_url && <AvatarUpload userId={s.userId} name={s.player?.full_name ?? s.profile.display_name ?? "?"} src={s.player?.photo_url ?? s.profile.avatar_url} color={color} size={72} />}
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-[2rem] font-bold uppercase leading-[0.95]">{s.player?.full_name ?? s.profile.display_name}</h1>
-            {s.player?.nickname && <p className="mt-1 truncate text-sm text-ink-2">«{s.player.nickname}»</p>}
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">
-              {team && <Link href={`/equipos/${team.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-1 pr-2.5 pl-1.5"><Crest src={team.crest_url} name={team.name} size={18} />{team.name}</Link>}
-              {s.role !== "player" && <span className="rounded-full bg-surface-2 px-2.5 py-1">{ROLE[s.role]}</span>}
-              {s.profile.status === "suspended" && <span className="rounded-full bg-loss-soft px-2.5 py-1 text-loss">Cuenta suspendida</span>}
-            </div>
-          </div>
-          {tot && tot.matches > 0 && (
-            <div className="shrink-0 pt-0.5 text-center">
-              <div className="font-display tabular text-[2.75rem] font-bold leading-[0.9]">{num(tot.ratingAvg, 1)}</div>
-              <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-ink-3">Nota media</div>
-              {(() => { const r = rankOf("ratingAvg"); return r && <div className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</div>; })()}
-            </div>
-          )}
-        </div>
-        {s.player && (
-          <dl className="mt-4 grid grid-cols-4 gap-2 text-center" aria-label="Mi ficha">
-            {([
-              ["Altura", phys?.height_cm ? `${(phys.height_cm / 100).toFixed(2).replace(".", ",")} m` : "—"],
-              ["Peso", phys?.weight_kg ? `${num(Number(phys.weight_kg), Number(phys.weight_kg) % 1 ? 1 : 0)} kg` : "—"],
-              ["Posición", s.player.usual_position && s.player.usual_position !== "POR" ? POSITION_LABELS[s.player.usual_position] : "—"],
-              ["Victorias", tot?.wins ?? 0],
-            ] as const).map(([l, v]) => (
-              <div key={l} className="min-w-0 rounded-2xl bg-surface-2 px-1 py-2.5">
-                <dd className="truncate text-[15px] font-semibold tabular">{v}</dd>
-                <dt className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-3">{l}</dt>
-              </div>
-            ))}
-          </dl>
-        )}
-      </section>
+      {/* 1 · Quién soy: cabecera, equipo y detalles */}
+      {(() => {
+        const r = tot && tot.matches > 0 ? rankOf("ratingAvg") : null;
+        return (
+          <PlayerHeader name={s.player?.full_name ?? s.profile.display_name ?? "Mi perfil"} nickname={s.player?.nickname} team={team}
+            photo={s.player?.photo_url ?? s.profile.avatar_url} cardPhoto={s.player?.card_photo_url} color={color}
+            rating={tot && tot.matches > 0 ? num(tot.ratingAvg, 1) : null} ratingNote={r ? `${r.pos}.º del grupo` : null}
+            badge={s.profile.status === "suspended" ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Cuenta suspendida</span> : null} />
+        );
+      })()}
+      {team && <TeamCard team={team} subtitle={ROLE[s.role]} />}
+      {s.player && (
+        <DetailsGrid items={[
+          ["Altura", phys?.height_cm ? `${phys.height_cm} cm` : "—"],
+          ["Peso", phys?.weight_kg ? `${num(Number(phys.weight_kg), Number(phys.weight_kg) % 1 ? 1 : 0)} kg` : "—"],
+          ["Posición", s.player.usual_position && s.player.usual_position !== "POR" ? POSITION_LABELS[s.player.usual_position] : "—"],
+          ["Dorsal", s.player.shirt_number ?? "—"],
+          ["Partidos", tot?.matches ?? 0],
+          ["Victorias", tot?.wins ?? 0],
+        ]} />
+      )}
 
       {/* 2 · Mi jugador en 3D */}
       {s.player?.model_url && (
@@ -128,14 +113,14 @@ export default async function Profile() {
 
       {/* 3 · Mis números */}
       {tot && tot.matches > 0 && (
-        <dl className="grid grid-cols-4 rounded-3xl bg-surface py-3.5 text-center shadow-card">
-          {([["Partidos", tot.matches, "matches"], ["Goles", tot.goals, "goals"], ["Asist.", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
+        <dl className="grid grid-cols-3 rounded-3xl bg-surface py-3.5 text-center shadow-card">
+          {([["Goles", tot.goals, "goals"], ["Asistencias", tot.assists, "assists"], ["MVP", tot.mvps, "mvps"]] as const).map(([l, v, k]) => {
             const r = rankOf(k);
             return (
               <div key={l}>
                 <dd className="font-display tabular text-[1.65rem] font-bold leading-none">{v}</dd>
                 <dt className="mt-1 text-[10px] uppercase tracking-wider text-ink-3">{l}</dt>
-                {r && k !== "matches" && <p className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</p>}
+                {r && <p className="mt-0.5 text-[11px] text-ink-3">{r.pos}.º del grupo</p>}
               </div>
             );
           })}
@@ -225,7 +210,7 @@ export default async function Profile() {
       )}
 
       {/* 5 · Datos de la cuenta y ajustes */}
-      {s.player?.model_url && (
+      {s.player && (
         <section>
           <SectionTitle>Mi foto</SectionTitle>
           <Card className="flex items-center gap-4 p-4">
