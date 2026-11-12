@@ -34,6 +34,7 @@ export function VoiceMatch(props: { teams: Team[]; players: Player[]; venues: Ve
   const [pending, start] = useTransition();
   const sr = useRef<SR | null>(null);
   const keepGoing = useRef(false);
+  const textRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => () => { keepGoing.current = false; sr.current?.abort(); }, []);
 
@@ -53,7 +54,15 @@ export function VoiceMatch(props: { teams: Team[]; players: Player[]; venues: Ve
       setInterim(tmp);
     };
     r.onerror = (e) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") { setErr("Permite el micrófono para dictar (ajustes del navegador o del móvil)."); keepGoing.current = false; }
+      if (e.error === "service-not-allowed") {
+        // iPhone con la app instalada: iOS no deja usar su dictado dentro de apps web
+        keepGoing.current = false; setBlocked(true);
+        setErr("En la app instalada, el iPhone no permite el dictado directo. Toca el cuadro de texto y usa el micrófono del teclado: funciona igual.");
+        setTimeout(() => textRef.current?.focus(), 50);
+      } else if (e.error === "not-allowed") {
+        keepGoing.current = false;
+        setErr("El micrófono está bloqueado. Actívalo en Ajustes › Safari (o Chrome) › Micrófono y vuelve a intentarlo, o dicta con el micrófono del teclado.");
+      }
       else if (e.error === "no-speech") { /* silencio: seguimos */ }
       else setErr("Se cortó el dictado. Vuelve a pulsar grabar o escribe el texto.");
     };
@@ -97,12 +106,13 @@ export function VoiceMatch(props: { teams: Team[]; players: Player[]; venues: Ve
           {rec ? <Square size={30} fill="currentColor" /> : <Mic size={38} />}
         </button>
         <p className="text-[15px] font-semibold">{rec ? "Escuchando… pulsa para parar" : supported ? "Pulsa y cuéntame el partido" : "Tu navegador no transcribe aquí"}</p>
-        <p className="max-w-sm text-xs text-ink-3">{supported ? "Fecha, hora, estadio, quién es local, quién juega en cada equipo, formación y el tiempo." : "Usa el micrófono del teclado del móvil para dictar en el cuadro de abajo."}</p>
+        <p className="max-w-sm text-xs text-ink-3">{supported ? "Fecha, hora, estadio, quién es local, quién juega en cada equipo, formación y el tiempo." : "Toca el cuadro de abajo y pulsa el micrófono del teclado para dictar."}</p>
+        {!supported && <button type="button" onClick={() => textRef.current?.focus()} className="press rounded-full bg-surface-2 px-4 py-2 text-sm font-semibold">Dictar con el teclado</button>}
       </div>
 
       <div>
         <label htmlFor="dictado" className="mb-1.5 block text-sm font-semibold">Transcripción</label>
-        <textarea id="dictado" rows={7} value={text + (interim ? (text ? " " : "") + interim : "")} onChange={(e) => { setText(e.target.value); setInterim(""); }}
+        <textarea ref={textRef} id="dictado" rows={7} value={text + (interim ? (text ? " " : "") + interim : "")} onChange={(e) => { setText(e.target.value); setInterim(""); }}
           placeholder={EXAMPLE}
           className="w-full rounded-2xl border border-transparent bg-surface px-4 py-3 text-[16px] leading-relaxed shadow-card placeholder:text-ink-3 focus:border-pitch focus:outline-none" />
         <p className="mt-1 text-xs text-ink-3">Puedes corregir el texto antes de continuar.</p>
