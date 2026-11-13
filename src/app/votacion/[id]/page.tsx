@@ -55,7 +55,7 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
       <Scoreboard m={m} home={ds.teamById.get(m.home_team_id)!} away={ds.teamById.get(m.away_team_id)!} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} />
       {st && <p className="text-sm text-ink-3">Han votado {st.voted} de {st.eligible} participantes.</p>}
       {body}
-      <p className="text-xs text-ink-3">Cada participante vota dos veces: al mejor de su equipo y al mejor del partido (MVP). Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La votación cierra sola 24 horas después del inicio.</p>
+      <p className="text-xs text-ink-3">Cada participante vota dos veces: al mejor de su equipo y al mejor del partido (MVP). Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La votación cierra sola a las 12:00 del día siguiente al partido.</p>
     </div>
   );
 }

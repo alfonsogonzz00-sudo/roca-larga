@@ -210,7 +210,10 @@ describe("partidos", () => {
   it("votación: sólo participantes, sin auto-voto, sin duplicados, modificable", async () => {
     await db.su(`update public.matches set kickoff_at = now() - interval '1 hour' where id=$1`, [matchId]);
     const [m] = await db.su<{ vote_closes_at: Date; kickoff_at: Date }>(`select vote_closes_at, kickoff_at from public.matches where id=$1`, [matchId]);
-    expect(new Date(m.vote_closes_at).getTime() - new Date(m.kickoff_at).getTime()).toBe(24 * 3600 * 1000);
+    const [exp] = await db.su<{ c: Date }>(`select private.vote_close_for($1) c`, [m.kickoff_at]);
+    expect(new Date(m.vote_closes_at).getTime()).toBe(new Date(exp.c).getTime());
+    const [loc] = await db.su<{ h: string }>(`select to_char(vote_closes_at at time zone 'Europe/Madrid','HH24:MI') h from public.matches where id=$1`, [matchId]);
+    expect(loc.h).toBe("12:00");
 
     const V = `select public.cast_mvp_vote($1,$2,$3)`;
     await expectError(db.as(stranger, V, [matchId, carPlayers[0], carPlayers[1]]), /no está vinculada/);
@@ -288,8 +291,18 @@ describe("partidos", () => {
     expect(log.map((l) => l.action)).toContain("match.result_edit");
   });
 
-  it("cierre automático a las 24h, MVP, mejor de cada equipo y aviso", async () => {
-    await db.su(`update public.matches set kickoff_at = now() - interval '25 hours' where id=$1`, [matchId]);
+  it("la votación cierra a las 12:00 (Madrid) del día siguiente al partido", async () => {
+    const r = await db.su<{ a: string; b: string; c: string }>(`select
+      private.vote_close_for('2026-11-17 21:00 Europe/Madrid')::text a,
+      private.vote_close_for('2026-11-17 00:30 Europe/Madrid')::text b,
+      private.vote_close_for('2026-07-07 20:00 Europe/Madrid')::text c`);
+    expect(new Date(r[0].a).toISOString()).toBe("2026-11-18T11:00:00.000Z");
+    expect(new Date(r[0].b).toISOString()).toBe("2026-11-18T11:00:00.000Z");
+    expect(new Date(r[0].c).toISOString()).toBe("2026-07-08T10:00:00.000Z");
+  });
+
+  it("cierre automático a las 12:00 del día siguiente, MVP, mejor de cada equipo y aviso", async () => {
+    await db.su(`update public.matches set kickoff_at = now() - interval '3 days' where id=$1`, [matchId]);
     await expectError(db.as(pMon2, `select public.cast_mvp_vote($1,$2,$3)`, [matchId, monPlayers[0], carPlayers[1]]), /cerrada/);
     const [r] = await db.as<{ close_due_votes: number }>(null, `select public.close_due_votes()`);
     expect(r.close_due_votes).toBe(1);
@@ -305,6 +318,8 @@ describe("partidos", () => {
     expect(bests.length).toBe(2);
     const notes = await db.su(`select 1 from public.notifications where match_id=$1 and type='mvp_result'`, [matchId]);
     expect(notes.length).toBe(5);
+    const [txt] = await db.su<{ title: string; body: string }>(`select title, body from public.notifications where match_id=$1 and type='mvp_result' limit 1`, [matchId]);
+    expect(txt).toEqual({ title: "La votación ha terminado.", body: "Entra y revisa quién fue el MVP de anoche" });
     const log = await db.su<{ summary: string; is_system: boolean }>(`select summary, is_system from public.activity_log where action='vote.close'`);
     expect(log[0].is_system).toBe(true);
     // idempotente
