@@ -4,9 +4,11 @@ import { Avatar, Crest } from "@/components/ui";
 import type { Team } from "@/lib/types";
 
 /** Cabecera de jugador (estilo ficha deportiva): foto, nombre, equipo y nota media */
-export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, rating, ratingNote, badge }: {
+export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, rating, ratingNote, badge, totals }: {
   name: string; nickname?: string | null; team?: Team | null; photo?: string | null; cardPhoto?: string | null;
   color: string; rating?: string | null; ratingNote?: string | null; badge?: ReactNode;
+  /** Totales de toda la trayectoria */
+  totals?: { matches: number; goals: number; assists: number; mvps: number } | null;
 }) {
   return (
     <header className="-mx-4 -mt-5 px-4 pt-6 pb-6 text-white lg:mx-0 lg:mt-0 lg:rounded-3xl"
@@ -42,6 +44,13 @@ export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, ra
           </div>
         )}
       </div>
+      {totals && totals.matches > 0 && (
+        <dl className="mt-4 grid grid-cols-4 gap-1 rounded-2xl bg-white/10 py-2.5 text-center">
+          {([["Partidos", totals.matches], ["Goles", totals.goals], ["Asist.", totals.assists], ["MVP", totals.mvps]] as const).map(([l, v]) => (
+            <div key={l}><dd className="tabular text-xl font-semibold leading-none">{v}</dd><dt className="mt-1 text-[11px] text-white/65">{l}</dt></div>
+          ))}
+        </dl>
+      )}
     </header>
   );
 }

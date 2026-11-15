@@ -128,22 +128,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       {/* 1 · Cabecera, equipo y detalles */}
       <PlayerHeader name={p.full_name} team={team} photo={p.photo_url} cardPhoto={p.card_photo_url} color={color}
         rating={tot.matches > 0 ? num(tot.ratingAvg, 1) : null}
+        totals={tot}
         badge={!p.active ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Inactivo</span> : null} />
       <DetailsGrid items={ficha} />
 
       {/* 2 · Visor 3D */}
       {p.model_url && <PlayerStage src={p.model_url} poster={p.card_photo_url} name={p.nickname ?? p.full_name} color={color} mapUrl={p.model_map_url} paint={kitPaint(p.kit as Kit, p.shirt_number)} />}
 
-      {/* 3 · Números */}
-      {tot.matches > 0 && (
-        <dl className="grid grid-cols-3 rounded-3xl bg-surface py-3.5 text-center shadow-card">
-          {([["Goles", tot.goals], ["Asistencias", tot.assists], ["MVP", tot.mvps]] as const).map(([l, v]) => (
-            <div key={l}><dd className="font-display tabular text-[1.65rem] font-bold leading-none">{v}</dd><dt className="mt-1 text-[10px] uppercase tracking-wider text-ink-3">{l}</dt></div>
-          ))}
-        </dl>
-      )}
-
-      {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>nota</strong> de cada partido es sobre 10: partes de 6,0, sumas por jugar, por tus goles y asistencias y por cada gol de tu equipo, y restas por cada gol que encaja tu equipo. Las votaciones no cuentan.</Hint>}
+      {s?.player?.id === p.id && tot.matches > 0 && <Hint id="my-card" title="Esta es tu ficha">La <strong>nota</strong> de cada partido es el 70 % de tu nota estadística (partes de 6,0, sumas por jugar, por tus goles y asistencias y por cada gol de tu equipo, y restas por cada gol que encaja tu equipo) más la media de puntos extra (0 a 3) que te dan los demás al votar. Pagar el campo, reservar la pista o traer un invitado suma +0,2 cada uno.</Hint>}
       {tot.matches === 0 ? <EmptyState title="Sin partidos todavía">Cuando dispute su primer partido aparecerán aquí sus estadísticas.</EmptyState> : (
         <Tabs tabs={[
           { label: "Resumen", content: summary },
