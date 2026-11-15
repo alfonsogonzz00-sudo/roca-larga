@@ -49,7 +49,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const pred = await predictionForMatch(m);
   const started = new Date(m.kickoff_at).getTime() <= nowMs();
   const mine = s?.player ? mps.find((x) => x.player_id === s.player!.id && x.called) : undefined;
-  const ratingOf = new Map(parts.filter((p) => p.matchId === m.id).map((p) => [p.playerId, p.rating]));
+  const notes = parts.filter((p) => p.matchId === m.id);
+  const ratingOf = new Map(notes.map((p) => [p.playerId, p.rating]));
+  const dec = (x: number) => x.toFixed(1).replace(".", ",");
 
   const sideList = (teamId: string) => {
     const rows = mps.filter((x) => x.team_id === teamId && (played ? x.participated : x.called));
@@ -89,7 +91,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const lineups = (
     <div className="space-y-4">
       <LineupPitch home={pitchSide(home)} away={pitchSide(away)} />
-      {played && <p className="text-xs text-ink-3">Nota sobre 10: parte de 6,0 · +0,5 por jugar · +2,5 por gol · +1,2 por asistencia · +0,8 por cada gol del equipo · −1,0 por gol encajado. Independiente de las votaciones.</p>}
+      {played && <p className="text-xs text-ink-3">Nota: 70 % estadística (parte de 6,0 · +0,5 por jugar · +2,5 por gol · +1,2 por asistencia · +0,8 por gol del equipo · −1,0 por gol encajado; tope 10) + media de 0 a 3 puntos extra que dan los demás al votar + 0,2 por invitado, por pagar el campo y por reservar la pista. Detalle en Resumen.</p>}
       <div className="grid gap-3 lg:grid-cols-2">
         {[home, away].map((tm) => {
           const list = sideList(tm.id);
@@ -205,6 +207,31 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           })()}
         </Details>
       ) : null}
+      {played && notes.length > 0 && (
+        <Details summary="Desglose de notas">
+          <p className="mb-2 text-xs text-ink-3">{notes.some((n) => n.peerScore != null)
+            ? "Nota = 70 % de la nota estadística + media de puntos extra que le dan los demás (0 a 3) + bonus (+0,2 por invitado, por pagar el campo y por reservar la pista)."
+            : "Aún no hay puntos extra de la votación: la nota es la estadística + bonus. Al cerrar la votación se recalcula con el 70 % estadístico + la media de puntos extra."}</p>
+          {[home, away].map((tm) => (
+            <div key={tm.id} className="mb-3">
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-3"><span className="h-2 w-2 rounded-full" style={{ background: teamColor(tm) }} aria-hidden />{tm.short_name}</p>
+              <ul className="divide-y divide-line text-sm">
+                {notes.filter((n) => n.teamId === tm.id).sort((a, b) => b.rating - a.rating).map((n) => (
+                  <li key={n.playerId} className="flex items-center gap-2 py-1.5">
+                    <span className="min-w-0 flex-1 truncate">{playerName(P(n.playerId), "short")}</span>
+                    <span className="shrink-0 text-right text-[11px] leading-tight text-ink-3 tabular">
+                      {n.peerScore != null ? <>{dec(0.7 * n.statCore)} est. + {dec(n.peerScore)} extra</> : <>{dec(n.statCore)} est.</>}
+                      {n.bonus > 0 && <> + {dec(n.bonus)} bonus</>}
+                      {(n.paidField || n.bookedField || n.guestsBrought > 0) && <span className="block">{[n.paidField && "pagó el campo", n.bookedField && "reservó", n.guestsBrought > 0 && `${n.guestsBrought} invitado${n.guestsBrought > 1 ? "s" : ""}`].filter(Boolean).join(" · ")}</span>}
+                    </span>
+                    <strong className="w-10 shrink-0 text-right tabular">{dec(n.rating)}</strong>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </Details>
+      )}
     </Card>
   );
 

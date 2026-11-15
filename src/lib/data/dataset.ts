@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAll } from "./fetch-all";
-import type { Formation, GkSpell, Goal, Match, MatchMvp, TeamBest, MatchPlayer, Player, Team, Venue } from "@/lib/types";
+import type { Formation, GkSpell, Goal, Match, MatchMvp, PeerRatingAvg, TeamBest, MatchPlayer, Player, Team, Venue } from "@/lib/types";
 
 /**
  * Conjunto de datos deportivos completo. Con el volumen de dos equipos
@@ -20,6 +20,7 @@ export interface Dataset {
   spells: GkSpell[];
   mvps: MatchMvp[];
   teamBests: TeamBest[];
+  peerRatings: PeerRatingAvg[];
   // índices
   teamById: Map<string, Team>;
   venueById: Map<string, Venue>;
@@ -30,7 +31,7 @@ export interface Dataset {
 
 export const loadDataset = cache(async (): Promise<Dataset> => {
   const supabase = await createClient();
-  const [teams, venues, players, formations, matches, matchPlayers, goals, spells, mvps, teamBests] = await Promise.all([
+  const [teams, venues, players, formations, matches, matchPlayers, goals, spells, mvps, teamBests, peerRatings] = await Promise.all([
     fetchAll<Team>(supabase, "teams", "*", (q) => q.order("sort_order")),
     fetchAll<Venue>(supabase, "venues", "*", (q) => q.order("name")),
     fetchAll<Player>(supabase, "players", "*", (q) => q.order("full_name")),
@@ -41,9 +42,10 @@ export const loadDataset = cache(async (): Promise<Dataset> => {
     fetchAll<GkSpell>(supabase, "goalkeeper_spells", "*", (q) => q.order("seq")),
     fetchAll<MatchMvp>(supabase, "match_mvps"),
     fetchAll<TeamBest>(supabase, "match_team_bests"),
+    fetchAll<PeerRatingAvg>(supabase, "peer_rating_avgs"),
   ]);
   return {
-    teams, venues, players, formations, matches, matchPlayers, goals, spells, mvps, teamBests,
+    teams, venues, players, formations, matches, matchPlayers, goals, spells, mvps, teamBests, peerRatings: peerRatings.map((r) => ({ ...r, avg: Number(r.avg) })),
     teamById: new Map(teams.map((t) => [t.id, t])),
     venueById: new Map(venues.map((v) => [v.id, v])),
     playerById: new Map(players.map((p) => [p.id, p])),

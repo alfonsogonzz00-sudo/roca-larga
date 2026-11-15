@@ -24,10 +24,12 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   const me = s?.player ? parts.find((x) => x.player_id === s.player!.id) : undefined;
   const isParticipant = Boolean(me);
   const { data: mine } = me ? await supabase.rpc("my_mvp_ballot", { p_match: id }).maybeSingle<{ team_pick_id: string; match_pick_id: string }>() : { data: null };
+  const { data: myRatings } = me ? await supabase.rpc("my_peer_ratings", { p_match: id }) : { data: null };
+  const initialRatings = Object.fromEntries(((myRatings ?? []) as { player_id: string; points: number }[]).map((r) => [r.player_id, r.points]));
   const teams = [m.home_team_id, m.away_team_id].map((tid) => { const tm = ds.teamById.get(tid)!; return { id: tm.id, name: tm.name, color: teamColor(tm) }; });
   const candidates = parts.filter((x) => x.player_id !== s?.player?.id).map((x) => {
     const p = ds.playerById.get(x.player_id)!;
-    const nota = allParts.find((q) => q.matchId === id && q.playerId === p.id)?.rating ?? null;
+    const nota = allParts.find((q) => q.matchId === id && q.playerId === p.id)?.statRating ?? null;
     return { id: p.id, name: p.full_name, nickname: p.nickname, photo: p.photo_url, teamId: x.team_id, rating: nota };
   });
 
@@ -40,11 +42,12 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
   else if (!isParticipant) body = <Notice tone="warn">Sólo votan los jugadores que han participado en este partido.</Notice>;
   else body = (
     <Card className="space-y-4 p-4 pb-0">
-      <Hint id="ballot" title="Dos votos, un minuto">Toca primero al mejor de tu equipo y después al mejor del partido. Puede ser la misma persona. Al final verás el resumen antes de confirmar.</Hint>
+      <Hint id="ballot-v2" title="Dos votos y tu valoración">Elige al mejor de tu equipo y al mejor del partido (puede ser la misma persona) y después dale a cada jugador de +0 a +3 puntos extra. Al final verás el resumen antes de confirmar.</Hint>
       <p className="flex items-start gap-2 text-sm text-ink-2"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden />{t("vote.anonymous_note")}</p>
       {mine && <Notice tone="ok">Ya has votado. Puedes cambiar tu voto hasta el cierre.</Notice>}
       <Ballot matchId={id} myTeamId={me!.team_id} teams={teams} candidates={candidates}
         initial={mine ? { team: mine.team_pick_id, match: mine.match_pick_id } : null}
+        initialRatings={initialRatings}
         labels={{ team: t("vote.team_pick"), match: t("vote.match_pick") }} />
     </Card>
   );
@@ -55,7 +58,7 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
       <Scoreboard m={m} home={ds.teamById.get(m.home_team_id)!} away={ds.teamById.get(m.away_team_id)!} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} />
       {st && <p className="text-sm text-ink-3">Han votado {st.voted} de {st.eligible} participantes.</p>}
       {body}
-      <p className="text-xs text-ink-3">Cada participante vota dos veces: al mejor de su equipo y al mejor del partido (MVP). Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La votación cierra sola a las 12:00 del día siguiente al partido.</p>
+      <p className="text-xs text-ink-3">Cada participante vota al mejor de su equipo y al mejor del partido (MVP), y da a cada jugador de +0 a +3 puntos extra. Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La nota de cada jugador es el 70 % de su nota estadística más la media de puntos extra que le dan los demás. La votación cierra sola 2 horas después de que termine el partido.</p>
     </div>
   );
 }

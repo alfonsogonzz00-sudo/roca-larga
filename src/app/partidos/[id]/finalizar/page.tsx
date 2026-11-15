@@ -40,6 +40,7 @@ export default async function FinalizeMatch({ params }: { params: Promise<{ id: 
           home: side(m.home_team_id), away: side(m.away_team_id), goals, spells,
           actual_weather: m.actual_weather ?? m.forecast_weather ?? "", actual_temp_c: (m.actual_temp_c ?? m.forecast_temp_c)?.toString() ?? "",
           incidents: m.incidents ?? "", final_notes: m.final_notes ?? "", manual_mvp_ids: ds.mvps.filter((x) => x.match_id === id && x.source === "manual").map((x) => x.player_id),
+          paid_by_id: m.paid_by_id ?? "", booked_by_id: m.booked_by_id ?? "",
           exceptional: m.exceptional_lineup, historicalOrigin: m.origin === "historical",
         }} />
     </div>

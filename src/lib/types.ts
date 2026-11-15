@@ -77,6 +77,9 @@ export interface Formation {
 
 export interface Match {
   id: string;
+  /** Quién pagó el campo y quién reservó la pista (+bonus en la nota) */
+  paid_by_id?: string | null;
+  booked_by_id?: string | null;
   kickoff_at: string;
   venue_id: string | null;
   home_team_id: string;
@@ -154,6 +157,14 @@ export interface MvpTally {
   votes: number;
   rank: number;
   ballots: number;
+}
+
+/** Media de valoraciones (0-3) que recibe un jugador de los demás participantes */
+export interface PeerRatingAvg {
+  match_id: string;
+  player_id: string;
+  avg: number;
+  raters: number;
 }
 
 export interface TeamBest {
@@ -246,9 +257,13 @@ export interface PerformanceWeights {
   assist: number;         // por cada asistencia (+1,2)
   team_goal: number;      // por cada gol del equipo que no marca él (+0,8)
   team_conceded: number;  // por cada gol que encaja el equipo (−1,0)
-  guest_bonus: number;    // por cada invitado que trae
-  max: number;            // tope (10,0)
+  guest_bonus: number;    // por cada invitado que trae (+0,2, fuera del tope)
+  paid_bonus?: number;    // por pagar el campo (+0,2, fuera del tope)
+  booked_bonus?: number;  // por reservar la pista (+0,2, fuera del tope)
+  max: number;            // tope de la parte estadística (10,0)
   min: number;            // suelo (0,0)
+  stat_share?: number;    // peso de la nota estadística cuando hay valoraciones (0,7)
+  peer_max?: number;      // máximo de la valoración de los demás (3)
 }
 
 export interface ModelParams {

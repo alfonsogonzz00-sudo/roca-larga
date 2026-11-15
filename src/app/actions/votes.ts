@@ -10,11 +10,14 @@ export async function castVoteAction(_: ActionResult | null, fd: FormData): Prom
     match: z.string().uuid(),
     team: z.string().uuid("Elige al mejor de tu equipo"),
     best: z.string().uuid("Elige al mejor del partido"),
+    ratings: z.record(z.string().uuid(), z.number().int().min(0, "Valora de 0 a 3").max(3, "Valora de 0 a 3")),
   });
-  const p = schema.safeParse({ match: fd.get("match_id"), team: fd.get("team_pick"), best: fd.get("match_pick") });
+  let ratings: unknown = {};
+  try { ratings = JSON.parse(String(fd.get("ratings") ?? "{}")); } catch { return { ok: false, error: "Valoraciones no válidas" }; }
+  const p = schema.safeParse({ match: fd.get("match_id"), team: fd.get("team_pick"), best: fd.get("match_pick"), ratings });
   if (!p.success) return { ok: false, error: p.error.issues[0].message };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("cast_mvp_vote", { p_match: p.data.match, p_team_pick: p.data.team, p_match_pick: p.data.best });
+  const { data, error } = await supabase.rpc("cast_mvp_vote", { p_match: p.data.match, p_team_pick: p.data.team, p_match_pick: p.data.best, p_ratings: p.data.ratings });
   if (error) return { ok: false, error: friendlyError(error) };
   revalidatePath("/", "layout");
   const t = await getTexts();

@@ -3,7 +3,7 @@
  * La portería no se registra ni se tiene en cuenta.
  */
 import { localHour, seasonOf } from "@/lib/format";
-import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PerformanceWeights, Player, Team, TeamBest, Weather } from "@/lib/types";
+import type { Goal, GkSpell, Match, MatchMvp, MatchPlayer, PeerRatingAvg, PerformanceWeights, Player, Team, TeamBest, Weather } from "@/lib/types";
 
 export interface StatsInput {
   teams: Team[];
@@ -15,6 +15,8 @@ export interface StatsInput {
   mvps: MatchMvp[];
   /** Mejor jugador de cada equipo (votación). Opcional para datos antiguos. */
   teamBests?: TeamBest[];
+  /** Media de valoraciones de los demás (0-3), publicada al cerrar la votación */
+  peerRatings?: PeerRatingAvg[];
 }
 
 export type Result = "W" | "D" | "L";
@@ -45,6 +47,19 @@ export interface Participation {
   isTeamBest: boolean;
   guestsBrought: number;
   isGuest: boolean;
+  /** Pagó el campo / reservó la pista */
+  paidField: boolean;
+  bookedField: boolean;
+  /** Parte estadística sin bonus (0-10) */
+  statCore: number;
+  /** Bonus fuera del tope: invitados, pagar el campo, reservar la pista */
+  bonus: number;
+  /** Nota estadística mostrada (statCore + bonus) */
+  statRating: number;
+  /** Media de valoraciones de los demás (0-3) o null si no hay */
+  peerScore: number | null;
+  peerRaters: number;
+  /** Nota final del partido */
   rating: number;
 }
 
@@ -67,19 +82,42 @@ export function resultFor(gf: number, ga: number): Result {
   return gf > ga ? "W" : gf < ga ? "L" : "D";
 }
 
+const r2 = (x: number) => Math.round(x * 100) / 100;
+
 /**
- * Nota del partido (sobre 10). Parte de 6,0 y suma +0,5 por jugar, +2,5 por gol propio,
+ * Parte estadística de la nota (sobre 10). Parte de 6,0 y suma +0,5 por jugar, +2,5 por gol propio,
  * +1,2 por asistencia, +0,8 por cada gol del equipo que no marca él (el asistente sí lo cobra)
- * y −1,0 por cada gol encajado por el equipo. Se ignora la portería y las votaciones.
+ * y −1,0 por cada gol encajado por el equipo. Tope 10. Se ignora la portería y las votaciones.
  */
-export function rate(p: Pick<Participation, "goals" | "assists" | "goalsFor" | "goalsAgainst" | "guestsBrought">, w: PerformanceWeights): number {
+export function statCore(p: Pick<Participation, "goals" | "assists" | "goalsFor" | "goalsAgainst">, w: PerformanceWeights): number {
   const raw = w.base + w.played
     + p.goals * w.goal
     + p.assists * w.assist
     + Math.max(0, p.goalsFor - p.goals) * w.team_goal
-    + p.goalsAgainst * w.team_conceded
-    + p.guestsBrought * w.guest_bonus;
-  return Math.round(Math.min(w.max, Math.max(w.min, raw)) * 100) / 100;
+    + p.goalsAgainst * w.team_conceded;
+  return r2(Math.min(w.max, Math.max(w.min, raw)));
+}
+
+/** Bonus que se suman por encima del tope: +0,2 por invitado, por pagar el campo y por reservar la pista */
+export function bonusOf(p: Pick<Participation, "guestsBrought" | "paidField" | "bookedField">, w: PerformanceWeights): number {
+  return r2(p.guestsBrought * w.guest_bonus + (p.paidField ? w.paid_bonus ?? 0.2 : 0) + (p.bookedField ? w.booked_bonus ?? 0.2 : 0));
+}
+
+/**
+ * Nota final del partido. Con valoraciones de los demás:
+ *   stat_share (70 %) × parte estadística + media de valoraciones (0-3) + bonus.
+ * Sin valoraciones (partidos antiguos o nadie votó): parte estadística + bonus.
+ */
+export function finalRating(core: number, bonus: number, peer: number | null, w: PerformanceWeights): number {
+  if (peer == null) return r2(core + bonus);
+  const share = w.stat_share ?? 0.7;
+  const peerMax = w.peer_max ?? 3;
+  return r2(share * core + Math.min(peerMax, Math.max(0, peer)) + bonus);
+}
+
+/** Compatibilidad: nota sin valoraciones (parte estadística + bonus) */
+export function rate(p: Pick<Participation, "goals" | "assists" | "goalsFor" | "goalsAgainst" | "guestsBrought"> & Partial<Pick<Participation, "paidField" | "bookedField">>, w: PerformanceWeights): number {
+  return finalRating(statCore(p, w), bonusOf({ guestsBrought: p.guestsBrought, paidField: Boolean(p.paidField), bookedField: Boolean(p.bookedField) }, w), null, w);
 }
 
 export function buildParticipations(input: StatsInput, w: PerformanceWeights): Participation[] {
@@ -89,6 +127,7 @@ export function buildParticipations(input: StatsInput, w: PerformanceWeights): P
   const spellsByMatch = groupBy(input.spells, (s) => s.match_id);
   const mvpSet = new Set(input.mvps.map((m) => `${m.match_id}:${m.player_id}`));
   const bestSet = new Set((input.teamBests ?? []).map((b) => `${b.match_id}:${b.player_id}`));
+  const peerMap = new Map((input.peerRatings ?? []).map((r) => [`${r.match_id}:${r.player_id}`, r]));
   const mpByMatch = groupBy(input.matchPlayers.filter((mp) => mp.participated), (mp) => mp.match_id);
   const out: Participation[] = [];
 
@@ -125,9 +164,18 @@ export function buildParticipations(input: StatsInput, w: PerformanceWeights): P
         isTeamBest: bestSet.has(`${m.id}:${mp.player_id}`),
         guestsBrought: mps.filter((o) => o.brought_by_id === mp.player_id).length,
         isGuest: playerById.get(mp.player_id)?.kind === "guest",
+        paidField: m.paid_by_id === mp.player_id,
+        bookedField: m.booked_by_id === mp.player_id,
+        statCore: 0, bonus: 0, statRating: 0, peerScore: null, peerRaters: 0,
         rating: 0,
       };
-      p.rating = rate(p, w);
+      const peer = peerMap.get(`${m.id}:${mp.player_id}`);
+      p.statCore = statCore(p, w);
+      p.bonus = bonusOf(p, w);
+      p.statRating = r2(p.statCore + p.bonus);
+      p.peerScore = peer ? Number(peer.avg) : null;
+      p.peerRaters = peer?.raters ?? 0;
+      p.rating = finalRating(p.statCore, p.bonus, p.peerScore, w);
       out.push(p);
     }
   }

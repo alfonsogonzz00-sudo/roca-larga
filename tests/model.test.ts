@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildParticipations, rate, ranking, teamBadges, teamStats, topPerformances, playerTotals } from "@/lib/stats/engine";
+import { buildParticipations, finalRating, rate, statCore, ranking, teamBadges, teamStats, topPerformances, playerTotals } from "@/lib/stats/engine";
 import { backtest, buildHistory, normalizeWeights, poissonPmf, predictIndividual, predictMatch, scoreMatrix, type ModelContext } from "@/lib/stats/model";
 import type { Goal, Match, MatchMvp, MatchPlayer, Player, Team } from "@/lib/types";
 
@@ -66,6 +66,35 @@ describe("matemáticas", () => {
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     expect(total).toBeCloseTo(1, 9);
     expect(w.weather).toBe(0);
+  });
+});
+
+describe("nota del partido (70 % estadística + puntos extra + bonus)", () => {
+  const W2 = { ...PERF, guest_bonus: 0.2, paid_bonus: 0.2, booked_bonus: 0.2, stat_share: 0.7, peer_max: 3 };
+  it("ejemplo: 8 de estadística y media de 1,5 puntos extra → 7,1", () => {
+    expect(finalRating(8, 0, 1.5, W2)).toBe(7.1);
+  });
+  it("sin valoraciones cuenta sólo la estadística (+ bonus)", () => {
+    expect(finalRating(8, 0.4, null, W2)).toBe(8.4);
+  });
+  it("invitado + pagar + reservar: empieza 0,6 por encima y puede pasar de 10", () => {
+    const p = { goals: 0, assists: 0, goalsFor: 0, goalsAgainst: 0, guestsBrought: 1, paidField: true, bookedField: true };
+    expect(statCore(p, W2)).toBe(6.5);
+    expect(rate(p, W2)).toBe(7.1);
+    expect(finalRating(10, 0.2, 3, W2)).toBe(10.2);
+  });
+  it("buildParticipations aplica pagador, reserva y medias publicadas", () => {
+    const data = makeData(1, () => [1, 0]);
+    data.matches[0].paid_by_id = "a1";
+    data.matches[0].booked_by_id = "a1";
+    const ps = buildParticipations({ ...data, peerRatings: [{ match_id: "m0", player_id: "a1", avg: 2, raters: 13 }] }, W2);
+    const a1 = ps.find((p) => p.playerId === "a1")!;
+    expect(a1.bonus).toBe(0.4);
+    expect(a1.peerScore).toBe(2);
+    expect(a1.rating).toBe(Math.round((0.7 * a1.statCore + 2 + 0.4) * 100) / 100);
+    const a2 = ps.find((p) => p.playerId === "a2")!;
+    expect(a2.peerScore).toBeNull();
+    expect(a2.rating).toBe(a2.statCore);
   });
 });
 

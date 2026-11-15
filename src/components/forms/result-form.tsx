@@ -20,6 +20,7 @@ export interface ResultInitial {
   goals: GoalRow[]; spells: SpellRow[];
   actual_weather: string; actual_temp_c: string; incidents: string; final_notes: string;
   manual_mvp_ids: string[];
+  paid_by_id?: string; booked_by_id?: string;
   exceptional: boolean;
   historicalOrigin?: boolean;
 }
@@ -76,6 +77,8 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
       incidents: s.incidents || null,
       final_notes: s.final_notes || null,
       manual_mvp_ids: showMvp ? s.manual_mvp_ids : undefined,
+      paid_by_id: s.paid_by_id || null,
+      booked_by_id: s.booked_by_id || null,
     };
     if (!hist) return JSON.stringify(base);
     let kickoff = "";
@@ -89,6 +92,10 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
 
   const countOk = (tid: string) => parts(tid).length === perSide;
   const allParts = [...parts(s.home_team_id), ...parts(s.away_team_id)];
+  // Pagar o reservar: primero los que han jugado (de la plantilla) y después el resto de la plantilla
+  const memberIds = players.filter((p) => p.kind === "member").map((p) => p.id);
+  const playedMembers = allParts.filter((id) => pById.get(id)?.kind === "member");
+  const payerOptions = [...playedMembers, ...memberIds.filter((id) => !playedMembers.includes(id)), ...[s.paid_by_id, s.booked_by_id].filter((id): id is string => Boolean(id) && !memberIds.includes(id!))];
 
   return (
     <ActionForm action={hist ? createHistoricalAction : finalizeMatchAction} className="space-y-5" refresh={false}>
@@ -202,6 +209,21 @@ export function ResultForm({ teams, players, venues, formations, initial, perSid
           </Field>
         </Card>
       )}
+
+      <Card className="grid gap-4 p-4 sm:grid-cols-2">
+        <Field label="¿Quién pagó el campo?" htmlFor="paid" hint="+0,2 en su nota del partido">
+          <Select id="paid" value={s.paid_by_id ?? ""} onChange={(e) => setS({ ...s, paid_by_id: e.target.value })}>
+            <option value="">Sin marcar</option>
+            {payerOptions.map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
+          </Select>
+        </Field>
+        <Field label="¿Quién reservó la pista?" htmlFor="booked" hint="+0,2 en su nota del partido">
+          <Select id="booked" value={s.booked_by_id ?? ""} onChange={(e) => setS({ ...s, booked_by_id: e.target.value })}>
+            <option value="">Sin marcar</option>
+            {payerOptions.map((id) => <option key={id} value={id}>{nameOf(id)}</option>)}
+          </Select>
+        </Field>
+      </Card>
 
       <Card className="grid gap-4 p-4 sm:grid-cols-2">
         <Field label="Clima real" htmlFor="aw">

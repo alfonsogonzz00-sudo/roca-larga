@@ -51,6 +51,8 @@ const resultPayload = z.object({
   incidents: z.string().max(2000).optional().nullable(),
   final_notes: z.string().max(2000).optional().nullable(),
   manual_mvp_ids: z.array(uuid).max(3).optional(),
+  paid_by_id: optUuid,
+  booked_by_id: optUuid,
 });
 
 function parseJson<T extends z.ZodTypeAny>(schema: T, fd: FormData): z.infer<T> | string {
@@ -110,8 +112,11 @@ export async function finalizeMatchAction(_: ActionResult | null, fd: FormData):
   const p = parseJson(resultPayload, fd);
   if (typeof p === "string") return { ok: false, error: p };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("finalize_match", { p_id: id.data, p });
+  const { paid_by_id, booked_by_id, ...result } = p;
+  const { error } = await supabase.rpc("finalize_match", { p_id: id.data, p: result });
   if (error) return { ok: false, error: friendlyError(error) };
+  const { error: payErr } = await supabase.rpc("set_match_payers", { p_match: id.data, p_paid_by: paid_by_id || null, p_booked_by: booked_by_id || null });
+  if (payErr) return { ok: false, error: `Resultado guardado, pero no se pudo marcar quién pagó o reservó: ${friendlyError(payErr)}` };
   revalidateAll();
   redirect(`/partidos/${id.data}?ok=finalized`);
 }
@@ -124,8 +129,13 @@ export async function createHistoricalAction(_: ActionResult | null, fd: FormDat
   const p = parseJson(resultPayload.and(meta), fd);
   if (typeof p === "string") return { ok: false, error: p };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_historical_match", { p });
+  const { paid_by_id, booked_by_id, ...rest } = p;
+  const { data, error } = await supabase.rpc("create_historical_match", { p: rest });
   if (error) return { ok: false, error: friendlyError(error) };
+  if (paid_by_id || booked_by_id) {
+    const { error: payErr } = await supabase.rpc("set_match_payers", { p_match: data, p_paid_by: paid_by_id || null, p_booked_by: booked_by_id || null });
+    if (payErr) return { ok: false, error: `Partido creado, pero no se pudo marcar quién pagó o reservó: ${friendlyError(payErr)}` };
+  }
   revalidateAll();
   redirect(`/partidos/${data}?ok=historical`);
 }

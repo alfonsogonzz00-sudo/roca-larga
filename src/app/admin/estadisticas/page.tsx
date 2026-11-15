@@ -88,7 +88,7 @@ export default async function AdminStats() {
       <section className="space-y-3">
         <SectionTitle>Nota de cada partido (sobre 10)</SectionTitle>
         <Card className="p-4">
-          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="base (6), played (+0,5 por jugar), goal (+2,5), assist (+1,2), team_goal (+0,8 por cada gol del equipo que no marca él), team_conceded (−1 por gol encajado), guest_bonus (por invitado), max (10) y min (0). Independiente de las votaciones; la portería no cuenta." />
+          <JsonSetting k="performance_weights" label="Pesos" value={settings.performance_weights} hint="Parte estadística: base (6), played (+0,5 por jugar), goal (+2,5), assist (+1,2), team_goal (+0,8 por cada gol del equipo que no marca él), team_conceded (−1 por gol encajado), max (10) y min (0). Nota final = stat_share (0,7) × estadística + media de puntos extra de la votación (0 a peer_max = 3). Bonus por encima del tope: guest_bonus (por invitado), paid_bonus (pagar el campo) y booked_bonus (reservar la pista), +0,2 cada uno." />
         </Card>
       </section>
 
