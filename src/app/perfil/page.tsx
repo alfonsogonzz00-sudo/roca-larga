@@ -85,8 +85,8 @@ export default async function Profile() {
             photo={s.player?.photo_url ?? s.profile.avatar_url} cardPhoto={s.player?.card_photo_url} color={color}
             rating={tot && tot.matches > 0 ? num(tot.ratingAvg, 1) : null} ratingNote={r ? `${r.pos}.º del grupo` : null}
             totals={tot}
-            badge={s.profile.status === "suspended" ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Cuenta suspendida</span>
-              : s.role !== "player" ? <span className="mt-1.5 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold">{ROLE[s.role]}</span> : null} />
+            badge={s.profile.status === "suspended" ? <span className="mt-1 inline-block rounded-full bg-surface-3 px-2 py-0.5 text-xs text-ink-2">Cuenta suspendida</span>
+              : s.role !== "player" ? <span className="mt-1.5 inline-block rounded-full bg-surface-3 px-2 py-0.5 text-xs text-ink-2 font-semibold">{ROLE[s.role]}</span> : null} />
         );
       })()}
       {s.player && (

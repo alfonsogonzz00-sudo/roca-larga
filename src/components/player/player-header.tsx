@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Avatar, Crest } from "@/components/ui";
 import type { Team } from "@/lib/types";
+import { ZoomablePhoto } from "./zoomable-photo";
 
-/** Cabecera de jugador (estilo ficha deportiva): foto, nombre, equipo y nota media */
+/** Cabecera de jugador: foto (ampliable), nombre en una línea, equipo, nota media y totales, sobre el fondo */
 export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, rating, ratingNote, badge, totals }: {
   name: string; nickname?: string | null; team?: Team | null; photo?: string | null; cardPhoto?: string | null;
   color: string; rating?: string | null; ratingNote?: string | null; badge?: ReactNode;
@@ -11,10 +12,11 @@ export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, ra
   totals?: { matches: number; goals: number; assists: number; mvps: number } | null;
 }) {
   return (
-    <header className="-mx-4 -mt-5 px-4 pt-6 pb-6 text-white lg:mx-0 lg:mt-0 lg:rounded-3xl"
-      style={{ background: `linear-gradient(160deg, color-mix(in srgb, ${color} 28%, #2b2a28) 0%, #1c1d20 100%)` }}>
+    <header className="pt-1">
       <div className="flex items-center gap-4">
-        <span className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-full bg-white ring-[3px] ring-white">
+        <ZoomablePhoto src={photo ?? cardPhoto ?? null} alt={name}
+          style={{ boxShadow: `0 0 0 2px var(--bg), 0 0 0 4px ${color}` }}
+          className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-surface-2">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={photo} alt="" className="h-full w-full object-cover" />
@@ -23,33 +25,36 @@ export function PlayerHeader({ name, nickname, team, photo, cardPhoto, color, ra
             // eslint-disable-next-line @next/next/no-img-element
             <img src={cardPhoto} alt="" className="h-full w-full origin-[50%_9%] scale-[3.1] object-cover object-top" />
           ) : (
-            <Avatar name={name} size={72} color={color} />
+            <Avatar name={name} size={96} color={color} />
           )}
-        </span>
+        </ZoomablePhoto>
         <div className="min-w-0 flex-1">
-          <h1 className="text-[1.6rem] font-semibold leading-tight tracking-tight">{name}</h1>
-          {nickname && <p className="truncate text-sm text-white/65">«{nickname}»</p>}
+          <h1 className="truncate whitespace-nowrap text-[clamp(1.25rem,5.6vw,1.75rem)] font-semibold leading-tight tracking-tight">{name}</h1>
+          {nickname && <p className="truncate text-[15px] text-ink-3">«{nickname}»</p>}
           {team && (
-            <Link href={`/equipos/${team.slug}`} className="mt-1 inline-flex items-center gap-1.5 text-[17px] text-white/90">
+            <Link href={`/equipos/${team.slug}`} className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] text-ink-2">
               <Crest src={team.crest_url} name={team.name} size={20} />{team.name}
             </Link>
           )}
-          {badge}
+          {badge && <div>{badge}</div>}
         </div>
-        {rating && (
-          <div className="shrink-0 rounded-2xl bg-white/12 px-3.5 py-2.5 text-center backdrop-blur">
-            <div className="tabular text-2xl font-semibold leading-none">{rating}</div>
-            <div className="mt-1 text-[12px] text-white/70">Nota media</div>
-            {ratingNote && <div className="text-[11px] text-white/55">{ratingNote}</div>}
-          </div>
-        )}
       </div>
-      {totals && totals.matches > 0 && (
-        <dl className="mt-4 grid grid-cols-4 gap-1 rounded-2xl bg-white/10 py-2.5 text-center">
-          {([["Partidos", totals.matches], ["Goles", totals.goals], ["Asist.", totals.assists], ["MVP", totals.mvps]] as const).map(([l, v]) => (
-            <div key={l}><dd className="tabular text-xl font-semibold leading-none">{v}</dd><dt className="mt-1 text-[11px] text-white/65">{l}</dt></div>
-          ))}
-        </dl>
+      {(rating || (totals && totals.matches > 0)) && (
+        <div className="mt-5 flex items-end gap-4 border-t border-line pt-4">
+          {rating && (
+            <div className="shrink-0">
+              <div className="font-display tabular text-[3.25rem] font-bold leading-[0.9]">{rating}</div>
+              <div className="mt-1 text-xs text-ink-3">Nota media{ratingNote ? ` · ${ratingNote}` : ""}</div>
+            </div>
+          )}
+          {totals && totals.matches > 0 && (
+            <dl className="grid flex-1 grid-cols-4 text-center">
+              {([["Partidos", totals.matches], ["Goles", totals.goals], ["Asist.", totals.assists], ["MVP", totals.mvps]] as const).map(([l, v]) => (
+                <div key={l}><dd className="tabular text-xl font-semibold leading-none">{v}</dd><dt className="mt-1 text-[11px] text-ink-3">{l}</dt></div>
+              ))}
+            </dl>
+          )}
+        </div>
       )}
     </header>
   );

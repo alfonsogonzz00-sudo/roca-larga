@@ -129,7 +129,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <PlayerHeader name={p.full_name} team={team} photo={p.photo_url} cardPhoto={p.card_photo_url} color={color}
         rating={tot.matches > 0 ? num(tot.ratingAvg, 1) : null}
         totals={tot}
-        badge={!p.active ? <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-xs">Inactivo</span> : null} />
+        badge={!p.active ? <span className="mt-1 inline-block rounded-full bg-surface-3 px-2 py-0.5 text-xs text-ink-2">Inactivo</span> : null} />
       <DetailsGrid items={ficha} />
 
       {/* 2 · Visor 3D */}
