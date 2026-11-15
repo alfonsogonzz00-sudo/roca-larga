@@ -10,7 +10,7 @@ const STEPS: Step[] = [
   { title: "Bienvenido a Roca Larga", body: "Todo lo de Caravelle y Monecillo en un sitio: partidos, estadísticas, votaciones y piques. Te enseño lo básico en 30 segundos." },
   { target: "/", href: "/", title: "Partidos", body: "Aquí verás el próximo partido, si estás convocado (confirma con «Voy») y el pronóstico. También el último resultado." },
   { target: "/clasificacion", title: "Clasificación", body: "Estadísticas, rankings e histórico. Toca cualquier jugador para ver su ficha. Dentro también están El Despacho (simulaciones) y los estadios." },
-  { target: "/votacion", title: "Votación", body: "Al empezar cada partido se abre la votación: eliges al mejor de tu equipo y al mejor del partido. Además das de +0 a +3 puntos extra a cada jugador. Es secreta y cierra sola 2 horas después de que termine el partido." },
+  { target: "/votacion", title: "Votación", body: "Al empezar cada partido se abre la votación: eliges al mejor de tu equipo y al mejor del partido. Además das de +0 a +3 puntos extra a cada jugador. Es secreta y cierra sola a las 14:00 del día siguiente al partido (a las 12:00 te avisamos si aún no has votado)." },
   { target: "/actividad", title: "Actividad", body: "Lo último que ha pasado: convocatorias, resultados, quién ha votado y los MVP." },
   { target: "/perfil", title: "Perfil", body: "Tu foto, tu apodo, tus estadísticas y los avisos al móvil. Desde aquí puedes repetir este recorrido cuando quieras." },
 ];

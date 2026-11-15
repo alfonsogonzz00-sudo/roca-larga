@@ -58,7 +58,7 @@ export default async function VotePage({ params }: { params: Promise<{ id: strin
       <Scoreboard m={m} home={ds.teamById.get(m.home_team_id)!} away={ds.teamById.get(m.away_team_id)!} venue={m.venue_id ? ds.venueById.get(m.venue_id) : undefined} />
       {st && <p className="text-sm text-ink-3">Han votado {st.voted} de {st.eligible} participantes.</p>}
       {body}
-      <p className="text-xs text-ink-3">Cada participante vota al mejor de su equipo y al mejor del partido (MVP), y da a cada jugador de +0 a +3 puntos extra. Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La nota de cada jugador es el 70 % de su nota estadística más la media de puntos extra que le dan los demás. La votación cierra sola 2 horas después de que termine el partido.</p>
+      <p className="text-xs text-ink-3">Cada participante vota al mejor de su equipo y al mejor del partido (MVP), y da a cada jugador de +0 a +3 puntos extra. Gana quien más votos recibe en cada categoría; si hay empate, desempatan los votos de la otra categoría y después goles + asistencias. La nota de cada jugador es el 70 % de su nota estadística más la media de puntos extra que le dan los demás. La votación cierra sola a las 14:00 del día siguiente al partido (a las 12:00 te avisamos si aún no has votado).</p>
     </div>
   );
 }

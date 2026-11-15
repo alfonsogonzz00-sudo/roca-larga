@@ -214,11 +214,25 @@ describe("partidos", () => {
     const [m] = await db.su<{ vote_closes_at: Date; kickoff_at: Date }>(`select vote_closes_at, kickoff_at from public.matches where id=$1`, [matchId]);
     const [exp] = await db.su<{ c: Date }>(`select private.vote_close_for($1) c`, [m.kickoff_at]);
     expect(new Date(m.vote_closes_at).getTime()).toBe(new Date(exp.c).getTime());
-    // Cierra 2 h después de terminar (inicio + 60 min de partido + 120 min de margen)
-    expect(new Date(m.vote_closes_at).getTime() - new Date(m.kickoff_at).getTime()).toBe(3 * 3600 * 1000);
+    // Cierra a las 14:00 (Madrid) del día siguiente al partido
+    const [loc] = await db.su<{ d: number; h: string }>(`select ((vote_closes_at at time zone 'Europe/Madrid')::date - (kickoff_at at time zone 'Europe/Madrid')::date) d, to_char(vote_closes_at at time zone 'Europe/Madrid','HH24:MI') h from public.matches where id=$1`, [matchId]);
+    expect(loc).toEqual({ d: 1, h: "14:00" });
 
     const V = `select public.cast_mvp_vote($1,$2,$3,$4)`;
     const r1 = R(monPlayers[0], 2);
+
+    // Aviso 2 h antes del cierre, sólo a quien ha jugado y aún no ha votado
+    await db.su(`update public.matches set vote_closes_at = now() + interval '119 minutes' where id=$1`, [matchId]);
+    await db.su(`select private.enqueue_due_reminders()`);
+    const rem = await db.su<{ title: string; body: string; url: string }>(`select title, body, url from public.notifications where match_id=$1 and type='vote_reminder'`, [matchId]);
+    const [pend] = await db.su<{ n: number }>(`select count(*)::int n from public.profiles pr join public.match_players mp on mp.player_id = pr.player_id and mp.match_id=$1 and mp.participated
+      where not exists (select 1 from public.mvp_vote_receipts v where v.match_id=$1 and v.player_id=mp.player_id)`, [matchId]);
+    expect(pend.n).toBeGreaterThanOrEqual(3);
+    expect(rem.length).toBe(pend.n);
+    expect(rem[0]).toEqual({ title: "¿Has votado ya?", body: "La votación finaliza en 2h", url: `/votacion/${matchId}` });
+    await db.su(`select private.enqueue_due_reminders()`);
+    expect((await db.su(`select 1 from public.notifications where match_id=$1 and type='vote_reminder'`, [matchId])).length).toBe(pend.n);
+    await db.su(`update public.matches set vote_closes_at = private.vote_close_for(kickoff_at) where id=$1`, [matchId]);
     await expectError(db.as(stranger, V, [matchId, carPlayers[0], carPlayers[1], r1]), /no está vinculada/);
     await expectError(db.as(pMon1, V, [matchId, monPlayers[0], carPlayers[1], r1]), /a ti mismo/);
     await expectError(db.as(pMon1, V, [matchId, monPlayers[1], monPlayers[0], r1]), /a ti mismo/);
@@ -311,10 +325,14 @@ describe("partidos", () => {
     expect(log.map((l) => l.action)).toContain("match.result_edit");
   });
 
-  it("la votación cierra 2 horas después de terminar el partido", async () => {
-    const r = await db.su<{ a: string }>(`select private.vote_close_for('2026-11-15 20:00 Europe/Madrid')::text a`);
-    // partido a las 20:00 → termina a las 21:00 → la votación cierra a las 23:00
-    expect(new Date(r[0].a).toISOString()).toBe("2026-11-15T22:00:00.000Z");
+  it("la votación cierra a las 14:00 (Madrid) del día siguiente al partido", async () => {
+    const r = await db.su<{ a: string; b: string; c: string }>(`select
+      private.vote_close_for('2026-11-15 20:00 Europe/Madrid')::text a,
+      private.vote_close_for('2026-11-15 00:30 Europe/Madrid')::text b,
+      private.vote_close_for('2026-07-07 21:00 Europe/Madrid')::text c`);
+    expect(new Date(r[0].a).toISOString()).toBe("2026-11-16T13:00:00.000Z");
+    expect(new Date(r[0].b).toISOString()).toBe("2026-11-16T13:00:00.000Z");
+    expect(new Date(r[0].c).toISOString()).toBe("2026-07-08T12:00:00.000Z");
   });
 
   it("cierre automático, MVP, mejor de cada equipo, media de valoraciones y aviso", async () => {

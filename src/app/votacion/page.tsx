@@ -23,7 +23,7 @@ export default async function Votes() {
   };
   return (
     <div className="space-y-8">
-      <PageHeader title={t("vote.title")} subtitle="Secreta, conjunta y con cierre automático 2 horas después de terminar el partido." />
+      <PageHeader title={t("vote.title")} subtitle="Secreta, conjunta y con cierre automático a las 14:00 del día siguiente." />
       <Hint id="vote" title="Cómo funciona la votación">
         Al empezar cada partido, quienes han jugado votan dos cosas: <strong>el mejor de su equipo</strong> (un compañero) y <strong>el mejor del partido</strong> (de cualquier equipo). No puedes votarte a ti mismo, puedes cambiar el voto hasta el cierre y nadie sabrá a quién votaste.
       </Hint>
