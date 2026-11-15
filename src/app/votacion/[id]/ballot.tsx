@@ -37,7 +37,7 @@ function RatingRow({ c, color, value, onChange }: { c: Candidate; color: string;
       <Avatar name={c.name} src={c.photo} size={36} color={color} />
       <div className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{label}</span>
-        {c.nickname && <span className="block truncate text-[11px] text-ink-3">{c.name.split(" ").slice(0, 2).join(" ")}</span>}
+        {c.nickname && <span className="block truncate text-[11px] text-ink-3">{c.name}</span>}
       </div>
       <div role="radiogroup" aria-label={`Puntos extra para ${label}`} className="flex shrink-0 gap-1">
         {POINTS.map((v) => (
@@ -88,7 +88,7 @@ export function Ballot({ matchId, myTeamId, teams, candidates, initial, initialR
       <input type="hidden" name="match_pick" value={matchPick} />
       <input type="hidden" name="ratings" value={JSON.stringify(Object.fromEntries(candidates.filter((c) => ratings[c.id] !== undefined).map((c) => [c.id, ratings[c.id]])))} />
 
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="mb-2 flex w-full items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-xs font-bold">1</span>
           <span className="font-display text-xl font-bold uppercase">{labels.team}</span>
@@ -99,7 +99,7 @@ export function Ballot({ matchId, myTeamId, teams, candidates, initial, initialR
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="mb-2 flex w-full items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-xs font-bold">2</span>
           <span className="font-display text-xl font-bold uppercase">{labels.match}</span>
@@ -117,7 +117,7 @@ export function Ballot({ matchId, myTeamId, teams, candidates, initial, initialR
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="mb-2 flex w-full items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-xs font-bold">3</span>
           <span className="font-display text-xl font-bold uppercase">Puntos extra</span>
