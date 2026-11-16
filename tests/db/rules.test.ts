@@ -400,6 +400,19 @@ describe("partidos", () => {
     const log = await db.su(`select 1 from public.activity_log where action='match.payers' and entity_id=$1`, [matchId]);
     expect(log.length).toBe(1);
   });
+
+  it("al día siguiente a las 12:00: «No seas moroso» a los que jugaron, menos a quien pagó", async () => {
+    await db.su(`update public.matches set kickoff_at = ((now() at time zone 'Europe/Madrid')::date - 1 + time '20:00') at time zone 'Europe/Madrid' where id=$1`, [matchId]);
+    await db.su(`update public.app_settings set value = to_jsonb(to_char(now() at time zone 'Europe/Madrid', 'HH24:MI')) where key='payment_reminder_time'`);
+    await db.su(`select private.enqueue_due_reminders()`);
+    await db.su(`select private.enqueue_due_reminders()`);
+    const rows = await db.su<{ title: string; body: string; player_id: string }>(`select n.title, n.body, pr.player_id from public.notifications n join public.profiles pr on pr.id = n.user_id where n.match_id=$1 and n.type='payment_reminder'`, [matchId]);
+    const [pend] = await db.su<{ n: number }>(`select count(*)::int n from public.profiles pr join public.match_players mp on mp.player_id = pr.player_id and mp.match_id=$1 and mp.participated where mp.player_id <> $2`, [matchId, monPlayers[0]]);
+    expect(pend.n).toBeGreaterThan(0);
+    expect(rows.length).toBe(pend.n);
+    expect(rows.some((r) => r.player_id === monPlayers[0])).toBe(false);
+    expect(rows[0]).toMatchObject({ title: "No seas moroso", body: "Recuerda pagar el partido de ayer al capitán de tu equipo." });
+  });
 });
 
 describe("partidos históricos, invitados y configuración", () => {
