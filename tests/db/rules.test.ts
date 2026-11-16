@@ -413,6 +413,29 @@ describe("partidos", () => {
     expect(rows.some((r) => r.player_id === monPlayers[0])).toBe(false);
     expect(rows[0]).toMatchObject({ title: "No seas moroso", body: "Recuerda pagar el partido de ayer al capitán de tu equipo." });
   });
+
+  it("pagos: cada uno marca el suyo; staff y quien pagó la pista, cualquiera; a las 24 h, aviso a quien no ha pagado", async () => {
+    const S = `select public.set_payment($1,$2,$3)`;
+    // Sin ser el jugador, ni staff, ni quien pagó la pista: no se puede marcar
+    await expectError(db.as(stranger, S, [matchId, carPlayers[1], true]), /tu propio pago/);
+    await expectError(db.as(null, S, [matchId, carPlayers[1], true]), /permission denied|iniciar sesión/);
+    // pMon2 ya no jugó este partido (se corrigió la alineación)
+    await expectError(db.as(pMon2, S, [matchId, monPlayers[1], true]), /no ha jugado/);
+    // quien pagó la pista (monPlayers[0] = pMon1) marca a otro; el organizador marca el suyo y a otros
+    await db.as(pMon1, S, [matchId, monPlayers[2], true]);
+    await db.as(orgCar, S, [matchId, carPlayers[0], true]);
+    await db.as(orgCar, S, [matchId, carPlayers[3], true]);
+    await db.as(orgCar, S, [matchId, carPlayers[3], false]);
+    const paid = await db.as<{ player_id: string }>(null, `select player_id from public.match_payments where match_id=$1`, [matchId]);
+    expect(paid.map((p) => p.player_id).sort()).toEqual([carPlayers[0], monPlayers[2]].sort());
+
+    await db.su(`update public.matches set kickoff_at = now() - interval '24 hours 1 minute' where id=$1`, [matchId]);
+    await db.su(`select private.enqueue_due_reminders()`);
+    const od = await db.su<{ body: string; player_id: string }>(`select n.body, pr.player_id from public.notifications n join public.profiles pr on pr.id = n.user_id where n.match_id=$1 and n.type='payment_overdue'`, [matchId]);
+    expect(od.length).toBeGreaterThan(0);
+    expect(od.some((r) => [monPlayers[0], monPlayers[2], carPlayers[0]].includes(r.player_id))).toBe(false);
+    expect(od[0].body).toBe("Paga de una vez al capitán de tu equipo o tendrás problemas.");
+  });
 });
 
 describe("partidos históricos, invitados y configuración", () => {

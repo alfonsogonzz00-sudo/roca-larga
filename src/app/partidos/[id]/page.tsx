@@ -8,6 +8,7 @@ import { StaffActions } from "@/components/match/staff-actions";
 import { AttendanceButtons } from "@/components/match/attendance";
 import { LineupPitch } from "@/components/match/lineup-pitch";
 import { MatchHeader, type ScorerLine } from "@/components/match/match-header";
+import { PaymentsPanel, type PaymentTeam } from "@/components/match/payments";
 import { Hint } from "@/components/onboarding/hint";
 import { getStats, predictionForMatch } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
@@ -41,9 +42,10 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const bests = ds.teamBests.filter((x) => x.match_id === m.id);
   const P = (pid: string) => ds.playerById.get(pid)!;
   const supabase = await createClient();
-  const [{ data: tallies }, { data: vstatus }] = await Promise.all([
+  const [{ data: tallies }, { data: vstatus }, { data: payRows }] = await Promise.all([
     supabase.from("mvp_tallies").select("*").eq("match_id", m.id).order("rank"),
     supabase.rpc("vote_status", { p_match: m.id }).maybeSingle<{ eligible: number; voted: number; is_open: boolean; closed_at: string | null }>(),
+    supabase.from("match_payments").select("player_id").eq("match_id", m.id),
   ]);
   const activity = s?.isStaff ? (await supabase.from("activity_log").select("created_at,actor_name,summary").eq("entity_type", "match").eq("entity_id", m.id).order("created_at", { ascending: false }).limit(30)).data ?? [] : [];
   const pred = await predictionForMatch(m);
@@ -52,6 +54,20 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const notes = parts.filter((p) => p.matchId === m.id);
   const ratingOf = new Map(notes.map((p) => [p.playerId, p.rating]));
   const dec = (x: number) => x.toFixed(1).replace(".", ",");
+  // Pagos: una columna por equipo con quién ha jugado y si ha pagado
+  const paidSet = new Set((payRows ?? []).map((r: { player_id: string }) => r.player_id));
+  const myPid = s?.player?.id ?? null;
+  const showPayments = (played || (m.status === "confirmed" && started)) && mps.some((x) => x.participated);
+  const payTeams: PaymentTeam[] = [home, away].map((tm) => ({
+    id: tm.id, name: tm.short_name, color: teamColor(tm),
+    rows: mps.filter((x) => x.team_id === tm.id && x.participated)
+      .map((x) => ({
+        id: x.player_id, name: playerName(P(x.player_id), "short"),
+        paid: paidSet.has(x.player_id), payer: m.paid_by_id === x.player_id,
+        canEdit: Boolean(s && (s.isStaff || (myPid && (myPid === x.player_id || myPid === m.paid_by_id)))),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es")),
+  }));
 
   const sideList = (teamId: string) => {
     const rows = mps.filter((x) => x.team_id === teamId && (played ? x.participated : x.called));
@@ -258,6 +274,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   return (
     <div className="space-y-5">
       <MatchHeader m={m} home={home} away={away} venue={venue} scorers={{ home: scorersOf(home.id), away: scorersOf(away.id) }} assists={{ home: assistsOf(home.id), away: assistsOf(away.id) }} />
+      {showPayments && <PaymentsPanel matchId={m.id} teams={payTeams} />}
       {okKey && <Notice tone="ok">{t(okKey)}</Notice>}
       <div className="flex flex-wrap items-center gap-2 empty:hidden">
         {!played && m.status !== "pending" && m.status !== "confirmed" && <StatusPill status={m.status} />}
