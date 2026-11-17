@@ -3,10 +3,14 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 
+/** Cookies de sesión: sólo por HTTPS en producción y no se envían desde otros sitios (lax) */
+export const COOKIE_OPTIONS = { path: "/", sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" };
+
 /** Cliente de Supabase ligado a la sesión del usuario (RLS aplica siempre). */
 export async function createClient() {
   const cookieStore = await cookies();
   return createServerClient(env.supabaseUrl, env.supabaseKey, {
+    cookieOptions: COOKIE_OPTIONS,
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {

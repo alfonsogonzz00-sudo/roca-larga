@@ -9,6 +9,7 @@ export function createClient() {
     // Sólo el proxy del servidor renueva la sesión: dos renovadores a la vez (pestaña que vuelve
     // a primer plano + petición al servidor) gastan el mismo refresh token y Supabase cierra la sesión.
     auth: { autoRefreshToken: false },
+    cookieOptions: { path: "/", sameSite: "lax", secure: location.protocol === "https:" },
   });
   return client;
 }

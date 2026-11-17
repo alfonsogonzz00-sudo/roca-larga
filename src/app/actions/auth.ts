@@ -4,15 +4,20 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyError, type ActionResult } from "@/lib/errors";
+import { safeNext } from "@/lib/safe-next";
 
+/**
+ * Origen para los enlaces de vuelta (Google, emails). En producción es fijo (NEXT_PUBLIC_SITE_URL)
+ * para que una cabecera Host/X-Forwarded-Host manipulada no pueda redirigir a otro dominio.
+ */
 async function origin() {
+  const fixed = process.env.NEXT_PUBLIC_SITE_URL;
+  if (fixed) return fixed.replace(/\/$/, "");
   const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  return host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const host = h.get("host");
+  if (process.env.NODE_ENV !== "production" && host) return `http://${host}`;
+  return "https://roca-larga.vercel.app";
 }
-
-const safeNext = (n: unknown) => (typeof n === "string" && n.startsWith("/") && !n.startsWith("//") ? n : "/");
 
 export async function signInWithGoogle(fd: FormData) {
   const supabase = await createClient();

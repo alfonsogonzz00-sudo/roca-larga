@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/data/session", () => ({ getSession: async () => ({ isStaff: true }) }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc: async () => ({ data: true, error: null }) }) }));
 const CAR = "11111111-1111-1111-1111-111111111111", MON = "22222222-2222-2222-2222-222222222222";
 const VEN = "33333333-3333-3333-3333-333333333333", F231 = "44444444-4444-4444-4444-444444444444";
 const pl = (id: string, team: string, name: string) => ({ id, team_id: team, full_name: name, nickname: null, kind: "member", active: true });

@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const token_hash = url.searchParams.get("token_hash");
-  const type = url.searchParams.get("type") as EmailOtpType | null;
+  const rawType = url.searchParams.get("type");
+  const OTP_TYPES: EmailOtpType[] = ["signup", "email", "recovery", "invite", "email_change"];
+  const type = OTP_TYPES.includes(rawType as EmailOtpType) ? (rawType as EmailOtpType) : null;
   const code = url.searchParams.get("code");
   const supabase = await createClient();
   let ok = false;

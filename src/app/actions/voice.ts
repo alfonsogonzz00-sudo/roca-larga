@@ -1,4 +1,5 @@
 "use server";
+import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/data/session";
 import { getStats } from "@/lib/data/stats";
 import { APP_TZ } from "@/lib/format";
@@ -25,6 +26,9 @@ export async function draftMatchFromVoice(transcript: string): Promise<VoiceDraf
   if (text.length > 4000) return { ok: false, error: "El dictado es demasiado largo. Resúmelo un poco." };
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return { ok: false, error: "Falta configurar la clave de Claude (ANTHROPIC_API_KEY) en el servidor." };
+  // Límite de gasto: 20 dictados por hora y cuenta
+  const { data: allowed } = await (await createClient()).rpc("consume_rate", { p_bucket: "voice" });
+  if (allowed !== true) return { ok: false, error: "Has usado mucho el dictado en la última hora. Espera un poco o rellena el formulario a mano." };
 
   const { ds, settings } = await getStats();
   const teams = ds.teams.map((t) => ({ id: t.id, nombre: t.name, corto: t.short_name }));

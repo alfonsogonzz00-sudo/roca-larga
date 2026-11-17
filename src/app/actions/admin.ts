@@ -106,7 +106,7 @@ export async function saveTeamAction(_: ActionResult | null, fd: FormData): Prom
 export async function saveVenueAction(_: ActionResult | null, fd: FormData): Promise<ActionResult> {
   const p = z.object({
     name: z.string().trim().min(2, "Nombre obligatorio").max(80), address: z.string().max(200).nullable(), city: z.string().max(80).nullable(),
-    maps_url: z.string().url("Enlace de mapa no válido").max(500).nullable(), image_url: z.string().max(500).nullable(),
+    maps_url: z.string().url("Enlace de mapa no válido").max(500).regex(/^https:\/\//, "El enlace de mapa debe empezar por https://").nullable(), image_url: z.string().max(500).regex(/^(https:\/\/|\/)/, "La imagen debe ser https:// o una ruta de la app").nullable(),
     surface: z.string().max(60).nullable(), notes: z.string().max(1000).nullable(), active: z.boolean(),
     phone: z.string().max(40).nullable(), phone_alt: z.string().max(120).nullable(),
     website: z.string().url("Web no válida").max(500).nullable(), booking_url: z.string().url("Enlace de reserva no válido").max(500).nullable(),

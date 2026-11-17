@@ -4,7 +4,9 @@
  * - Push: muestra notificaciones y abre la URL indicada.
  * - Actualizaciones: la app pide SKIP_WAITING cuando el usuario acepta.
  */
-const VERSION = "rl-v6";
+const VERSION = "rl-v7";
+// Páginas con datos personales: nunca se guardan para modo sin conexión
+const PRIVATE = ["/admin", "/perfil", "/votacion", "/registro", "/login", "/partidos/nuevo"];
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
@@ -23,6 +25,8 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  // Al cerrar sesión se borran las páginas guardadas
+  if (event.data && event.data.type === "CLEAR_PAGES") event.waitUntil(caches.delete(PAGES));
 });
 
 self.addEventListener("fetch", (event) => {
@@ -36,7 +40,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok && !url.pathname.startsWith("/admin")) {
+          if (res.ok && !PRIVATE.some((p) => url.pathname.startsWith(p)) && !/finalizar|editar/.test(url.pathname)) {
             const copy = res.clone();
             caches.open(PAGES).then((c) => c.put(req, copy));
           }

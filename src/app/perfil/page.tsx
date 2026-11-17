@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { LogOut, PenLine } from "lucide-react";
+import { PenLine } from "lucide-react";
 import { kitPaint, type Kit } from "@/lib/kit";
-import { signOut } from "@/app/actions/auth";
+import { SignOutButton } from "@/components/layout/sign-out";
 import { updateNickname, updatePhysical, updatePrefs } from "@/app/actions/profile";
 import { PhysicalFields } from "@/components/forms/physical-fields";
 import { PlayerStage } from "@/components/player/player-stage";
@@ -306,9 +306,7 @@ export default async function Profile() {
         <RestartTour />
       </section>
 
-      <form action={signOut}>
-        <SubmitButton variant="ghost" className="text-danger"><LogOut size={18} /> Cerrar sesión</SubmitButton>
-      </form>
+      <SignOutButton />
     </div>
   );
 }

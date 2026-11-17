@@ -4,11 +4,13 @@ import { getSession } from "@/lib/data/session";
 import { getSettings } from "@/lib/data/config";
 import { EmailForms } from "./forms";
 import { Brand } from "@/components/layout/brand";
+import { safeNext } from "@/lib/safe-next";
 
 export const metadata = { title: "Entrar" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string; ok?: string }> }) {
-  const { next = "/", error, ok } = await searchParams;
+  const { next: rawNext, error, ok } = await searchParams;
+  const next = safeNext(rawNext);
   const [session, settings] = await Promise.all([getSession(), getSettings()]);
   if (session) redirect(session.player ? next : "/registro");
   return (

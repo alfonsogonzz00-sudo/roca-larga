@@ -77,8 +77,8 @@ describe("usuarios y roles", () => {
   it("foto de perfil: sólo URLs de la carpeta propia del usuario", async () => {
     const u = await db.createUser("foto@example.com");
     await expectError(db.as(u, `select public.update_my_photo('https://evil.example.com/x.jpg')`), /desde la app/);
-    await expectError(db.as(u, `select public.update_my_photo('https://abc.supabase.co/storage/v1/object/public/media/avatars/otro-uid/1.jpg')`), /desde la app/);
-    await db.as(u, `select public.update_my_photo($1)`, [`https://abc.supabase.co/storage/v1/object/public/media/avatars/${u}/1.jpg`]);
+    await expectError(db.as(u, `select public.update_my_photo('https://fsftghnwjvztwakgaifk.supabase.co/storage/v1/object/public/media/avatars/otro-uid/1.jpg')`), /desde la app/);
+    await db.as(u, `select public.update_my_photo($1)`, [`https://fsftghnwjvztwakgaifk.supabase.co/storage/v1/object/public/media/avatars/${u}/1.jpg`]);
     const r = await db.su(`select avatar_url from public.profiles where id=$1`, [u]);
     expect(String(r[0].avatar_url)).toContain(u);
     await db.as(u, `select public.update_my_photo(null)`);
@@ -336,7 +336,8 @@ describe("partidos", () => {
   });
 
   it("cierre automático, MVP, mejor de cada equipo, media de valoraciones y aviso", async () => {
-    await db.su(`update public.matches set kickoff_at = now() - interval '3 days' where id=$1`, [matchId]);
+    // (el partido ya está disputado: su ventana no se recalcula al mover la hora, así que se simula el paso del tiempo)
+    await db.su(`update public.matches set kickoff_at = now() - interval '3 days', vote_opens_at = now() - interval '3 days', vote_closes_at = now() - interval '1 hour' where id=$1`, [matchId]);
     await expectError(db.as(pMon2, `select public.cast_mvp_vote($1,$2,$3,$4)`, [matchId, monPlayers[0], carPlayers[1], R(monPlayers[1], 1)]), /cerrada/);
     const [r] = await db.as<{ close_due_votes: number }>(null, `select public.close_due_votes()`);
     expect(r.close_due_votes).toBe(1);
@@ -367,8 +368,15 @@ describe("partidos", () => {
     expect(again.close_due_votes).toBe(0);
   });
 
-  it("corregir participantes tras el cierre rehace el recuento sin votos de no participantes", async () => {
-    // pMon2 (monPlayers[1]) pasa a no haber jugado: su papeleta deja de contar y no puede ser MVP
+  it("corregir participantes tras el cierre NO cambia el recuento publicado (sin oráculo por diferencias)", async () => {
+    const snap = async () => ({
+      t: await db.as(null, `select category, player_id, votes from public.mvp_tallies where match_id=$1 order by category, player_id`, [matchId]),
+      a: await db.as(null, `select player_id, avg::text, raters from public.peer_rating_avgs where match_id=$1 order by player_id`, [matchId]),
+      m: await db.su(`select player_id from public.match_mvps where match_id=$1 order by player_id`, [matchId]),
+    });
+    const before = await snap();
+    expect(before.t.length).toBeGreaterThan(0);
+    // pMon2 (monPlayers[1]) pasa a no haber jugado
     const payload = {
       home_score: 2, away_score: 1,
       home: { players: carPlayers.slice(0, 7) },
@@ -378,18 +386,9 @@ describe("partidos", () => {
       ],
     };
     await db.as(admin, `select public.finalize_match($1,$2)`, [matchId, payload]);
-    const tallies = await db.as<{ player_id: string; category: string }>(null, `select player_id, category from public.mvp_tallies where match_id=$1`, [matchId]);
-    expect(tallies.find((t) => t.player_id === monPlayers[1])).toBeUndefined();
-    // sólo queda la papeleta de orgCar con un compañero válido; su MVP (monPlayers[1]) ya no cuenta
-    const mvps = await db.su(`select 1 from public.match_mvps where match_id=$1 and source='vote'`, [matchId]);
-    expect(mvps.length).toBe(0);
-    const bests = await db.su<{ player_id: string }>(`select player_id from public.match_team_bests where match_id=$1`, [matchId]);
-    expect(bests).toEqual([{ player_id: carPlayers[1] }]);
-    // Las medias se rehacen sin la valoración de quien ya no ha jugado: monPlayers[2] → (2 + 3) / 2
-    const [a2] = await db.as<{ avg: string; raters: number }>(null, `select avg::text, raters from public.peer_rating_avgs where match_id=$1 and player_id=$2`, [matchId, monPlayers[2]]);
-    expect(a2).toMatchObject({ avg: "2.50", raters: 2 });
-    const gone = await db.as(null, `select 1 from public.peer_rating_avgs where match_id=$1 and player_id=$2`, [matchId, monPlayers[1]]);
-    expect(gone.length).toBe(0);
+    expect(await snap()).toEqual(before);
+    // y la hora de un partido programado ya disputado no se puede mover
+    await expectError(db.as(orgCar, `select public.update_historical_meta($1,$2)`, [matchId, { kickoff_at: new Date(Date.now() - 30 * 86400000).toISOString() }]), /no se puede cambiar/);
   });
 
   it("marcar quién pagó el campo y quién reservó la pista (sólo staff)", async () => {
@@ -565,5 +564,58 @@ describe("personalización del jugador 3D", () => {
     const [other] = await db.su<{ kit: object }>(`select kit from public.players where id=$1`, [monPlayers[3]]);
     expect(other.kit).toEqual({}); // nadie toca el kit de otro
     await expectError(db.as(null, `select public.set_my_kit('rojo', null, null, null)`), /permission denied/);
+  });
+});
+
+describe("seguridad (endurecimiento 0029)", () => {
+  it("tras desvincular, la misma cuenta no puede volver a reclamar al jugador", async () => {
+    const free = (await db.su<{ id: string }>(`select p.id from public.players p where p.kind='member' and p.active and not exists (select 1 from public.profiles pr where pr.player_id=p.id) order by p.full_name limit 1`))[0].id;
+    const u = await linkedUser("relink@example.com", free);
+    await db.as(admin, `select public.admin_unlink_player($1)`, [u]);
+    await expectError(db.as(u, `select public.request_player_link($1, 'x')`, [free]), /te desvinculó/);
+    // el admin sí puede volver a vincularla
+    await db.as(admin, `select public.admin_link_player($1,$2)`, [u, free]);
+  });
+
+  it("el voto sólo lo ve la cuenta que lo emitió", async () => {
+    const [b] = await db.su<{ match_id: string; player_id: string; user_id: string }>(`select match_id, player_id, user_id from public.mvp_vote_receipts limit 1`);
+    const owner = b.user_id;
+    expect((await db.as(owner, `select * from public.my_mvp_ballot($1)`, [b.match_id])).length).toBe(1);
+    await db.su(`update public.mvp_vote_receipts set user_id=$1 where match_id=$2 and player_id=$3`, [stranger, b.match_id, b.player_id]);
+    expect((await db.as(owner, `select * from public.my_mvp_ballot($1)`, [b.match_id])).length).toBe(0);
+    expect((await db.as(owner, `select * from public.my_peer_ratings($1)`, [b.match_id])).length).toBe(0);
+    await db.su(`update public.mvp_vote_receipts set user_id=$1 where match_id=$2 and player_id=$3`, [owner, b.match_id, b.player_id]);
+  });
+
+  it("foto de perfil: sólo del Storage de este proyecto y con extensión de imagen", async () => {
+    const u = await db.createUser("foto@example.com");
+    await expectError(db.as(u, `select public.update_my_photo($1)`, [`https://otroproyecto.supabase.co/storage/v1/object/public/media/avatars/${u}/1.jpg`]), /desde la app/);
+    await expectError(db.as(u, `select public.update_my_photo($1)`, [`https://fsftghnwjvztwakgaifk.supabase.co/storage/v1/object/public/media/avatars/${u}/1.svg`]), /desde la app/);
+    await db.as(u, `select public.update_my_photo($1)`, [`https://fsftghnwjvztwakgaifk.supabase.co/storage/v1/object/public/media/avatars/${u}/1.webp`]);
+  });
+
+  it("avisos push: sólo servicios push reales y como mucho 10 por cuenta", async () => {
+    const u = await db.createUser("push@example.com");
+    const ins = (ep: string) => db.as(u, `insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1,$2,'k','a')`, [u, ep]);
+    await expectError(ins("https://169.254.169.254/x"), /push_endpoint_allowlist/);
+    await expectError(ins("https://fcm.googleapis.com.evil.example/x"), /push_endpoint_allowlist/);
+    await expectError(ins("http://fcm.googleapis.com/x"), /push_endpoint_allowlist/);
+    for (let i = 0; i < 10; i++) await ins(`https://fcm.googleapis.com/fcm/send/${u}-${i}`);
+    await expectError(ins(`https://web.push.apple.com/${u}-x`), /Demasiados dispositivos/);
+  });
+
+  it("simulaciones: tamaño limitado", async () => {
+    const u = await db.createUser("sim@example.com");
+    await expectError(db.as(u, `insert into public.simulation_runs (user_id, kind, input, output) values ($1, 'match', jsonb_build_object('x', repeat('a', 40000)), '{}')`, [u]), /simulation_size/);
+  });
+
+  it("límite de peticiones: dictado por voz 20 por hora", async () => {
+    const u = await db.createUser("voz@example.com");
+    for (let i = 0; i < 20; i++) expect((await db.as<{ consume_rate: boolean }>(u, `select public.consume_rate('voice')`))[0].consume_rate).toBe(true);
+    expect((await db.as<{ consume_rate: boolean }>(u, `select public.consume_rate('voice')`))[0].consume_rate).toBe(false);
+    await expectError(db.as(null, `select public.consume_rate('voice')`), /permission denied/);
+    // sólo el admin lee el registro de seguridad
+    expect((await db.as(u, `select * from public.security_events`)).length).toBe(0);
+    expect((await db.as(admin, `select * from public.security_events where kind='rate_limit'`)).length).toBeGreaterThan(0);
   });
 });
