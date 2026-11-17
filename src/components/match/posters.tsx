@@ -9,8 +9,9 @@ export interface PosterItem { slug: string; label: string; team: string }
 export function PosterGallery({ matchId, version, items, title }: { matchId: string; version: string; items: PosterItem[]; title: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const src = (slug: string) => `/partidos/${matchId}/cartel/${slug}?v=${version}`;
-  const fileName = (it: PosterItem) => `cartel-${it.team}-${it.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".png";
+  // Galería: miniatura ligera (~100 KB). Compartir y descargar: tamaño completo (~300 KB)
+  const src = (slug: string, thumb = false) => `/partidos/${matchId}/cartel/${slug}?v=${version}${thumb ? "&w=720" : ""}`;
+  const fileName = (it: PosterItem) => `cartel-${it.team}-${it.label}`.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/[^a-z0-9]+/g, "-") + ".jpg";
 
   async function act(it: PosterItem, mode: "share" | "download") {
     setBusy(it.slug + mode);
@@ -18,7 +19,7 @@ export function PosterGallery({ matchId, version, items, title }: { matchId: str
     try {
       const res = await fetch(src(it.slug));
       if (!res.ok) throw new Error(String(res.status));
-      const file = new File([await res.blob()], fileName(it), { type: "image/png" });
+      const file = new File([await res.blob()], fileName(it), { type: "image/jpeg" });
       if (mode === "share" && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title });
       } else {
@@ -47,7 +48,7 @@ export function PosterGallery({ matchId, version, items, title }: { matchId: str
             {items.filter((i) => i.team === team).map((it) => (
               <li key={it.slug} className="w-[72vw] max-w-[300px] shrink-0 snap-center">
                 {/* eslint-disable-next-line @next/next/no-img-element -- imagen generada al vuelo por la propia app */}
-                <img src={src(it.slug)} alt={`Cartel «${it.label}» de ${team}`} width={1080} height={1350} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-xl bg-surface-3 object-cover" />
+                <img src={src(it.slug, true)} alt={`Cartel «${it.label}» de ${team}`} width={1080} height={1350} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-xl bg-surface-3 object-cover" />
                 <div className="mt-2 flex items-center gap-2">
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{it.label}</span>
                   <button type="button" onClick={() => act(it, "share")} disabled={busy !== null} aria-label={`Compartir el cartel «${it.label}» de ${team}`} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-ink px-3 text-sm font-semibold text-surface disabled:opacity-60">

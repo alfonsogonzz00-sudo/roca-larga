@@ -5,6 +5,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { POSTER_H, POSTER_W, type PosterData } from "./model";
 import { POSTER_FONTS, renderPoster, type PosterImages } from "./templates";
 
@@ -50,4 +51,19 @@ export async function loadPosterImages(d: PosterData): Promise<PosterImages> {
 export async function posterResponse(d: PosterData, headers?: Record<string, string>): Promise<ImageResponse> {
   const [images, fontData] = await Promise.all([loadPosterImages(d), fonts()]);
   return new ImageResponse(renderPoster(d, images), { width: POSTER_W, height: POSTER_H, fonts: fontData, headers });
+}
+
+/** Anchos servidos: tamaño completo (compartir/descargar) y miniatura para la galería */
+export const POSTER_WIDTHS = [POSTER_W, 720] as const;
+export type PosterWidth = (typeof POSTER_WIDTHS)[number];
+
+/**
+ * Cartel en JPEG. El PNG pesa ~1,8 MB por el grano de papel (ruido que no comprime);
+ * en JPEG queda en ~300 KB a tamaño completo y ~100 KB la miniatura, sin diferencia visible.
+ */
+export async function posterJpeg(d: PosterData, width: PosterWidth = POSTER_W): Promise<Buffer> {
+  const png = Buffer.from(await (await posterResponse(d)).arrayBuffer());
+  let img = sharp(png);
+  if (width !== POSTER_W) img = img.resize({ width, kernel: "lanczos3" });
+  return img.jpeg({ quality: width === POSTER_W ? 86 : 80, mozjpeg: true, chromaSubsampling: "4:4:4" }).toBuffer();
 }

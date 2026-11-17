@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { writeFileSync, mkdirSync } from "node:fs";
 import assets from "@/lib/poster/assets.json";
 import { buildPoster, parsePosterSlug, posterDay, posterLabels, posterList, posterTime, posterVersion, surname, POSTER_VARIANTS, type PosterAssets } from "@/lib/poster/model";
-import { posterResponse } from "@/lib/poster/render";
+import { posterJpeg, posterResponse } from "@/lib/poster/render";
+import sharp from "sharp";
 import type { Match, MatchPlayer, Player, Team } from "@/lib/types";
 
 const CAR = "car", MON = "mon";
@@ -84,6 +85,17 @@ describe("carteles prepartido · dibujo", () => {
       writeFileSync(`/tmp/carteles/${v.key}-${side}.png`, png);
     });
   }
+  it("sirve JPEG ligero a tamaño completo y en miniatura", async () => {
+    const d = buildPoster(src, "plantel", "visitante", A)!;
+    const [full, thumb] = await Promise.all([posterJpeg(d), posterJpeg(d, 720)]);
+    const [mf, mt] = await Promise.all([sharp(full).metadata(), sharp(thumb).metadata()]);
+    expect([mf.format, mf.width, mf.height]).toEqual(["jpeg", 1080, 1350]);
+    expect([mt.format, mt.width, mt.height]).toEqual(["jpeg", 720, 900]);
+    expect(full.length).toBeLessThan(500 * 1024);
+    expect(thumb.length).toBeLessThan(180 * 1024);
+    writeFileSync("/tmp/carteles/ligero-plantel-visitante.jpg", full);
+    writeFileSync("/tmp/carteles/ligero-plantel-visitante-720.jpg", thumb);
+  });
   it("un equipo sin ninguna imagen también tiene cartel", async () => {
     const res = await posterResponse(buildPoster(src, "trio", "local", {})!);
     expect(Buffer.from(await res.arrayBuffer()).length).toBeGreaterThan(20000);
