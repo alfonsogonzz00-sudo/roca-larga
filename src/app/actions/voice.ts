@@ -27,8 +27,8 @@ export async function draftMatchFromVoice(transcript: string): Promise<VoiceDraf
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return { ok: false, error: "Falta configurar la clave de Claude (ANTHROPIC_API_KEY) en el servidor." };
   // Límite de gasto: 20 dictados por hora y cuenta
-  const { data: allowed } = await (await createClient()).rpc("consume_rate", { p_bucket: "voice" });
-  if (allowed !== true) return { ok: false, error: "Has usado mucho el dictado en la última hora. Espera un poco o rellena el formulario a mano." };
+  const { data: allowed, error: rateErr } = await (await createClient()).rpc("consume_rate", { p_bucket: "voice" });
+  if (!rateErr && allowed === false) return { ok: false, error: "Has usado mucho el dictado en la última hora. Espera un poco o rellena el formulario a mano." };
 
   const { ds, settings } = await getStats();
   const teams = ds.teams.map((t) => ({ id: t.id, nombre: t.name, corto: t.short_name }));
