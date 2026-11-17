@@ -287,6 +287,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         <Card className="space-y-2 p-4">
           <p className="text-sm font-semibold">{fmtDay(m.kickoff_at)} · {fmtTime(m.kickoff_at)}</p>
           <WeatherBadge weather={m.forecast_weather} temp={m.forecast_temp_c} label="Previsión:" />
+          {(m.home_shirt || m.away_shirt) && (
+            <p className="text-sm text-ink-2"><strong className="text-ink">Colores:</strong> {[m.home_shirt && `${home.short_name} de ${m.home_shirt.toLowerCase()}`, m.away_shirt && `${away.short_name} de ${m.away_shirt.toLowerCase()}`].filter(Boolean).join(" · ")}</p>
+          )}
           {m.notes && <p className="text-sm text-ink-2"><strong className="text-ink">Observaciones:</strong> {m.notes}</p>}
           {mine && (m.status === "pending" || m.status === "confirmed") && !started && <AttendanceButtons matchId={m.id} current={mine.attendance} />}
         </Card>

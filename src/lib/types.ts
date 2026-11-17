@@ -79,6 +79,9 @@ export interface Match {
   id: string;
   /** Quién pagó el campo y quién reservó la pista (+bonus en la nota) */
   paid_by_id?: string | null;
+  /** Color de camiseta de cada equipo en este partido */
+  home_shirt?: string | null;
+  away_shirt?: string | null;
   booked_by_id?: string | null;
   kickoff_at: string;
   venue_id: string | null;

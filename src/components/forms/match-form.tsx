@@ -25,6 +25,9 @@ export interface MatchFormInitial {
   forecast_weather: string;
   forecast_temp_c: string;
   notes: string;
+  /** Color de camiseta de cada equipo en este partido («blanco», «peto naranja»…) */
+  home_shirt?: string;
+  away_shirt?: string;
   status: "pending" | "confirmed" | "postponed" | "cancelled";
   exceptional_lineup: boolean;
   exceptional_reason: string;
@@ -65,6 +68,8 @@ export function MatchForm({ teams, players, venues, formations, initial, isAdmin
       forecast_weather: s.forecast_weather || null,
       forecast_temp_c: s.forecast_temp_c === "" ? null : Number(s.forecast_temp_c),
       notes: s.notes || null,
+      home_shirt: s.home_shirt?.trim() || null,
+      away_shirt: s.away_shirt?.trim() || null,
       status: editing ? undefined : s.status === "confirmed" ? "confirmed" : "pending",
       exceptional_lineup: s.exceptional_lineup,
       exceptional_reason: s.exceptional_reason || null,
@@ -76,6 +81,7 @@ export function MatchForm({ teams, players, venues, formations, initial, isAdmin
   const swap = () => setS((p) => ({
     ...p, home_team_id: p.away_team_id, away_team_id: p.home_team_id,
     home_formation_id: p.away_formation_id, away_formation_id: p.home_formation_id, home: p.away, away: p.home,
+    home_shirt: p.away_shirt, away_shirt: p.home_shirt,
   }));
 
   return (
@@ -127,6 +133,23 @@ export function MatchForm({ teams, players, venues, formations, initial, isAdmin
           />
         ))}
       </div>
+
+      <Card className="grid gap-4 p-4 sm:grid-cols-2">
+        <datalist id="shirt-colors">
+          {["Blanco", "Negro", "Verde", "Rojo", "Azul", "Amarillo", "Gris", "Peto naranja", "Peto amarillo", "Peto verde"].map((c) => <option key={c} value={c} />)}
+        </datalist>
+        {(["home", "away"] as const).map((k) => {
+          const tid = k === "home" ? s.home_team_id : s.away_team_id;
+          const key = k === "home" ? "home_shirt" : "away_shirt";
+          return (
+            <Field key={k} label={`Color de ${teams.find((t) => t.id === tid)?.short_name ?? (k === "home" ? "local" : "visitante")} hoy`} htmlFor={`shirt-${k}`}
+              hint="Sale en el aviso de 2 h antes: «Hoy vas de…»">
+              <Input id={`shirt-${k}`} list="shirt-colors" maxLength={30} placeholder="Ej.: Blanco"
+                value={s[key] ?? ""} onChange={(e) => setS((p) => ({ ...p, [key]: e.target.value }))} />
+            </Field>
+          );
+        })}
+      </Card>
 
       <Card className="grid gap-4 p-4 sm:grid-cols-2">
         <Field label="Previsión meteorológica" htmlFor="weather">

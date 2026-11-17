@@ -27,6 +27,8 @@ const matchPayload = z.object({
   status: z.enum(["pending", "confirmed"]).optional(),
   exceptional_lineup: z.boolean().optional(),
   exceptional_reason: z.string().max(500).optional().nullable(),
+  home_shirt: z.string().trim().max(30, "El color es demasiado largo").optional().nullable(),
+  away_shirt: z.string().trim().max(30, "El color es demasiado largo").optional().nullable(),
   home: side,
   away: side,
 }).refine((p) => p.home_team_id !== p.away_team_id, { message: "Local y visitante deben ser distintos" });
@@ -72,8 +74,13 @@ export async function createMatchAction(_: ActionResult | null, fd: FormData): P
   const p = parseJson(matchPayload, fd);
   if (typeof p === "string") return { ok: false, error: p };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_match", { p });
+  const { home_shirt, away_shirt, ...match } = p;
+  const { data, error } = await supabase.rpc("create_match", { p: match });
   if (error) return { ok: false, error: friendlyError(error) };
+  if (home_shirt || away_shirt) {
+    const { error: e2 } = await supabase.rpc("set_match_shirts", { p_match: data, p_home: home_shirt || null, p_away: away_shirt || null });
+    if (e2) return { ok: false, error: `Partido creado, pero no se pudo guardar el color: ${friendlyError(e2)}` };
+  }
   revalidateAll();
   redirect(`/partidos/${data}?ok=created`);
 }
@@ -84,8 +91,11 @@ export async function updateMatchAction(_: ActionResult | null, fd: FormData): P
   const p = parseJson(matchPayload, fd);
   if (typeof p === "string") return { ok: false, error: p };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("update_match", { p_id: id.data, p });
+  const { home_shirt, away_shirt, ...match } = p;
+  const { error } = await supabase.rpc("update_match", { p_id: id.data, p: match });
   if (error) return { ok: false, error: friendlyError(error) };
+  const { error: e2 } = await supabase.rpc("set_match_shirts", { p_match: id.data, p_home: home_shirt || null, p_away: away_shirt || null });
+  if (e2) return { ok: false, error: `Partido guardado, pero no se pudo guardar el color: ${friendlyError(e2)}` };
   revalidateAll();
   redirect(`/partidos/${id.data}?ok=updated`);
 }

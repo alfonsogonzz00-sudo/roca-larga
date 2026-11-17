@@ -31,7 +31,7 @@ export default async function EditMatch({ params }: { params: Promise<{ id: stri
         initial={{
           id, date, time, venue_id: m.venue_id ?? "", home_team_id: m.home_team_id, away_team_id: m.away_team_id,
           home_formation_id: m.home_formation_id ?? "", away_formation_id: m.away_formation_id ?? "",
-          forecast_weather: m.forecast_weather ?? "", forecast_temp_c: m.forecast_temp_c?.toString() ?? "", notes: m.notes ?? "",
+          forecast_weather: m.forecast_weather ?? "", forecast_temp_c: m.forecast_temp_c?.toString() ?? "", notes: m.notes ?? "", home_shirt: m.home_shirt ?? "", away_shirt: m.away_shirt ?? "",
           status: m.status as "pending", exceptional_lineup: m.exceptional_lineup, exceptional_reason: m.exceptional_reason ?? "",
           home: side(m.home_team_id), away: side(m.away_team_id),
         }} />
