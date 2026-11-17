@@ -9,6 +9,8 @@ import { AttendanceButtons } from "@/components/match/attendance";
 import { LineupPitch } from "@/components/match/lineup-pitch";
 import { MatchHeader, type ScorerLine } from "@/components/match/match-header";
 import { PaymentsPanel, type PaymentTeam } from "@/components/match/payments";
+import { PosterGallery } from "@/components/match/posters";
+import { posterList, posterVersion } from "@/lib/poster/model";
 import { Hint } from "@/components/onboarding/hint";
 import { getStats, predictionForMatch } from "@/lib/data/stats";
 import { getTexts } from "@/lib/data/config";
@@ -270,6 +272,10 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     return [...map.values()];
   };
 
+  // Carteles prepartido: uno por plantilla y equipo con convocados
+  const posterSrc = { match: m, teams: ds.teams, venue, matchPlayers: ds.matchPlayers, playerById: ds.playerById };
+  const posters = m.status === "cancelled" ? [] : posterList(posterSrc);
+
   const okKey = sp.ok ? OK[sp.ok] : null;
   return (
     <div className="space-y-5">
@@ -305,6 +311,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             <PredictionPanel p={pred} home={home} away={away} players={ds.playerById} lowText={t("office.low_confidence")} />
           </div>
         ) }] : started ? [{ label: "Votación", content: mvpBlock }] : []),
+        ...(posters.length ? [{ label: "Carteles", content: <PosterGallery matchId={m.id} version={posterVersion(posterSrc)} items={posters} title={`${home.short_name} vs ${away.short_name}`} /> }] : []),
         ...(s?.isStaff ? [{ label: "Actividad", content: (
           <Card className="p-4">
             {activity.length === 0 ? <p className="text-sm text-ink-3">Sin actividad.</p> : (

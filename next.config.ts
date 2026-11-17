@@ -28,6 +28,10 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
+  // Los carteles prepartido leen del disco sus tipografías, escudos y fotos de jugadores
+  outputFileTracingIncludes: {
+    "/partidos/[id]/cartel/[slug]": ["./src/lib/poster/fonts/*", "./public/poster/**/*", "./public/crests/*", "./public/brand/rocalarga.png"],
+  },
   env: { NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA ?? "dev" },
   turbopack: {
     rules: {
